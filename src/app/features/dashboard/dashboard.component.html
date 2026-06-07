@@ -1,0 +1,121 @@
+<div class="dashboard">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span>✈</span>
+      <span class="brand-name">Pasaje<strong>Ya</strong></span>
+    </div>
+    <div class="nav-right">
+      <span class="nav-hora">{{ hora() }}</span>
+      <span class="nav-user">👤 {{ nombreUsuario() }}</span>
+      <button class="btn-salir" (click)="salir()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- Hero buscador -->
+  <section class="hero">
+    <div class="container">
+
+      <div class="bienvenida">
+        <h1>Hola, <span class="nombre">{{ nombreUsuario() }}</span> 👋</h1>
+        <p>¿A dónde viajas hoy? Encuentra el mejor precio en segundos.</p>
+      </div>
+
+      <div class="search-card">
+        <form [formGroup]="form" (ngSubmit)="buscar()">
+
+          <div class="route-row">
+            <div class="field">
+              <label>Origen</label>
+              <select formControlName="origen">
+                @for (a of aeropuertos; track a.code) {
+                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+                }
+              </select>
+            </div>
+
+            <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">⇄</button>
+
+            <div class="field">
+              <label>Destino</label>
+              <select formControlName="destino">
+                @for (a of aeropuertos; track a.code) {
+                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="details-row">
+            <div class="field">
+              <label>Fecha de ida</label>
+              <input type="date" formControlName="fecha" [min]="fechaMin">
+            </div>
+
+            <div class="field">
+              <label>Pasajeros</label>
+              <div class="counter">
+                <button type="button" (click)="decrementar()">−</button>
+                <span>{{ form.value.pasajeros }}</span>
+                <button type="button" (click)="incrementar()">+</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="search-btn" [disabled]="form.invalid">
+            Buscar vuelos
+          </button>
+
+        </form>
+      </div>
+
+      <!-- Info aerolíneas -->
+      <div class="aerolineas">
+        <span class="label">Comparamos:</span>
+        <span class="badge latam">LATAM</span>
+        <span class="badge sky">SKY</span>
+        <span class="badge jetsmart">JetSmart</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Tarjetas de acceso rápido -->
+  <section class="quick-actions">
+    <div class="container">
+      <h2>Rutas populares</h2>
+      <div class="cards-grid">
+
+        <div class="route-card" (click)="form.patchValue({origen:'LIM', destino:'CUZ'}); buscar()">
+          <span class="route-icon">🏔️</span>
+          <div class="route-info">
+            <strong>Lima → Cusco</strong>
+            <span>Desde S/ 119</span>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+
+        <div class="route-card" (click)="form.patchValue({origen:'LIM', destino:'AQP'}); buscar()">
+          <span class="route-icon">🌋</span>
+          <div class="route-info">
+            <strong>Lima → Arequipa</strong>
+            <span>Desde S/ 99</span>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+
+        <div class="route-card" (click)="form.patchValue({origen:'LIM', destino:'PIU'}); buscar()">
+          <span class="route-icon">🌊</span>
+          <div class="route-info">
+            <strong>Lima → Piura</strong>
+            <span>Desde S/ 89</span>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>

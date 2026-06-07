@@ -1,0 +1,69 @@
+<section class="hero">
+  <app-navbar />
+  <div class="container">
+
+    <div class="hero-text">
+      <h1>Compara vuelos nacionales<br><span>y ahorra en soles</span></h1>
+      <p>Precios en tiempo real · LATAM · Sky · JetSmart</p>
+    </div>
+
+    <div class="search-card">
+      <form [formGroup]="form" (ngSubmit)="buscar()">
+
+        <!-- Origen / Destino -->
+        <div class="route-row">
+          <div class="field">
+            <label>Origen</label>
+            <select formControlName="origen">
+              @for (a of aeropuertos; track a.code) {
+                <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+              }
+            </select>
+          </div>
+
+          <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">⇄</button>
+
+          <div class="field">
+            <label>Destino</label>
+            <select formControlName="destino">
+              @for (a of aeropuertos; track a.code) {
+                <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Fecha / Pasajeros -->
+        <div class="details-row">
+          <div class="field">
+            <label>Fecha de ida</label>
+            <input type="date" formControlName="fecha" [min]="fechaMin">
+          </div>
+
+          <div class="field">
+            <label>Pasajeros</label>
+            <div class="counter">
+              <button type="button" (click)="decrementar()">−</button>
+              <span>{{ form.value.pasajeros }}</span>
+              <button type="button" (click)="incrementar()">+</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="search-btn" [disabled]="form.invalid">
+          Buscar vuelos
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Aerolíneas -->
+    <div class="airlines">
+      <span>Comparamos:</span>
+      <span class="badge latam">LATAM</span>
+      <span class="badge sky">SKY</span>
+      <span class="badge jetsmart">JetSmart</span>
+    </div>
+
+  </div>
+</section>

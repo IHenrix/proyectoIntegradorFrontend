@@ -1,9 +1,9 @@
 <div class="auth-page">
 
-  <!-- Panel izquierdo: branding -->
+  <!-- Panel izquierdo -->
   <aside class="auth-left">
     <div class="brand">
-      <span class="brand-icon">✈</span>
+      <span>✈</span>
       <span class="brand-name">Pasaje<strong>Ya</strong></span>
     </div>
 
@@ -13,7 +13,7 @@
     </p>
 
     <ul class="features">
-      <li><span class="check">✓</span> Precios en tiempo real de LATAM, Sky y JetSmart</li>
+      <li><span class="check">✓</span> Precios en tiempo real LATAM · Sky · JetSmart</li>
       <li><span class="check">✓</span> Predicción IA — ¿el precio subirá o bajará?</li>
       <li><span class="check">✓</span> Alertas automáticas por WhatsApp</li>
       <li><span class="check">✓</span> 100% gratis para el viajero</li>
@@ -26,91 +26,137 @@
     </div>
   </aside>
 
-  <!-- Panel derecho: formulario -->
+  <!-- Panel derecho -->
   <main class="auth-right">
     <div class="card">
 
-      <p class="logo-mobile">Pasaje<strong>Ya</strong> ✈</p>
-
-      <div class="header">
-        @if (modo() === 'login') {
-          <h2>Bienvenido de vuelta</h2>
-          <p>Ingresa a tu cuenta para continuar</p>
-        } @else {
-          <h2>Crea tu cuenta</h2>
-          <p>Empieza a comparar vuelos gratis</p>
-        }
-      </div>
+      <p class="logo-mobile">✈ Pasaje<strong>Ya</strong></p>
 
       <div class="tabs">
         <button [class.active]="modo() === 'login'"    (click)="modo.set('login')">Iniciar sesión</button>
         <button [class.active]="modo() === 'registro'" (click)="modo.set('registro')">Registrarse</button>
       </div>
 
-      <!-- Formulario Login -->
+      <!-- ── LOGIN ── -->
       @if (modo() === 'login') {
-        <form [formGroup]="loginForm" (ngSubmit)="entrar()">
+        <div class="form-header">
+          <h2>Bienvenido de vuelta</h2>
+          <p>Ingresa con tu correo y contraseña</p>
+        </div>
 
+        <form [formGroup]="loginForm" (ngSubmit)="entrar()">
           <div class="field">
             <label>Correo electrónico</label>
-            <input type="email" formControlName="email" placeholder="tucorreo@ejemplo.com"
+            <input type="email" formControlName="email"
+                   placeholder="tucorreo@ejemplo.com"
                    [class.error]="tieneError('login','email')">
-            @if (tieneError('login','email')) { <span class="hint">Ingresa un correo válido</span> }
+            @if (tieneError('login','email')) {
+              <span class="hint">Correo inválido</span>
+            }
           </div>
 
           <div class="field">
             <label>Contraseña</label>
-            <input type="password" formControlName="password" placeholder="••••••••"
+            <input type="password" formControlName="password"
+                   placeholder="••••••••"
                    [class.error]="tieneError('login','password')">
-            @if (tieneError('login','password')) { <span class="hint">Mínimo 6 caracteres</span> }
+            @if (tieneError('login','password')) {
+              <span class="hint">Mínimo 6 caracteres</span>
+            }
           </div>
 
           <div class="forgot"><a href="#">¿Olvidaste tu contraseña?</a></div>
 
-          <button type="submit" class="btn-submit" [disabled]="loginForm.invalid">
-            Entrar →
+          <button type="submit" class="btn-submit" [disabled]="loginForm.invalid || cargando()">
+            @if (cargando()) { Ingresando... } @else { Entrar → }
+          </button>
+        </form>
+      }
+
+      <!-- ── REGISTRO ── -->
+      @if (modo() === 'registro') {
+        <div class="form-header">
+          <h2>Crea tu cuenta</h2>
+          <p>Completa tus datos para empezar</p>
+        </div>
+
+        <form [formGroup]="registroForm" (ngSubmit)="registrarse()">
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Nombre <span class="req">*</span></label>
+              <input type="text" formControlName="nombre"
+                     placeholder="Tu nombre"
+                     [class.error]="tieneError('registro','nombre')">
+              @if (tieneError('registro','nombre')) {
+                <span class="hint">Campo requerido</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Apellido <span class="req">*</span></label>
+              <input type="text" formControlName="apellido"
+                     placeholder="Tu apellido"
+                     [class.error]="tieneError('registro','apellido')">
+              @if (tieneError('registro','apellido')) {
+                <span class="hint">Campo requerido</span>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Correo electrónico <span class="req">*</span></label>
+            <input type="email" formControlName="email"
+                   placeholder="tucorreo@ejemplo.com"
+                   [class.error]="tieneError('registro','email')">
+            @if (tieneError('registro','email')) {
+              <span class="hint">Correo inválido</span>
+            }
+          </div>
+
+          <div class="field">
+            <label>Contraseña <span class="req">*</span></label>
+            <input type="password" formControlName="password"
+                   placeholder="Mínimo 6 caracteres"
+                   [class.error]="tieneError('registro','password')">
+            @if (tieneError('registro','password')) {
+              <span class="hint">Mínimo 6 caracteres</span>
+            }
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Teléfono <span class="opt">opcional · WhatsApp</span></label>
+              <input type="tel" formControlName="telefono" placeholder="+51 999 999 999">
+            </div>
+
+            <div class="field">
+              <label>Nacimiento <span class="opt">opcional</span></label>
+              <input type="date" formControlName="fechaNacimiento">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="registroForm.invalid || cargando()">
+            @if (cargando()) { Registrando... } @else { Crear cuenta → }
           </button>
 
         </form>
       }
 
-      <!-- Formulario Registro -->
-      @if (modo() === 'registro') {
-        <form [formGroup]="registroForm" (ngSubmit)="registrarse()">
-
-          <div class="field">
-            <label>Nombre completo</label>
-            <input type="text" formControlName="nombre" placeholder="Tu nombre completo"
-                   [class.error]="tieneError('registro','nombre')">
-            @if (tieneError('registro','nombre')) { <span class="hint">Ingresa tu nombre</span> }
-          </div>
-
-          <div class="field">
-            <label>Correo electrónico</label>
-            <input type="email" formControlName="email" placeholder="tucorreo@ejemplo.com"
-                   [class.error]="tieneError('registro','email')">
-            @if (tieneError('registro','email')) { <span class="hint">Ingresa un correo válido</span> }
-          </div>
-
-          <div class="field">
-            <label>Contraseña</label>
-            <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres"
-                   [class.error]="tieneError('registro','password')">
-            @if (tieneError('registro','password')) { <span class="hint">Mínimo 6 caracteres</span> }
-          </div>
-
-          <button type="submit" class="btn-submit" [disabled]="registroForm.invalid">
-            Crear cuenta →
-          </button>
-
-        </form>
+      @if (mensaje()) {
+        <div class="msg-success">✓ {{ mensaje() }}</div>
+      }
+      @if (error()) {
+        <div class="msg-error">⚠ {{ error() }}</div>
       }
 
       <p class="switch">
         @if (modo() === 'login') {
-          ¿No tienes cuenta? <button type="button" (click)="modo.set('registro')">Regístrate gratis</button>
+          ¿No tienes cuenta?
+          <button type="button" (click)="modo.set('registro')">Regístrate gratis</button>
         } @else {
-          ¿Ya tienes cuenta? <button type="button" (click)="modo.set('login')">Inicia sesión</button>
+          ¿Ya tienes cuenta?
+          <button type="button" (click)="modo.set('login')">Inicia sesión</button>
         }
       </p>
 

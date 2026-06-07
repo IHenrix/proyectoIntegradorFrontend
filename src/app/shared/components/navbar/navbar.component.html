@@ -1,0 +1,19 @@
+<nav class="navbar">
+  <div class="nav-inner">
+
+    <a routerLink="/" class="logo">
+      <span>✈</span>
+      Pasaje<strong>Ya</strong>
+    </a>
+
+    <div class="nav-actions">
+      @if (authService.estaAutenticado()) {
+        <span class="bienvenida">Hola, viajero</span>
+        <button class="btn-logout" (click)="authService.cerrarSesion()">Cerrar sesión</button>
+      } @else {
+        <a routerLink="/auth" class="btn-login">Iniciar sesión</a>
+      }
+    </div>
+
+  </div>
+</nav>

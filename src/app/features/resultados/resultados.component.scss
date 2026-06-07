@@ -1,0 +1,297 @@
+.resultados-page {
+  min-height: 100vh;
+  background: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Top bar ──────────────────────────────────────────────────────
+.top-bar {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.logo {
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  strong { color: #2563eb; }
+}
+
+.ruta-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .ruta {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .sub {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+}
+
+.btn-excel {
+  padding: 0.5rem 1.1rem;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.2s;
+
+  &:hover { background: #15803d; }
+}
+
+// ── Contenido ────────────────────────────────────────────────────
+.content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  width: 100%;
+}
+
+.total {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+// ── Estado cargando / error ───────────────────────────────────────
+.estado {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+
+  p { font-size: 1rem; margin-top: 1rem; }
+
+  &.error {
+    p { color: #dc2626; font-weight: 600; }
+    small { color: #94a3b8; font-size: 0.8rem; }
+  }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Cards de vuelo ───────────────────────────────────────────────
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  transition: box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+}
+
+// ── Left: aerolínea + horario ────────────────────────────────────
+.card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.airline-badge {
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+
+  &.latam    { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  &.sky      { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+  &.jetsmart { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+}
+
+.horario {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  .hora { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
+  .flecha { color: #94a3b8; font-size: 0.9rem; }
+}
+
+.duracion {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  background: #f8fafc;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+}
+
+// ── Divider vertical ─────────────────────────────────────────────
+.divider {
+  width: 1px;
+  height: 70px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+}
+
+// ── Mid: tarifa + semáforo ────────────────────────────────────────
+.card-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tarifa {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: capitalize;
+}
+
+.equipaje {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+// ── Semáforo ─────────────────────────────────────────────────────
+.semaforo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &.verde {
+    background: #f0fdf4;
+    color: #16a34a;
+    .dot { background: #16a34a; }
+  }
+
+  &.amarillo {
+    background: #fefce8;
+    color: #ca8a04;
+    .dot { background: #eab308; }
+  }
+
+  &.rojo {
+    background: #fff1f2;
+    color: #dc2626;
+    .dot { background: #dc2626; }
+  }
+}
+
+// ── Right: precio + botón ────────────────────────────────────────
+.card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  min-width: 130px;
+}
+
+.precio-box {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+
+  .moneda {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .precio {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+  }
+}
+
+.por-persona {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.btn-oferta {
+  padding: 0.55rem 1.1rem;
+  background: linear-gradient(90deg, #1d4ed8, #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 0.25rem;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.88; }
+}
+
+// ── Responsive ───────────────────────────────────────────────────
+@media (max-width: 600px) {
+  .card {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .divider { display: none; }
+
+  .card-right {
+    align-items: flex-start;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
