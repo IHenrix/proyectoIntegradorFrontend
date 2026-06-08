@@ -1,8 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { AEROPUERTOS } from '../../core/models/vuelo.model';
+
+const DEMO_FECHA = '2026-06-20';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,10 +13,11 @@ import { AEROPUERTOS } from '../../core/models/vuelo.model';
   templateUrl: './dashboard.component.html',
   styleUrl:    './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
-  private auth   = inject(AuthService);
-  private fb     = inject(FormBuilder);
-  private router = inject(Router);
+export class DashboardComponent implements OnInit, OnDestroy {
+  private auth      = inject(AuthService);
+  private fb        = inject(FormBuilder);
+  private router    = inject(Router);
+  private intervalo!: ReturnType<typeof setInterval>;
 
   nombreUsuario = signal<string>('');
   aeropuertos   = AEROPUERTOS;
@@ -32,7 +35,11 @@ export class DashboardComponent implements OnInit {
     const nombre = localStorage.getItem('nombre') ?? 'Viajero';
     this.nombreUsuario.set(nombre);
     this.actualizarHora();
-    setInterval(() => this.actualizarHora(), 60000);
+    this.intervalo = setInterval(() => this.actualizarHora(), 60000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.intervalo);
   }
 
   private actualizarHora(): void {
@@ -58,6 +65,13 @@ export class DashboardComponent implements OnInit {
         queryParams: { origen, destino, fecha, pasajeros }
       });
     }
+  }
+
+  irRuta(origen: string, destino: string): void {
+    const pasajeros = this.form.value.pasajeros ?? 1;
+    this.router.navigate(['/resultados'], {
+      queryParams: { origen, destino, fecha: DEMO_FECHA, pasajeros }
+    });
   }
 
   salir(): void {

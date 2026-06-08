@@ -3,27 +3,29 @@
   background: #f1f5f9;
 }
 
-// ── Navbar ────────────────────────────────────────────────────
+// ── Navbar ────────────────────────────────────────────────────────
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
-  background: #fff;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  padding: 0 2rem;
+  height: 68px;
+  background: #080d1a;
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .nav-brand {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #0f172a;
-  strong { color: #2563eb; }
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+  strong { color: #fbbf24; }
 }
 
 .nav-right {
@@ -33,44 +35,59 @@
 }
 
 .nav-hora {
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: 0.83rem;
+  color: rgba(248,250,252,0.4);
 }
 
 .nav-user {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  color: #1e293b;
+  color: rgba(248,250,252,0.85);
 }
 
 .btn-salir {
   padding: 0.4rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 1.5px solid rgba(255,255,255,0.15);
   border-radius: 8px;
-  background: #fff;
-  color: #64748b;
-  font-size: 0.85rem;
+  background: transparent;
+  color: rgba(248,250,252,0.55);
+  font-size: 0.83rem;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #ef4444;
-    color: #ef4444;
+    border-color: rgba(252,165,165,0.4);
+    color: #fca5a5;
   }
 }
 
-// ── Hero ──────────────────────────────────────────────────────
+// ── Hero ──────────────────────────────────────────────────────────
 .hero {
-  background: linear-gradient(145deg, #1e3a8a 0%, #1d4ed8 55%, #2563eb 100%);
-  padding: 3rem 0 2.5rem;
+  background: #080d1a;
+  background-image:
+    radial-gradient(ellipse at 15% 60%, rgba(30,58,138,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(29,78,216,0.3)  0%, transparent 50%);
+  padding: 3rem 0 3.5rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
 }
 
 .container {
-  max-width: 860px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 2rem;
+  position: relative;
 }
 
 .bienvenida {
@@ -78,26 +95,34 @@
   margin-bottom: 2rem;
 
   h1 {
-    color: #fff;
-    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
-    font-weight: 700;
+    color: #f8fafc;
+    font-size: clamp(1.6rem, 3.5vw, 2.3rem);
+    font-weight: 800;
     margin-bottom: 0.5rem;
+    letter-spacing: -0.025em;
 
-    .nombre { color: #fbbf24; }
+    .nombre {
+      background: linear-gradient(90deg, #fbbf24, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
   }
 
   p {
-    color: rgba(255,255,255,0.78);
-    font-size: 1rem;
+    color: rgba(248,250,252,0.5);
+    font-size: 0.95rem;
   }
 }
 
-// ── Search card (igual que home) ──────────────────────────────
+// ── Search card ───────────────────────────────────────────────────
 .search-card {
   background: #fff;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  border-radius: 24px;
+  padding: 2rem 2.25rem;
+  box-shadow:
+    0 32px 64px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(255,255,255,0.05);
   margin-bottom: 1.5rem;
 }
 
@@ -106,7 +131,6 @@
   align-items: flex-end;
   gap: 0.75rem;
   margin-bottom: 1rem;
-
   .field { flex: 1; }
 }
 
@@ -123,41 +147,54 @@
   gap: 0.35rem;
 
   label {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    color: #64748b;
+    color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.09em;
   }
 
   select, input {
-    padding: 0.875rem 1rem;
+    padding: 0.9rem 1rem;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 0.95rem;
     color: #0f172a;
     background: #f8fafc;
     font-family: inherit;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 
-    &:focus { outline: none; border-color: #2563eb; background: #fff; }
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
   }
 }
 
 .swap-btn {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid #e2e8f0;
   background: #fff;
-  color: #2563eb;
-  font-size: 1.1rem;
+  color: #3b82f6;
+  font-size: 1.15rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  &:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+  &:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+    transform: rotate(180deg);
+  }
 }
 
 .counter {
@@ -167,15 +204,15 @@
   border-radius: 12px;
   overflow: hidden;
   background: #f8fafc;
-  height: 48px;
+  height: 50px;
 
   button {
-    width: 44px;
+    width: 46px;
     height: 100%;
     border: none;
     background: transparent;
-    font-size: 1.2rem;
-    color: #2563eb;
+    font-size: 1.3rem;
+    color: #3b82f6;
     cursor: pointer;
     font-family: inherit;
     &:hover { background: #eff6ff; }
@@ -185,26 +222,30 @@
     flex: 1;
     text-align: center;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: #0f172a;
   }
 }
 
 .search-btn {
   width: 100%;
-  padding: 1rem;
-  background: linear-gradient(90deg, #f59e0b, #f97316);
+  padding: 1.05rem;
+  background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: opacity 0.2s, transform 0.15s;
+  transition: all 0.22s;
 
-  &:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(249,115,22,0.45);
+  }
+
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
 }
 
 .aerolineas {
@@ -212,31 +253,33 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  color: rgba(255,255,255,0.7);
-  font-size: 0.875rem;
+  color: rgba(248,250,252,0.4);
+  font-size: 0.8rem;
   flex-wrap: wrap;
 }
 
 .badge {
-  padding: 0.35rem 0.9rem;
+  padding: 0.3rem 0.85rem;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  &.latam    { background: #dc2626; color: #fff; }
-  &.sky      { background: #38bdf8; color: #0c4a6e; }
-  &.jetsmart { background: #f97316; color: #fff; }
+
+  &.latam    { background: rgba(220,38,38,0.15);  color: #fca5a5; border: 1px solid rgba(220,38,38,0.2); }
+  &.sky      { background: rgba(2,132,199,0.15);  color: #7dd3fc; border: 1px solid rgba(2,132,199,0.2); }
+  &.jetsmart { background: rgba(234,88,12,0.15);  color: #fdba74; border: 1px solid rgba(234,88,12,0.2); }
 }
 
-// ── Quick actions ─────────────────────────────────────────────
+// ── Quick actions ─────────────────────────────────────────────────
 .quick-actions {
-  padding: 2.5rem 0;
+  padding: 2.5rem 0 3.5rem;
 
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: #0f172a;
     margin-bottom: 1.25rem;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -249,34 +292,73 @@
 }
 
 .route-card {
-  background: #fff;
   border-radius: 16px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.35rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   cursor: pointer;
-  border: 2px solid #e2e8f0;
-  transition: all 0.2s;
+  border: 2px solid transparent;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
 
-  &:hover {
-    border-color: #2563eb;
-    box-shadow: 0 4px 20px rgba(37,99,235,0.12);
-    transform: translateY(-2px);
+  // Lima → Cusco — azul frío
+  &:nth-child(1) {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #fff;
+    .route-info strong { color: #f8fafc; }
+    .route-info span   { color: rgba(248,250,252,0.55); }
+    .route-icon        { background: rgba(255,255,255,0.08); }
+    .arrow             { color: rgba(255,255,255,0.3); }
   }
 
-  .route-icon { font-size: 1.6rem; }
+  // Lima → Arequipa — tierra cálida
+  &:nth-child(3) {
+    background: linear-gradient(135deg, #1c0a00, #7c2d12);
+    color: #fff;
+    .route-info strong { color: #f8fafc; }
+    .route-info span   { color: rgba(248,250,252,0.55); }
+    .route-icon        { background: rgba(255,255,255,0.08); }
+    .arrow             { color: rgba(255,255,255,0.3); }
+  }
+
+  // Lima → Piura — verde mar
+  &:nth-child(5) {
+    background: linear-gradient(135deg, #052e16, #065f46);
+    color: #fff;
+    .route-info strong { color: #f8fafc; }
+    .route-info span   { color: rgba(248,250,252,0.55); }
+    .route-icon        { background: rgba(255,255,255,0.08); }
+    .arrow             { color: rgba(255,255,255,0.3); }
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+  }
+
+  .route-icon {
+    font-size: 1.6rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
   .route-info {
     flex: 1;
     display: flex;
     flex-direction: column;
 
-    strong { font-size: 0.95rem; color: #0f172a; }
-    span   { font-size: 0.8rem; color: #2563eb; font-weight: 600; margin-top: 0.15rem; }
+    strong { font-size: 0.95rem; font-weight: 700; }
+    span   { font-size: 0.78rem; font-weight: 500; margin-top: 0.15rem; }
   }
 
-  .arrow { font-size: 1rem; color: #94a3b8; }
+  .arrow { font-size: 1.1rem; }
 }
 
 @media (max-width: 600px) {

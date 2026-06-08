@@ -1,14 +1,20 @@
 <div class="resultados-page">
 
-  <!-- Header -->
+  <!-- Top bar -->
   <header class="top-bar">
     <a routerLink="/" class="logo">✈ Pasaje<strong>Ya</strong></a>
+
     <div class="ruta-info">
-      <span class="ruta">{{ ciudadDe(params.origen) }} → {{ ciudadDe(params.destino) }}</span>
+      <span class="ruta">
+        {{ ciudadDe(params.origen) }}
+        <span class="flecha-ruta">→</span>
+        {{ ciudadDe(params.destino) }}
+      </span>
       <span class="sub">{{ params.fecha }} · {{ params.pasajeros }} pasajero{{ params.pasajeros > 1 ? 's' : '' }}</span>
     </div>
+
     <button class="btn-excel" (click)="exportar()" title="Exportar a Excel">
-      ⬇ Excel
+      ↓ Excel
     </button>
   </header>
 
@@ -25,20 +31,27 @@
     <!-- Error -->
     @if (vueloService.error()) {
       <div class="estado error">
-        <p>⚠ {{ vueloService.error() }}</p>
+        <div class="error-icon">⚠</div>
+        <p>{{ vueloService.error() }}</p>
         <small>Verifica que el backend esté corriendo en puerto 8080</small>
       </div>
     }
 
     <!-- Resultados -->
     @if (!vueloService.cargando() && !vueloService.error()) {
-      <p class="total">{{ vueloService.vuelos().length }} vuelos encontrados</p>
+
+      <div class="results-header">
+        <p class="total">
+          <strong>{{ vueloService.vuelos().length }}</strong> vuelos encontrados
+        </p>
+        <p class="ordenado">Ordenado por precio</p>
+      </div>
 
       <div class="cards">
         @for (v of vueloService.vuelos(); track v.id) {
           <div class="card">
 
-            <!-- Aerolínea -->
+            <!-- Aerolínea + horario -->
             <div class="card-left">
               <span class="airline-badge" [class]="v.aerolinea.toLowerCase()">
                 {{ v.aerolinea }}
@@ -51,16 +64,27 @@
               <span class="duracion">{{ v.duracion }}</span>
             </div>
 
-            <!-- Separador -->
             <div class="divider"></div>
 
-            <!-- Info tarifa -->
+            <!-- Tarifa + detalles + semáforo -->
             <div class="card-mid">
-              <span class="tarifa">{{ v.tipoTarifa }}</span>
-              <span class="equipaje">
-                {{ v.incluyeEquipaje ? '✓ Equipaje incluido' : '✗ Sin equipaje' }}
-              </span>
-              <!-- Semáforo -->
+              <span class="tarifa">{{ v.tipoTarifa | titlecase }}</span>
+
+              <div class="detalles">
+                <span class="detalle-item">
+                  {{ v.equipajeBodegaKg > 0 ? '✓ Bodega ' + v.equipajeBodegaKg + ' kg' : '✗ Sin bodega' }}
+                </span>
+                <span class="detalle-item">
+                  {{ v.equipajeManoKg > 0 ? '✓ Mano ' + v.equipajeManoKg + ' kg' : '✗ Sin mano' }}
+                </span>
+                <span class="detalle-item">
+                  {{ v.permiteReembolso ? '✓ Reembolsable' : '✗ No reembolsable' }}
+                </span>
+                @if (v.asientoSeleccionable) {
+                  <span class="detalle-item">✓ Asiento seleccionable</span>
+                }
+              </div>
+
               <div class="semaforo" [class]="v.semaforo">
                 <span class="dot"></span>
                 <span class="label">
@@ -78,7 +102,12 @@
                 <span class="precio">{{ v.precio | number:'1.2-2' }}</span>
               </div>
               <span class="por-persona">por persona</span>
-              <button class="btn-oferta">Ver oferta →</button>
+              <a [href]="urlAerolinea(v.aerolinea)"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="btn-oferta">
+                Ver oferta →
+              </a>
             </div>
 
           </div>

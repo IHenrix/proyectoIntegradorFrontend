@@ -1,69 +1,131 @@
-<section class="hero">
+<div class="home">
+
   <app-navbar />
-  <div class="container">
 
-    <div class="hero-text">
-      <h1>Compara vuelos nacionales<br><span>y ahorra en soles</span></h1>
-      <p>Precios en tiempo real · LATAM · Sky · JetSmart</p>
-    </div>
+  <!-- ── Hero ─────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="container">
 
-    <div class="search-card">
-      <form [formGroup]="form" (ngSubmit)="buscar()">
+      <div class="hero-content">
+        <div class="hero-badge">✈ Vuelos nacionales · LATAM · Sky · JetSmart</div>
+        <h1>Compara precios y<br><span class="highlight">vuela más barato</span></h1>
+        <p class="hero-sub">
+          Busca en las 3 principales aerolíneas al mismo tiempo.<br>
+          Precios en tiempo real, en soles peruanos.
+        </p>
+      </div>
 
-        <!-- Origen / Destino -->
-        <div class="route-row">
-          <div class="field">
-            <label>Origen</label>
-            <select formControlName="origen">
-              @for (a of aeropuertos; track a.code) {
-                <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
-              }
-            </select>
-          </div>
+      <div class="search-card">
+        <form [formGroup]="form" (ngSubmit)="buscar()">
 
-          <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">⇄</button>
+          <div class="route-row">
+            <div class="field">
+              <label>Origen</label>
+              <select formControlName="origen">
+                @for (a of aeropuertos; track a.code) {
+                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+                }
+              </select>
+            </div>
 
-          <div class="field">
-            <label>Destino</label>
-            <select formControlName="destino">
-              @for (a of aeropuertos; track a.code) {
-                <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
-              }
-            </select>
-          </div>
-        </div>
+            <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">⇄</button>
 
-        <!-- Fecha / Pasajeros -->
-        <div class="details-row">
-          <div class="field">
-            <label>Fecha de ida</label>
-            <input type="date" formControlName="fecha" [min]="fechaMin">
-          </div>
-
-          <div class="field">
-            <label>Pasajeros</label>
-            <div class="counter">
-              <button type="button" (click)="decrementar()">−</button>
-              <span>{{ form.value.pasajeros }}</span>
-              <button type="button" (click)="incrementar()">+</button>
+            <div class="field">
+              <label>Destino</label>
+              <select formControlName="destino">
+                @for (a of aeropuertos; track a.code) {
+                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+                }
+              </select>
             </div>
           </div>
+
+          <div class="details-row">
+            <div class="field">
+              <label>Fecha de ida</label>
+              <input type="date" formControlName="fecha" [min]="fechaMin">
+            </div>
+
+            <div class="field">
+              <label>Pasajeros</label>
+              <div class="counter">
+                <button type="button" (click)="decrementar()">−</button>
+                <span>{{ form.value.pasajeros }}</span>
+                <button type="button" (click)="incrementar()">+</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="search-btn" [disabled]="form.invalid">
+            Buscar vuelos
+          </button>
+
+        </form>
+      </div>
+
+      <div class="trust-bar">
+        <span>✓ Sin registro obligatorio</span>
+        <span class="dot">·</span>
+        <span>✓ Precios en soles</span>
+        <span class="dot">·</span>
+        <span>✓ Semáforo de precios</span>
+        <span class="dot">·</span>
+        <span>✓ 100% gratis</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Cómo funciona ─────────────────────────────────────────── -->
+  <section class="como-funciona">
+    <div class="container">
+
+      <div class="section-header">
+        <h2>¿Cómo funciona?</h2>
+        <p>Encuentra el mejor precio en 3 pasos simples</p>
+      </div>
+
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-icon">🔍</div>
+          <div class="step-num">01</div>
+          <h3>Busca tu ruta</h3>
+          <p>Elige origen, destino y fecha. Comparamos LATAM, Sky y JetSmart en un solo lugar.</p>
         </div>
 
-        <button type="submit" class="search-btn" [disabled]="form.invalid">
-          Buscar vuelos
-        </button>
+        <div class="step-arrow">→</div>
 
-      </form>
+        <div class="step">
+          <div class="step-icon">🚦</div>
+          <div class="step-num">02</div>
+          <h3>Compara con semáforo</h3>
+          <p>Ve todos los vuelos ordenados por precio. El semáforo indica si el precio está por debajo o encima del histórico.</p>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step">
+          <div class="step-icon">💸</div>
+          <div class="step-num">03</div>
+          <h3>Elige y ahorra</h3>
+          <p>Selecciona la mejor tarifa con info clara: equipaje, reembolso y tipo de asiento.</p>
+        </div>
+
+      </div>
     </div>
+  </section>
 
-    <!-- Aerolíneas -->
-    <div class="airlines">
-      <span>Comparamos:</span>
-      <span class="badge latam">LATAM</span>
-      <span class="badge sky">SKY</span>
-      <span class="badge jetsmart">JetSmart</span>
+  <!-- ── Aerolíneas ─────────────────────────────────────────────── -->
+  <section class="airlines-section">
+    <div class="container">
+      <p class="airlines-label">Comparamos directamente de</p>
+      <div class="airline-badges">
+        <span class="badge latam">LATAM</span>
+        <span class="badge sky">SKY</span>
+        <span class="badge jetsmart">JetSmart</span>
+      </div>
     </div>
+  </section>
 
-  </div>
-</section>
+</div>

@@ -1,7 +1,9 @@
 <div class="auth-page">
 
-  <!-- Panel izquierdo -->
+  <!-- ── Panel izquierdo ── -->
   <aside class="auth-left">
+    <a routerLink="/" class="back-link">← Inicio</a>
+
     <div class="brand">
       <span>✈</span>
       <span class="brand-name">Pasaje<strong>Ya</strong></span>
@@ -15,7 +17,7 @@
     <ul class="features">
       <li><span class="check">✓</span> Precios en tiempo real LATAM · Sky · JetSmart</li>
       <li><span class="check">✓</span> Predicción IA — ¿el precio subirá o bajará?</li>
-      <li><span class="check">✓</span> Alertas automáticas por WhatsApp</li>
+      <li><span class="check">✓</span> Alertas automáticas por correo</li>
       <li><span class="check">✓</span> 100% gratis para el viajero</li>
     </ul>
 
@@ -26,29 +28,36 @@
     </div>
   </aside>
 
-  <!-- Panel derecho -->
+  <!-- ── Panel derecho ── -->
   <main class="auth-right">
     <div class="card">
 
-      <p class="logo-mobile">✈ Pasaje<strong>Ya</strong></p>
-
-      <div class="tabs">
-        <button [class.active]="modo() === 'login'"    (click)="modo.set('login')">Iniciar sesión</button>
-        <button [class.active]="modo() === 'registro'" (click)="modo.set('registro')">Registrarse</button>
+      <!-- Cabecera mobile -->
+      <div class="card-top">
+        <p class="logo-mobile">✈ Pasaje<strong>Ya</strong></p>
+        <a routerLink="/" class="back-mobile">← Inicio</a>
       </div>
 
-      <!-- ── LOGIN ── -->
+      <!-- Tabs -->
+      <div class="tabs">
+        <button [class.active]="modo() === 'login'"    (click)="cambiarModo('login')">Iniciar sesión</button>
+        <button [class.active]="modo() === 'registro'" (click)="cambiarModo('registro')">Registrarse</button>
+      </div>
+
+      <!-- ─── LOGIN ─── -->
       @if (modo() === 'login') {
         <div class="form-header">
           <h2>Bienvenido de vuelta</h2>
-          <p>Ingresa con tu correo y contraseña</p>
+          <p>Ingresa tu correo y contraseña</p>
         </div>
 
         <form [formGroup]="loginForm" (ngSubmit)="entrar()">
+
           <div class="field">
             <label>Correo electrónico</label>
             <input type="email" formControlName="email"
                    placeholder="tucorreo@ejemplo.com"
+                   autocomplete="email"
                    [class.error]="tieneError('login','email')">
             @if (tieneError('login','email')) {
               <span class="hint">Correo inválido</span>
@@ -57,23 +66,35 @@
 
           <div class="field">
             <label>Contraseña</label>
-            <input type="password" formControlName="password"
-                   placeholder="••••••••"
-                   [class.error]="tieneError('login','password')">
+            <div class="pass-wrapper">
+              <input [type]="mostrarPass() ? 'text' : 'password'"
+                     formControlName="password"
+                     placeholder="••••••••"
+                     autocomplete="current-password"
+                     [class.error]="tieneError('login','password')">
+              <button type="button" class="show-pass"
+                      (click)="mostrarPass.set(!mostrarPass())"
+                      [attr.aria-label]="mostrarPass() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                @if (mostrarPass()) { 🙈 } @else { 👁 }
+              </button>
+            </div>
             @if (tieneError('login','password')) {
               <span class="hint">Mínimo 6 caracteres</span>
             }
           </div>
 
-          <div class="forgot"><a href="#">¿Olvidaste tu contraseña?</a></div>
-
-          <button type="submit" class="btn-submit" [disabled]="loginForm.invalid || cargando()">
-            @if (cargando()) { Ingresando... } @else { Entrar → }
+          <button type="submit" class="btn-submit" [disabled]="cargando()">
+            @if (cargando()) {
+              <span class="spinner"></span> Ingresando...
+            } @else {
+              Entrar →
+            }
           </button>
+
         </form>
       }
 
-      <!-- ── REGISTRO ── -->
+      <!-- ─── REGISTRO ─── -->
       @if (modo() === 'registro') {
         <div class="form-header">
           <h2>Crea tu cuenta</h2>
@@ -87,9 +108,10 @@
               <label>Nombre <span class="req">*</span></label>
               <input type="text" formControlName="nombre"
                      placeholder="Tu nombre"
+                     autocomplete="given-name"
                      [class.error]="tieneError('registro','nombre')">
               @if (tieneError('registro','nombre')) {
-                <span class="hint">Campo requerido</span>
+                <span class="hint">Mínimo 2 caracteres</span>
               }
             </div>
 
@@ -97,9 +119,10 @@
               <label>Apellido <span class="req">*</span></label>
               <input type="text" formControlName="apellido"
                      placeholder="Tu apellido"
+                     autocomplete="family-name"
                      [class.error]="tieneError('registro','apellido')">
               @if (tieneError('registro','apellido')) {
-                <span class="hint">Campo requerido</span>
+                <span class="hint">Mínimo 2 caracteres</span>
               }
             </div>
           </div>
@@ -108,6 +131,7 @@
             <label>Correo electrónico <span class="req">*</span></label>
             <input type="email" formControlName="email"
                    placeholder="tucorreo@ejemplo.com"
+                   autocomplete="email"
                    [class.error]="tieneError('registro','email')">
             @if (tieneError('registro','email')) {
               <span class="hint">Correo inválido</span>
@@ -116,9 +140,18 @@
 
           <div class="field">
             <label>Contraseña <span class="req">*</span></label>
-            <input type="password" formControlName="password"
-                   placeholder="Mínimo 6 caracteres"
-                   [class.error]="tieneError('registro','password')">
+            <div class="pass-wrapper">
+              <input [type]="mostrarPassR() ? 'text' : 'password'"
+                     formControlName="password"
+                     placeholder="Mínimo 6 caracteres"
+                     autocomplete="new-password"
+                     [class.error]="tieneError('registro','password')">
+              <button type="button" class="show-pass"
+                      (click)="mostrarPassR.set(!mostrarPassR())"
+                      [attr.aria-label]="mostrarPassR() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                @if (mostrarPassR()) { 🙈 } @else { 👁 }
+              </button>
+            </div>
             @if (tieneError('registro','password')) {
               <span class="hint">Mínimo 6 caracteres</span>
             }
@@ -126,8 +159,10 @@
 
           <div class="grid-2">
             <div class="field">
-              <label>Teléfono <span class="opt">opcional · WhatsApp</span></label>
-              <input type="tel" formControlName="telefono" placeholder="+51 999 999 999">
+              <label>Teléfono <span class="opt">WhatsApp · opcional</span></label>
+              <input type="tel" formControlName="telefono"
+                     placeholder="+51 999 999 999"
+                     autocomplete="tel">
             </div>
 
             <div class="field">
@@ -136,13 +171,18 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-submit" [disabled]="registroForm.invalid || cargando()">
-            @if (cargando()) { Registrando... } @else { Crear cuenta → }
+          <button type="submit" class="btn-submit" [disabled]="cargando()">
+            @if (cargando()) {
+              <span class="spinner"></span> Registrando...
+            } @else {
+              Crear cuenta →
+            }
           </button>
 
         </form>
       }
 
+      <!-- Mensajes -->
       @if (mensaje()) {
         <div class="msg-success">✓ {{ mensaje() }}</div>
       }
@@ -150,13 +190,14 @@
         <div class="msg-error">⚠ {{ error() }}</div>
       }
 
+      <!-- Switch -->
       <p class="switch">
         @if (modo() === 'login') {
           ¿No tienes cuenta?
-          <button type="button" (click)="modo.set('registro')">Regístrate gratis</button>
+          <button type="button" (click)="cambiarModo('registro')">Regístrate gratis</button>
         } @else {
           ¿Ya tienes cuenta?
-          <button type="button" (click)="modo.set('login')">Inicia sesión</button>
+          <button type="button" (click)="cambiarModo('login')">Inicia sesión</button>
         }
       </p>
 

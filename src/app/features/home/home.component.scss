@@ -1,58 +1,109 @@
-.hero {
+.home {
   min-height: 100vh;
-  background: linear-gradient(145deg, #1e3a8a 0%, #1d4ed8 55%, #2563eb 100%);
   display: flex;
-  align-items: center;
-  position: relative;
+  flex-direction: column;
+}
 
+// ── Hero ─────────────────────────────────────────────────────────
+.hero {
+  background: #080d1a;
+  background-image:
+    radial-gradient(ellipse at 15% 60%, rgba(30,58,138,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(29,78,216,0.3)  0%, transparent 50%),
+    radial-gradient(ellipse at 50% 110%, rgba(14,165,233,0.07) 0%, transparent 45%);
+  padding: 8rem 0 5.5rem;
+  position: relative;
+  overflow: hidden;
+
+  // dot grid
   &::before {
     content: '';
-    position: fixed;
+    position: absolute;
     inset: 0;
-    background:
-      radial-gradient(circle at 15% 85%, rgba(255,255,255,0.05) 0%, transparent 50%),
-      radial-gradient(circle at 85% 15%, rgba(255,255,255,0.05) 0%, transparent 50%);
+    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+
+  // bottom fade
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, transparent, #080d1a 85%);
     pointer-events: none;
   }
 }
 
 .container {
-  max-width: 860px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 5rem 2rem 2rem;
+  padding: 0 2rem;
   width: 100%;
   position: relative;
 }
 
-// ── Texto hero ───────────────────────────────────────────────────
-.hero-text {
+// ── Hero content ─────────────────────────────────────────────────
+.hero-content {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.75rem;
+}
 
-  h1 {
-    color: #fff;
-    font-size: clamp(1.8rem, 4vw, 2.8rem);
-    font-weight: 700;
-    line-height: 1.25;
-    margin-bottom: 0.75rem;
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(59,130,246,0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.28);
+  border-radius: 100px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+  backdrop-filter: blur(6px);
+}
 
-    span { color: #fbbf24; }
-  }
+.hero-content h1 {
+  color: #f8fafc;
+  font-size: clamp(2.4rem, 5.5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
 
-  p {
-    color: rgba(255,255,255,0.75);
-    font-size: 1rem;
-    letter-spacing: 0.04em;
+  .highlight {
+    background: linear-gradient(90deg, #fbbf24, #fb923c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
-// ── Tarjeta buscador ─────────────────────────────────────────────
+.hero-sub {
+  color: rgba(248,250,252,0.55);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+// ── Search card ──────────────────────────────────────────────────
 .search-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2.25rem 2.25rem 2rem;
+  box-shadow:
+    0 40px 80px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.06);
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .route-row {
@@ -60,7 +111,6 @@
   align-items: flex-end;
   gap: 0.75rem;
   margin-bottom: 1rem;
-
   .field { flex: 1; }
 }
 
@@ -77,48 +127,56 @@
   gap: 0.35rem;
 
   label {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    color: #64748b;
+    color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.09em;
   }
 
   select, input {
-    padding: 0.875rem 1rem;
+    padding: 0.9rem 1rem;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 0.95rem;
     color: #0f172a;
     background: #f8fafc;
     font-family: inherit;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
 
     &:focus {
       outline: none;
-      border-color: #2563eb;
+      border-color: #3b82f6;
       background: #fff;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
     }
   }
 }
 
 .swap-btn {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid #e2e8f0;
   background: #fff;
-  color: #2563eb;
-  font-size: 1.1rem;
+  color: #3b82f6;
+  font-size: 1.15rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background: #2563eb;
+    background: #3b82f6;
+    border-color: #3b82f6;
     color: #fff;
-    border-color: #2563eb;
+    transform: rotate(180deg);
+    box-shadow: 0 4px 14px rgba(59,130,246,0.35);
   }
 }
 
@@ -129,18 +187,18 @@
   border-radius: 12px;
   overflow: hidden;
   background: #f8fafc;
-  height: 48px;
+  height: 50px;
 
   button {
-    width: 44px;
+    width: 46px;
     height: 100%;
     border: none;
     background: transparent;
-    font-size: 1.2rem;
-    color: #2563eb;
+    font-size: 1.3rem;
+    color: #3b82f6;
     cursor: pointer;
     font-family: inherit;
-
+    transition: background 0.15s;
     &:hover { background: #eff6ff; }
   }
 
@@ -148,58 +206,196 @@
     flex: 1;
     text-align: center;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: #0f172a;
   }
 }
 
 .search-btn {
   width: 100%;
-  padding: 1rem;
-  background: linear-gradient(90deg, #f59e0b, #f97316);
+  padding: 1.05rem;
+  background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   letter-spacing: 0.02em;
-  transition: opacity 0.2s, transform 0.15s;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
 
   &:hover:not(:disabled) {
-    opacity: 0.92;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(249,115,22,0.45);
   }
 
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  &:active:not(:disabled) { transform: translateY(0); }
+
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
 }
 
-// ── Aerolíneas ───────────────────────────────────────────────────
-.airlines {
+// ── Trust bar ────────────────────────────────────────────────────
+.trust-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  color: rgba(255,255,255,0.7);
-  font-size: 0.875rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  color: rgba(248,250,252,0.45);
+  font-size: 0.78rem;
+  font-weight: 500;
+
+  .dot { opacity: 0.25; }
+}
+
+// ── Cómo funciona ─────────────────────────────────────────────────
+.como-funciona {
+  background: #fff;
+  padding: 6.5rem 0;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+
+  h2 {
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.6rem;
+  }
+
+  p {
+    color: #64748b;
+    font-size: 1.05rem;
+  }
+}
+
+.steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 2rem;
+
+  .step-icon {
+    font-size: 2rem;
+    width: 72px;
+    height: 72px;
+    background: #f0f9ff;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e0f2fe;
+    margin-bottom: 1.1rem;
+    transition: transform 0.2s;
+  }
+
+  &:hover .step-icon { transform: translateY(-4px); }
+
+  .step-num {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #3b82f6;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: #eff6ff;
+    padding: 0.22rem 0.8rem;
+    border-radius: 100px;
+    margin-bottom: 0.875rem;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.65;
+    max-width: 210px;
+  }
+}
+
+.step-arrow {
+  flex-shrink: 0;
+  color: #cbd5e1;
+  font-size: 1.6rem;
+  padding-top: 2rem;
+  line-height: 1;
+}
+
+// ── Airlines ──────────────────────────────────────────────────────
+.airlines-section {
+  background: #f8fafc;
+  padding: 3.5rem 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.airlines-label {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 1.5rem;
+}
+
+.airline-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .badge {
-  padding: 0.35rem 0.9rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  padding: 0.65rem 1.75rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  border: 2px solid transparent;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
 
-  &.latam    { background: #dc2626; color: #fff; }
-  &.sky      { background: #38bdf8; color: #0c4a6e; }
-  &.jetsmart { background: #f97316; color: #fff; }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  &.latam    { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  &.sky      { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; }
+  &.jetsmart { background: #fff7ed; color: #ea580c; border-color: #fed7aa; }
 }
 
-@media (max-width: 600px) {
-  .route-row   { flex-direction: column; }
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .hero { padding: 6rem 0 4rem; }
+  .hero-content h1 { letter-spacing: -0.02em; }
+  .route-row { flex-direction: column; }
   .details-row { grid-template-columns: 1fr; }
-  .swap-btn    { align-self: center; transform: rotate(90deg); }
+  .swap-btn { align-self: center; }
+  .search-card { padding: 1.5rem; border-radius: 18px; }
+  .steps { flex-direction: column; align-items: center; gap: 2.5rem; }
+  .step-arrow { display: none; }
+  .como-funciona { padding: 4rem 0; }
+  .step p { max-width: 280px; }
 }

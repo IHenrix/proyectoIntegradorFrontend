@@ -1,24 +1,26 @@
 import { Component, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
 export class AuthComponent {
   private fb          = inject(FormBuilder);
   private router      = inject(Router);
-  private authService = inject(AuthService);
+  readonly authService = inject(AuthService);
 
-  modo     = signal<'login' | 'registro'>('login');
-  cargando = signal(false);
-  mensaje  = signal<string | null>(null);
-  error    = signal<string | null>(null);
+  modo         = signal<'login' | 'registro'>('login');
+  cargando     = signal(false);
+  mensaje      = signal<string | null>(null);
+  error        = signal<string | null>(null);
+  mostrarPass  = signal(false);
+  mostrarPassR = signal(false);
 
   loginForm = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -34,7 +36,14 @@ export class AuthComponent {
     fechaNacimiento: ['']
   });
 
+  cambiarModo(m: 'login' | 'registro'): void {
+    this.modo.set(m);
+    this.error.set(null);
+    this.mensaje.set(null);
+  }
+
   entrar(): void {
+    this.loginForm.markAllAsTouched();
     if (this.loginForm.invalid) return;
     this.cargando.set(true);
     this.error.set(null);
@@ -43,16 +52,20 @@ export class AuthComponent {
       next: res => {
         this.authService.guardarToken(res.token);
         localStorage.setItem('nombre', res.nombre);
+        localStorage.setItem('rol', res.rol);
         this.router.navigate(['/dashboard']);
       },
       error: err => {
-        this.error.set(err.error?.message ?? 'Credenciales incorrectas');
+        const raw = err.error;
+        const msg = raw?.message ?? (typeof raw === 'string' ? raw : 'Credenciales incorrectas');
+        this.error.set(msg);
         this.cargando.set(false);
       }
     });
   }
 
   registrarse(): void {
+    this.registroForm.markAllAsTouched();
     if (this.registroForm.invalid) return;
     this.cargando.set(true);
     this.error.set(null);
@@ -67,21 +80,26 @@ export class AuthComponent {
       fechaNacimiento: v.fechaNacimiento ?? ''
     }).subscribe({
       next: () => {
-        this.mensaje.set('Registro exitoso. Revisa tu correo para verificar tu cuenta.');
+        const emailUsado = v.email!;
         this.cargando.set(false);
         this.registroForm.reset();
+        this.modo.set('login');
+        this.loginForm.patchValue({ email: emailUsado });
+        this.mensaje.set('Cuenta creada con éxito. Ya puedes iniciar sesión.');
       },
       error: err => {
-        this.error.set(err.error ?? 'Error al registrarse');
+        const raw = err.error;
+        const msg = raw?.message ?? (typeof raw === 'string' ? raw : 'Error al registrarse');
+        this.error.set(msg);
         this.cargando.set(false);
       }
     });
   }
 
   tieneError(form: 'login' | 'registro', campo: string): boolean {
-    const c = form === 'login'
+    const ctrl = form === 'login'
       ? this.loginForm.get(campo)
       : this.registroForm.get(campo);
-    return !!(c?.invalid && c?.touched);
+    return !!(ctrl?.invalid && ctrl?.touched);
   }
 }

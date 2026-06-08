@@ -5,28 +5,28 @@
   flex-direction: column;
 }
 
-// ── Top bar ──────────────────────────────────────────────────────
+// ── Top bar ───────────────────────────────────────────────────────
 .top-bar {
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
+  background: #080d1a;
   padding: 0 2rem;
-  height: 64px;
+  height: 68px;
   display: flex;
   align-items: center;
   gap: 1.5rem;
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .logo {
   text-decoration: none;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #f8fafc;
   white-space: nowrap;
-  strong { color: #2563eb; }
+  letter-spacing: -0.02em;
+  strong { color: #fbbf24; }
 }
 
 .ruta-info {
@@ -37,96 +37,134 @@
   .ruta {
     font-size: 1rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .flecha-ruta {
+    color: #3b82f6;
+    font-size: 0.9rem;
   }
 
   .sub {
-    font-size: 0.78rem;
-    color: #64748b;
+    font-size: 0.75rem;
+    color: rgba(248,250,252,0.45);
+    margin-top: 0.1rem;
   }
 }
 
 .btn-excel {
   padding: 0.5rem 1.1rem;
-  background: #16a34a;
-  color: #fff;
-  border: none;
+  background: rgba(22,163,74,0.15);
+  color: #4ade80;
+  border: 1.5px solid rgba(74,222,128,0.25);
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: all 0.2s;
 
-  &:hover { background: #15803d; }
+  &:hover {
+    background: rgba(22,163,74,0.25);
+    border-color: rgba(74,222,128,0.45);
+  }
 }
 
-// ── Contenido ────────────────────────────────────────────────────
+// ── Contenido ─────────────────────────────────────────────────────
 .content {
-  max-width: 860px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 2rem 1rem 4rem;
   width: 100%;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
 }
 
 .total {
   font-size: 0.9rem;
-  color: #64748b;
-  margin-bottom: 1rem;
+  color: #475569;
   font-weight: 500;
+
+  strong {
+    color: #0f172a;
+    font-size: 1.05rem;
+  }
+}
+
+.ordenado {
+  font-size: 0.78rem;
+  color: #94a3b8;
 }
 
 // ── Estado cargando / error ───────────────────────────────────────
 .estado {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 5rem 2rem;
   color: #64748b;
 
-  p { font-size: 1rem; margin-top: 1rem; }
+  p {
+    font-size: 1rem;
+    margin-top: 1rem;
+    font-weight: 500;
+  }
 
   &.error {
+    .error-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
     p { color: #dc2626; font-weight: 600; }
-    small { color: #94a3b8; font-size: 0.8rem; }
+    small { color: #94a3b8; font-size: 0.8rem; display: block; margin-top: 0.4rem; }
   }
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 4px solid #e2e8f0;
-  border-top-color: #2563eb;
+  border-top-color: #3b82f6;
   border-radius: 50%;
   margin: 0 auto;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.75s linear infinite;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// ── Cards de vuelo ───────────────────────────────────────────────
+// ── Cards de vuelo ────────────────────────────────────────────────
 .cards {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
 }
 
 .card {
   background: #fff;
   border-radius: 16px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.35rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  transition: box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s, transform 0.18s;
+  border: 1.5px solid #f1f5f9;
 
   &:hover {
-    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
     transform: translateY(-2px);
+    border-color: #e2e8f0;
   }
 }
 
-// ── Left: aerolínea + horario ────────────────────────────────────
+// ── Left: aerolínea + horario ─────────────────────────────────────
 .card-left {
   display: flex;
   flex-direction: column;
@@ -138,13 +176,13 @@
 .airline-badge {
   padding: 0.3rem 0.9rem;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.05em;
 
-  &.latam    { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-  &.sky      { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
-  &.jetsmart { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+  &.latam    { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
+  &.sky      { background: #f0f9ff; color: #0284c7; border: 1.5px solid #bae6fd; }
+  &.jetsmart { background: #fff7ed; color: #ea580c; border: 1.5px solid #fed7aa; }
 }
 
 .horario {
@@ -152,23 +190,24 @@
   align-items: center;
   gap: 0.4rem;
 
-  .hora { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
-  .flecha { color: #94a3b8; font-size: 0.9rem; }
+  .hora  { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
+  .flecha { color: #94a3b8; font-size: 0.85rem; }
 }
 
 .duracion {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #94a3b8;
   background: #f8fafc;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 10px;
+  border: 1px solid #f1f5f9;
 }
 
-// ── Divider vertical ─────────────────────────────────────────────
+// ── Divider vertical ──────────────────────────────────────────────
 .divider {
   width: 1px;
-  height: 70px;
-  background: #e2e8f0;
+  height: 72px;
+  background: linear-gradient(to bottom, transparent, #e2e8f0, transparent);
   flex-shrink: 0;
 }
 
@@ -182,30 +221,37 @@
 
 .tarifa {
   font-size: 0.8rem;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700;
+  color: #334155;
   text-transform: capitalize;
 }
 
-.equipaje {
-  font-size: 0.78rem;
-  color: #94a3b8;
+.detalles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
 }
 
-// ── Semáforo ─────────────────────────────────────────────────────
+.detalle-item {
+  font-size: 0.73rem;
+  color: #64748b;
+}
+
+// ── Semáforo ──────────────────────────────────────────────────────
 .semaforo {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.7rem;
+  padding: 0.28rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   width: fit-content;
+  margin-top: 0.1rem;
 
   .dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -229,13 +275,13 @@
   }
 }
 
-// ── Right: precio + botón ────────────────────────────────────────
+// ── Right: precio + botón ─────────────────────────────────────────
 .card-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.3rem;
-  min-width: 130px;
+  gap: 0.25rem;
+  min-width: 140px;
 }
 
 .precio-box {
@@ -250,35 +296,41 @@
   }
 
   .precio {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     font-weight: 800;
     color: #0f172a;
     line-height: 1;
+    letter-spacing: -0.02em;
   }
 }
 
 .por-persona {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: #94a3b8;
 }
 
 .btn-oferta {
-  padding: 0.55rem 1.1rem;
-  background: linear-gradient(90deg, #1d4ed8, #2563eb);
+  display: inline-block;
+  padding: 0.55rem 1.15rem;
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  border-radius: 10px;
+  font-size: 0.83rem;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  margin-top: 0.25rem;
-  transition: opacity 0.2s;
+  margin-top: 0.3rem;
+  text-decoration: none;
+  transition: all 0.2s;
 
-  &:hover { opacity: 0.88; }
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(29,78,216,0.35);
+  }
 }
 
-// ── Responsive ───────────────────────────────────────────────────
+// ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 600px) {
   .card {
     flex-wrap: wrap;

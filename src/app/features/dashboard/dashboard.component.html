@@ -4,7 +4,7 @@
   <nav class="navbar">
     <div class="nav-brand">
       <span>✈</span>
-      <span class="brand-name">Pasaje<strong>Ya</strong></span>
+      Pasaje<strong>Ya</strong>
     </div>
     <div class="nav-right">
       <span class="nav-hora">{{ hora() }}</span>
@@ -19,7 +19,7 @@
 
       <div class="bienvenida">
         <h1>Hola, <span class="nombre">{{ nombreUsuario() }}</span> 👋</h1>
-        <p>¿A dónde viajas hoy? Encuentra el mejor precio en segundos.</p>
+        <p>¿A dónde viajas? Encuentra el mejor precio en segundos.</p>
       </div>
 
       <div class="search-card">
@@ -70,9 +70,7 @@
         </form>
       </div>
 
-      <!-- Info aerolíneas -->
       <div class="aerolineas">
-        <span class="label">Comparamos:</span>
         <span class="badge latam">LATAM</span>
         <span class="badge sky">SKY</span>
         <span class="badge jetsmart">JetSmart</span>
@@ -81,14 +79,14 @@
     </div>
   </section>
 
-  <!-- Tarjetas de acceso rápido -->
+  <!-- Rutas populares -->
   <section class="quick-actions">
     <div class="container">
       <h2>Rutas populares</h2>
       <div class="cards-grid">
 
-        <div class="route-card" (click)="form.patchValue({origen:'LIM', destino:'CUZ'}); buscar()">
-          <span class="route-icon">🏔️</span>
+        <div class="route-card" (click)="irRuta('LIM','CUZ')">
+          <div class="route-icon">🏔️</div>
           <div class="route-info">
             <strong>Lima → Cusco</strong>
             <span>Desde S/ 119</span>
@@ -96,8 +94,8 @@
           <span class="arrow">→</span>
         </div>
 
-        <div class="route-card" (click)="form.patchValue({origen:'LIM', destino:'AQP'}); buscar()">
-          <span class="route-icon">🌋</span>
+        <div class="route-card" (click)="irRuta('LIM','AQP')">
+          <div class="route-icon">🌋</div>
           <div class="route-info">
             <strong>Lima → Arequipa</strong>
             <span>Desde S/ 99</span>
@@ -105,8 +103,8 @@
           <span class="arrow">→</span>
         </div>
 
-        <div class="route-card" (click)="form.patchValue({origen:'LIM', destino:'PIU'}); buscar()">
-          <span class="route-icon">🌊</span>
+        <div class="route-card" (click)="irRuta('LIM','PIU')">
+          <div class="route-icon">🌊</div>
           <div class="route-info">
             <strong>Lima → Piura</strong>
             <span>Desde S/ 89</span>
