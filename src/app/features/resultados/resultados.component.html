@@ -1,12 +1,10 @@
 <div class="resultados-page">
 
-  <!-- ══ TOP BAR (read-only preview) ══════════════════════════════ -->
+  <!-- ══ TOP BAR ══════════════════════════════════════════════════ -->
   <header class="top-bar">
-
     <button class="btn-back" (click)="volver()" title="Volver">
       <i class="fa-solid fa-arrow-left"></i>
     </button>
-
     <button class="preview-btn" (click)="abrirModal()">
       <div class="preview-content">
         <span class="preview-ruta">
@@ -24,26 +22,18 @@
           &nbsp;·&nbsp;{{ params.tipo === 'idavuelta' ? 'Ida y vuelta' : 'Solo ida' }}
         </span>
       </div>
-      <span class="preview-edit">
-        <i class="fa-solid fa-pen-to-square"></i>
-      </span>
+      <span class="preview-edit"><i class="fa-solid fa-pen-to-square"></i></span>
     </button>
-
     <button class="btn-excel" (click)="exportar()">
       <i class="fa-solid fa-download"></i>
       <span class="excel-txt"> Excel</span>
     </button>
-
   </header>
 
-  <!-- ══ MODAL OVERLAY ════════════════════════════════════════════ -->
+  <!-- ══ MODAL ═════════════════════════════════════════════════════ -->
   @if (showModal()) {
-
     <div class="modal-backdrop" (click)="cerrarModal()"></div>
-
     <div class="modal-top">
-
-      <!-- Fila superior: tipo viaje + cerrar -->
       <div class="modal-hdr">
         <div class="trip-toggle">
           <button type="button" class="trip-opt" [class.active]="tripType() === 'idavuelta'"
@@ -59,18 +49,12 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
-      <!-- Formulario principal -->
       <form class="modal-form" [formGroup]="form" (ngSubmit)="buscarNuevo()">
-
-        <!-- Origen -->
         <div class="mf-field">
           <span class="mf-label">Origen</span>
           <div class="inp-wrap">
-            <input #inpO type="text" class="mf-input" autocomplete="off"
-                   placeholder="Ciudad o aeropuerto"
-                   (focus)="focusO()"
-                   (blur)="blurO()"
+            <input #inpO type="text" class="mf-input" autocomplete="off" placeholder="Ciudad o aeropuerto"
+                   (focus)="focusO()" (blur)="blurO()"
                    (input)="filtroO.set($any($event.target).value); showDropO.set($any($event.target).value.length > 0)">
             @if (showDropO() && filtradosO().length > 0) {
               <div class="ac-drop">
@@ -78,9 +62,7 @@
                   <div class="ac-opt" (mousedown)="pickO(a)">
                     <i class="fa-solid fa-plane ac-ico"></i>
                     <div class="ac-info">
-                      <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
-                        <strong class="ac-code">{{ a.code }}</strong>
-                      </span>
+                      <span class="ac-city">{{ a.ciudad }}, {{ a.pais }} <strong class="ac-code">{{ a.code }}</strong></span>
                       <span class="ac-apt">{{ a.nombre }}</span>
                     </div>
                   </div>
@@ -89,20 +71,14 @@
             }
           </div>
         </div>
-
-        <!-- Swap -->
         <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">
           <i class="fa-solid fa-right-left"></i>
         </button>
-
-        <!-- Destino -->
         <div class="mf-field">
           <span class="mf-label">Destino</span>
           <div class="inp-wrap">
-            <input #inpD type="text" class="mf-input" autocomplete="off"
-                   placeholder="Ciudad o aeropuerto"
-                   (focus)="focusD()"
-                   (blur)="blurD()"
+            <input #inpD type="text" class="mf-input" autocomplete="off" placeholder="Ciudad o aeropuerto"
+                   (focus)="focusD()" (blur)="blurD()"
                    (input)="filtroD.set($any($event.target).value); showDropD.set($any($event.target).value.length > 0)">
             @if (showDropD() && filtradosD().length > 0) {
               <div class="ac-drop">
@@ -110,9 +86,7 @@
                   <div class="ac-opt" (mousedown)="pickD(a)">
                     <i class="fa-solid fa-plane ac-ico"></i>
                     <div class="ac-info">
-                      <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
-                        <strong class="ac-code">{{ a.code }}</strong>
-                      </span>
+                      <span class="ac-city">{{ a.ciudad }}, {{ a.pais }} <strong class="ac-code">{{ a.code }}</strong></span>
                       <span class="ac-apt">{{ a.nombre }}</span>
                     </div>
                   </div>
@@ -121,10 +95,7 @@
             }
           </div>
         </div>
-
         <div class="mf-sep"></div>
-
-        <!-- Fechas -->
         <div class="mf-field">
           <span class="mf-label">{{ tripType() === 'idavuelta' ? 'Fechas' : 'Fecha de ida' }}</span>
           <div class="cal-wrap">
@@ -132,58 +103,38 @@
               @if (form.value.fecha) {
                 {{ fmtFechaCorta(form.value.fecha || '') }}
                 @if (tripType() === 'idavuelta' && form.value.fechaVuelta) {
-                  <span class="mf-arrow"> — </span>
-                  {{ fmtFechaCorta(form.value.fechaVuelta || '') }}
+                  <span class="mf-arrow"> — </span>{{ fmtFechaCorta(form.value.fechaVuelta || '') }}
                 }
-              } @else {
-                <span class="mf-ph">Seleccionar</span>
-              }
+              } @else { <span class="mf-ph">Seleccionar</span> }
               <i class="fa-regular fa-calendar mf-cal-ico"></i>
             </button>
             @if (showCal()) {
-              <app-calendario
-                [modo]="tripType() === 'idavuelta' ? 'rango' : 'simple'"
-                [fechaIda]="form.value.fecha || ''"
-                [fechaVuelta]="form.value.fechaVuelta || ''"
-                (seleccionIda)="onFechaIda($event)"
-                (seleccionVuelta)="onFechaVuelta($event)"
-                (cerrar)="showCal.set(false)"
-              />
+              <app-calendario [modo]="tripType() === 'idavuelta' ? 'rango' : 'simple'"
+                [fechaIda]="form.value.fecha || ''" [fechaVuelta]="form.value.fechaVuelta || ''"
+                (seleccionIda)="onFechaIda($event)" (seleccionVuelta)="onFechaVuelta($event)"
+                (cerrar)="showCal.set(false)" />
             }
           </div>
         </div>
-
         <div class="mf-sep"></div>
-
-        <!-- Pasajeros -->
         <div class="mf-field mf-pax">
           <span class="mf-label">Pasajeros</span>
           <div class="pax-row">
-            <button type="button" class="pax-ctrl" (click)="decrementar()">
-              <i class="fa-solid fa-minus"></i>
-            </button>
+            <button type="button" class="pax-ctrl" (click)="decrementar()"><i class="fa-solid fa-minus"></i></button>
             <span class="pax-num">{{ form.value.pasajeros }}</span>
-            <button type="button" class="pax-ctrl" (click)="incrementar()">
-              <i class="fa-solid fa-plus"></i>
-            </button>
+            <button type="button" class="pax-ctrl" (click)="incrementar()"><i class="fa-solid fa-plus"></i></button>
           </div>
         </div>
-
-        <!-- Buscar -->
         <button type="submit" class="btn-buscar-modal" [disabled]="form.invalid">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          Buscar
+          <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
-
       </form>
     </div>
-
   }
 
-  <!-- ══ CONTENIDO ════════════════════════════════════════════════ -->
+  <!-- ══ CONTENIDO ═════════════════════════════════════════════════ -->
   <main class="content">
 
-    <!-- Cargando IDA -->
     @if (vueloService.cargando()) {
       <div class="estado">
         <div class="spinner"></div>
@@ -191,7 +142,6 @@
       </div>
     }
 
-    <!-- Error -->
     @if (vueloService.error()) {
       <div class="estado error">
         <div class="error-icon">⚠</div>
@@ -202,153 +152,302 @@
 
     @if (!vueloService.cargando() && !vueloService.error()) {
 
-      <!-- Cabecera sección IDA -->
+      <!-- ══ IDA Y VUELTA: cards combinados ════════════════════════ -->
       @if (params.tipo === 'idavuelta') {
-        <div class="seccion-hdr">
-          <div class="seccion-izq">
-            <span class="seccion-icono">✈</span>
-            <div>
-              <p class="seccion-titulo">Salida</p>
-              <p class="seccion-sub">{{ ciudadDe(params.origen) }} → {{ ciudadDe(params.destino) }}</p>
-            </div>
+
+        @if (vueloService.cargandoVuelta()) {
+          <div class="estado">
+            <div class="spinner"></div>
+            <p>Buscando combinaciones de vuelta...</p>
           </div>
-          <div class="seccion-der">
-            <span class="seccion-fecha">{{ fmtFecha(params.fecha) }}</span>
-            <span class="seccion-count">{{ vueloService.vuelos().length }} vuelos</span>
+        } @else {
+          <div class="results-header">
+            <p class="total">
+              <strong>{{ paquetes().length }}</strong> paquetes disponibles
+            </p>
+            <p class="ordenado">
+              {{ fmtFechaCorta(params.fecha) }} &nbsp;—&nbsp; {{ fmtFechaCorta(params.fechaVuelta || '') }}
+            </p>
           </div>
-        </div>
+
+          <div class="cards">
+            @for (p of paquetes(); track p.ida.id) {
+
+              <div class="card"
+                   [class.card-verde]="p.ida.semaforo === 'verde'"
+                   [class.card-amarillo]="p.ida.semaforo === 'amarillo'"
+                   [class.card-rojo]="p.ida.semaforo === 'rojo'"
+                   [class.card-open]="cardAbierto() === p.ida.id"
+                   (click)="toggleCard(p.ida.id)">
+
+                <!-- FILA COLAPSADA (2 legs) -->
+                <div class="card-row pkg-row">
+
+                  <!-- Logos apilados -->
+                  <div class="pkg-logos">
+                    <div class="al-logo-wrap">
+                      <img class="al-logo-img" [src]="airlineLogo(p.ida.aerolinea)" [alt]="p.ida.aerolinea">
+                    </div>
+                    <div class="al-logo-wrap al-logo-sm">
+                      <img class="al-logo-img" [src]="airlineLogo(p.vuelta.aerolinea)" [alt]="p.vuelta.aerolinea">
+                    </div>
+                  </div>
+
+                  <!-- Legs apiladas -->
+                  <div class="pkg-legs">
+                    <div class="pkg-leg">
+                      <span class="card-hora">{{ p.ida.horaSalida }}</span>
+                      <i class="fa-solid fa-arrow-right crd-arrow"></i>
+                      <span class="card-hora">{{ p.ida.horaLlegada }}</span>
+                      <span class="card-ruta">{{ p.ida.origen }} → {{ p.ida.destino }}</span>
+                      <span class="badge-directo"><i class="fa-solid fa-circle-check"></i> Directo</span>
+                      <span class="card-dur">{{ p.ida.duracion }}</span>
+                    </div>
+                    <div class="pkg-sep"></div>
+                    <div class="pkg-leg">
+                      <span class="card-hora">{{ p.vuelta.horaSalida }}</span>
+                      <i class="fa-solid fa-arrow-right crd-arrow"></i>
+                      <span class="card-hora">{{ p.vuelta.horaLlegada }}</span>
+                      <span class="card-ruta">{{ p.vuelta.origen }} → {{ p.vuelta.destino }}</span>
+                      <span class="badge-directo"><i class="fa-solid fa-circle-check"></i> Directo</span>
+                      <span class="card-dur">{{ p.vuelta.duracion }}</span>
+                    </div>
+                  </div>
+
+                  <span class="card-spacer"></span>
+
+                  @if (p.ida.semaforo !== 'amarillo') {
+                    <span class="sema-badge"
+                          [class.sema-verde]="p.ida.semaforo === 'verde'"
+                          [class.sema-rojo]="p.ida.semaforo === 'rojo'">
+                      @if (p.ida.semaforo === 'verde') { <i class="fa-solid fa-fire"></i> ¡Buen precio! }
+                      @if (p.ida.semaforo === 'rojo')  { <i class="fa-solid fa-arrow-trend-up"></i> Precio alto }
+                    </span>
+                  }
+
+                  <div [class]="'card-precio precio-' + p.ida.semaforo">
+                    <span class="card-moneda">S/</span>
+                    <span class="card-monto">{{ (p.ida.precio + p.vuelta.precio) | number:'1.0-0' }}</span>
+                  </div>
+
+                  <i class="fa-solid fa-chevron-down card-chevron"
+                     [class.rotado]="cardAbierto() === p.ida.id"></i>
+                </div>
+
+                <!-- DETALLE EXPANDIDO (ambos legs) -->
+                @if (cardAbierto() === p.ida.id) {
+                  <div class="card-detalle" (click)="$event.stopPropagation()">
+
+                    <!-- Leg IDA -->
+                    <div class="pkg-leg-hdr">
+                      <i class="fa-solid fa-plane-departure"></i>
+                      <span>Salida</span>
+                      <span class="pkg-leg-fecha">{{ fmtFecha(p.ida.fecha) }}</span>
+                    </div>
+                    <div class="itin-wrap">
+                      <div class="itin-endpoint">
+                        <div class="itin-dot dep"></div>
+                        <span class="itin-hora">{{ p.ida.horaSalida }}</span>
+                        <span class="itin-apt">{{ aptLabel(p.ida.origen) }}</span>
+                      </div>
+                      <div class="itin-middle">
+                        <div class="itin-vline"></div>
+                        <span class="itin-flight-info">
+                          <i class="fa-solid fa-plane"></i>
+                          {{ p.ida.duracion }} &middot; Vuelo directo &middot; {{ p.ida.aerolinea }}
+                        </span>
+                      </div>
+                      <div class="itin-endpoint">
+                        <div class="itin-dot arr"></div>
+                        <span class="itin-hora">{{ p.ida.horaLlegada }}</span>
+                        <span class="itin-apt">{{ aptLabel(p.ida.destino) }}</span>
+                      </div>
+                    </div>
+
+                    <div class="pkg-leg-sep"></div>
+
+                    <!-- Leg VUELTA -->
+                    <div class="pkg-leg-hdr">
+                      <i class="fa-solid fa-plane-arrival"></i>
+                      <span>Vuelta</span>
+                      <span class="pkg-leg-fecha">{{ fmtFecha(p.vuelta.fecha) }}</span>
+                    </div>
+                    <div class="itin-wrap">
+                      <div class="itin-endpoint">
+                        <div class="itin-dot dep"></div>
+                        <span class="itin-hora">{{ p.vuelta.horaSalida }}</span>
+                        <span class="itin-apt">{{ aptLabel(p.vuelta.origen) }}</span>
+                      </div>
+                      <div class="itin-middle">
+                        <div class="itin-vline"></div>
+                        <span class="itin-flight-info">
+                          <i class="fa-solid fa-plane"></i>
+                          {{ p.vuelta.duracion }} &middot; Vuelo directo &middot; {{ p.vuelta.aerolinea }}
+                        </span>
+                      </div>
+                      <div class="itin-endpoint">
+                        <div class="itin-dot arr"></div>
+                        <span class="itin-hora">{{ p.vuelta.horaLlegada }}</span>
+                        <span class="itin-apt">{{ aptLabel(p.vuelta.destino) }}</span>
+                      </div>
+                    </div>
+
+                    <div class="det-divider"></div>
+
+                    <div class="det-pills">
+                      <span class="det-pill"
+                            [class.pill-ok]="p.ida.equipajeBodegaKg > 0"
+                            [class.pill-no]="p.ida.equipajeBodegaKg === 0">
+                        <i class="fa-solid fa-suitcase-rolling"></i>
+                        {{ p.ida.equipajeBodegaKg > 0 ? 'Bodega ' + p.ida.equipajeBodegaKg + ' kg' : 'Sin bodega' }}
+                      </span>
+                      <span class="det-pill pill-ok">
+                        <i class="fa-solid fa-briefcase"></i>
+                        Mano {{ p.ida.equipajeManoKg }} kg
+                      </span>
+                      <span class="det-pill"
+                            [class.pill-ok]="p.ida.permiteReembolso"
+                            [class.pill-no]="!p.ida.permiteReembolso">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        {{ p.ida.permiteReembolso ? 'Reembolsable' : 'No reembolsable' }}
+                      </span>
+                      @if (p.ida.asientoSeleccionable) {
+                        <span class="det-pill pill-ok">
+                          <i class="fa-solid fa-couch"></i> Asiento incluido
+                        </span>
+                      }
+                    </div>
+
+                    <div class="det-footer">
+                      <span [class]="'det-tarifa tarifa-' + p.ida.tipoTarifa">
+                        <i class="fa-solid fa-tag"></i> Tarifa {{ p.ida.tipoTarifa | titlecase }}
+                      </span>
+                      <a [href]="p.ida.urlAerolinea" target="_blank" rel="noopener noreferrer"
+                         class="btn-seleccionar" (click)="$event.stopPropagation()">
+                        <i class="fa-solid fa-ticket"></i> Seleccionar
+                      </a>
+                    </div>
+
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+        }
+
+      <!-- ══ SOLO IDA: cards individuales ══════════════════════════ -->
       } @else {
+
         <div class="results-header">
           <p class="total"><strong>{{ vueloService.vuelos().length }}</strong> vuelos encontrados</p>
           <p class="ordenado">Ordenado por precio</p>
         </div>
-      }
 
-      <!-- Cards IDA -->
-      <div class="cards">
-        @for (v of vueloService.vuelos(); track v.id) {
-          <div class="card">
-            <div class="card-left">
-              <span class="airline-badge" [class]="v.aerolinea.toLowerCase()">{{ v.aerolinea }}</span>
-              <div class="horario">
-                <span class="hora">{{ v.horaSalida }}</span>
-                <span class="flecha">→</span>
-                <span class="hora">{{ v.horaLlegada }}</span>
-              </div>
-              <span class="duracion">{{ v.duracion }}</span>
-            </div>
-            <div class="divider"></div>
-            <div class="card-mid">
-              <span class="tarifa">{{ v.tipoTarifa | titlecase }}</span>
-              <div class="detalles">
-                <span class="detalle-item" [class.positivo]="v.equipajeBodegaKg > 0">
-                  {{ v.equipajeBodegaKg > 0 ? '✓ Bodega ' + v.equipajeBodegaKg + ' kg' : '✗ Sin bodega' }}
-                </span>
-                <span class="detalle-item" [class.positivo]="v.equipajeManoKg > 0">
-                  {{ v.equipajeManoKg > 0 ? '✓ Mano ' + v.equipajeManoKg + ' kg' : '✗ Sin mano' }}
-                </span>
-                <span class="detalle-item" [class.positivo]="v.permiteReembolso">
-                  {{ v.permiteReembolso ? '✓ Reembolsable' : '✗ No reembolsable' }}
-                </span>
-              </div>
-              <div class="semaforo" [class]="v.semaforo">
-                <span class="dot"></span>
-                <span class="label">
-                  @if (v.semaforo === 'verde')    { Precio conveniente }
-                  @if (v.semaforo === 'amarillo') { Precio normal }
-                  @if (v.semaforo === 'rojo')     { Precio alto }
-                </span>
-              </div>
-            </div>
-            <div class="card-right">
-              <div class="precio-box">
-                <span class="moneda">S/</span>
-                <span class="precio">{{ v.precio | number:'1.2-2' }}</span>
-              </div>
-              <span class="por-persona">por persona</span>
-              <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer" class="btn-oferta">
-                Ver oferta →
-              </a>
-            </div>
-          </div>
-        }
-      </div>
-
-    }
-
-    <!-- Sección VUELTA -->
-    @if (params.tipo === 'idavuelta') {
-
-      <div class="seccion-hdr vuelta-hdr">
-        <div class="seccion-izq">
-          <span class="seccion-icono vuelta-ico">↩</span>
-          <div>
-            <p class="seccion-titulo">Vuelta</p>
-            <p class="seccion-sub">{{ ciudadDe(params.destino) }} → {{ ciudadDe(params.origen) }}</p>
-          </div>
-        </div>
-        <div class="seccion-der">
-          <span class="seccion-fecha">{{ fmtFecha(params.fechaVuelta || '') }}</span>
-          @if (!vueloService.cargandoVuelta()) {
-            <span class="seccion-count">{{ vueloService.vuelosVuelta().length }} vuelos</span>
-          }
-        </div>
-      </div>
-
-      @if (vueloService.cargandoVuelta()) {
-        <div class="estado">
-          <div class="spinner"></div>
-          <p>Buscando vuelos de regreso...</p>
-        </div>
-      } @else {
         <div class="cards">
-          @for (v of vueloService.vuelosVuelta(); track v.id) {
-            <div class="card">
-              <div class="card-left">
-                <span class="airline-badge" [class]="v.aerolinea.toLowerCase()">{{ v.aerolinea }}</span>
-                <div class="horario">
-                  <span class="hora">{{ v.horaSalida }}</span>
-                  <span class="flecha">→</span>
-                  <span class="hora">{{ v.horaLlegada }}</span>
+          @for (v of vueloService.vuelos(); track v.id) {
+
+            <div class="card"
+                 [class.card-verde]="v.semaforo === 'verde'"
+                 [class.card-amarillo]="v.semaforo === 'amarillo'"
+                 [class.card-rojo]="v.semaforo === 'rojo'"
+                 [class.card-open]="cardAbierto() === v.id"
+                 (click)="toggleCard(v.id)">
+
+              <!-- FILA COLAPSADA -->
+              <div class="card-row">
+                <div class="al-logo-wrap">
+                  <img class="al-logo-img" [src]="airlineLogo(v.aerolinea)" [alt]="v.aerolinea">
                 </div>
-                <span class="duracion">{{ v.duracion }}</span>
+                <div class="card-horario">
+                  <span class="card-hora">{{ v.horaSalida }}</span>
+                  <i class="fa-solid fa-arrow-right crd-arrow"></i>
+                  <span class="card-hora">{{ v.horaLlegada }}</span>
+                </div>
+                <div class="card-ruta">{{ v.origen }} → {{ v.destino }}</div>
+                <span class="badge-directo">
+                  <i class="fa-solid fa-circle-check"></i> Directo
+                </span>
+                <span class="card-dur">{{ v.duracion }}</span>
+                <span class="card-spacer"></span>
+                @if (v.semaforo !== 'amarillo') {
+                  <span class="sema-badge"
+                        [class.sema-verde]="v.semaforo === 'verde'"
+                        [class.sema-rojo]="v.semaforo === 'rojo'">
+                    @if (v.semaforo === 'verde') { <i class="fa-solid fa-fire"></i> ¡Buen precio! }
+                    @if (v.semaforo === 'rojo')  { <i class="fa-solid fa-arrow-trend-up"></i> Precio alto }
+                  </span>
+                }
+                <div [class]="'card-precio precio-' + v.semaforo">
+                  <span class="card-moneda">S/</span>
+                  <span class="card-monto">{{ v.precio | number:'1.0-0' }}</span>
+                </div>
+                <i class="fa-solid fa-chevron-down card-chevron"
+                   [class.rotado]="cardAbierto() === v.id"></i>
               </div>
-              <div class="divider"></div>
-              <div class="card-mid">
-                <span class="tarifa">{{ v.tipoTarifa | titlecase }}</span>
-                <div class="detalles">
-                  <span class="detalle-item" [class.positivo]="v.equipajeBodegaKg > 0">
-                    {{ v.equipajeBodegaKg > 0 ? '✓ Bodega ' + v.equipajeBodegaKg + ' kg' : '✗ Sin bodega' }}
-                  </span>
-                  <span class="detalle-item" [class.positivo]="v.equipajeManoKg > 0">
-                    {{ v.equipajeManoKg > 0 ? '✓ Mano ' + v.equipajeManoKg + ' kg' : '✗ Sin mano' }}
-                  </span>
-                  <span class="detalle-item" [class.positivo]="v.permiteReembolso">
-                    {{ v.permiteReembolso ? '✓ Reembolsable' : '✗ No reembolsable' }}
-                  </span>
+
+              <!-- DETALLE EXPANDIDO -->
+              @if (cardAbierto() === v.id) {
+                <div class="card-detalle" (click)="$event.stopPropagation()">
+                  <div class="itin-wrap">
+                    <div class="itin-endpoint">
+                      <div class="itin-dot dep"></div>
+                      <span class="itin-hora">{{ v.horaSalida }}</span>
+                      <span class="itin-apt">{{ aptLabel(v.origen) }}</span>
+                    </div>
+                    <div class="itin-middle">
+                      <div class="itin-vline"></div>
+                      <span class="itin-flight-info">
+                        <i class="fa-solid fa-plane"></i>
+                        {{ v.duracion }} &middot; Vuelo directo &middot; {{ v.aerolinea }}
+                      </span>
+                    </div>
+                    <div class="itin-endpoint">
+                      <div class="itin-dot arr"></div>
+                      <span class="itin-hora">{{ v.horaLlegada }}</span>
+                      <span class="itin-apt">{{ aptLabel(v.destino) }}</span>
+                    </div>
+                  </div>
+                  <div class="det-divider"></div>
+                  <div class="det-pills">
+                    <span class="det-pill"
+                          [class.pill-ok]="v.equipajeBodegaKg > 0"
+                          [class.pill-no]="v.equipajeBodegaKg === 0">
+                      <i class="fa-solid fa-suitcase-rolling"></i>
+                      {{ v.equipajeBodegaKg > 0 ? 'Bodega ' + v.equipajeBodegaKg + ' kg' : 'Sin bodega' }}
+                    </span>
+                    <span class="det-pill pill-ok">
+                      <i class="fa-solid fa-briefcase"></i>
+                      Mano {{ v.equipajeManoKg }} kg
+                    </span>
+                    <span class="det-pill"
+                          [class.pill-ok]="v.permiteReembolso"
+                          [class.pill-no]="!v.permiteReembolso">
+                      <i class="fa-solid fa-rotate-left"></i>
+                      {{ v.permiteReembolso ? 'Reembolsable' : 'No reembolsable' }}
+                    </span>
+                    @if (v.asientoSeleccionable) {
+                      <span class="det-pill pill-ok">
+                        <i class="fa-solid fa-couch"></i> Asiento incluido
+                      </span>
+                    }
+                  </div>
+                  <div class="det-footer">
+                    <span [class]="'det-tarifa tarifa-' + v.tipoTarifa">
+                      <i class="fa-solid fa-tag"></i> Tarifa {{ v.tipoTarifa | titlecase }}
+                    </span>
+                    <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer"
+                       class="btn-seleccionar" (click)="$event.stopPropagation()">
+                      <i class="fa-solid fa-ticket"></i> Seleccionar
+                    </a>
+                  </div>
                 </div>
-                <div class="semaforo" [class]="v.semaforo">
-                  <span class="dot"></span>
-                  <span class="label">
-                    @if (v.semaforo === 'verde')    { Precio conveniente }
-                    @if (v.semaforo === 'amarillo') { Precio normal }
-                    @if (v.semaforo === 'rojo')     { Precio alto }
-                  </span>
-                </div>
-              </div>
-              <div class="card-right">
-                <div class="precio-box">
-                  <span class="moneda">S/</span>
-                  <span class="precio">{{ v.precio | number:'1.2-2' }}</span>
-                </div>
-                <span class="por-persona">por persona</span>
-                <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer" class="btn-oferta">
-                  Ver oferta →
-                </a>
-              </div>
+              }
+
             </div>
           }
         </div>
+
       }
     }
 

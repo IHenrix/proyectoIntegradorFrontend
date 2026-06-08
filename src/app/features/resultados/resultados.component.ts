@@ -29,13 +29,14 @@ export class ResultadosComponent implements OnInit {
   private prevOrigenCode  = '';
   private prevDestinoCode = '';
 
-  showModal = signal(false);
-  tripType  = signal<'ida' | 'idavuelta'>('idavuelta');
-  showCal   = signal(false);
-  filtroO   = signal('');
-  filtroD   = signal('');
-  showDropO = signal(false);
-  showDropD = signal(false);
+  showModal   = signal(false);
+  cardAbierto = signal<number | null>(null);
+  tripType    = signal<'ida' | 'idavuelta'>('idavuelta');
+  showCal     = signal(false);
+  filtroO     = signal('');
+  filtroD     = signal('');
+  showDropO   = signal(false);
+  showDropD   = signal(false);
 
   form = this.fb.group({
     origen:      ['', Validators.required],
@@ -65,7 +66,24 @@ export class ResultadosComponent implements OnInit {
     );
   });
 
+  paquetes = computed(() => {
+    const vs = this.vueloService.vuelos();
+    const vv = this.vueloService.vuelosVuelta();
+    const len = Math.min(vs.length, vv.length);
+    return Array.from({ length: len }, (_, i) => ({ ida: vs[i], vuelta: vv[i] }));
+  });
+
+  private autoOpenDone = false;
+
   constructor() {
+    effect(() => {
+      const ps = this.paquetes();
+      const vs = this.vueloService.vuelos();
+      if (this.autoOpenDone) return;
+      const id = ps.length > 0 ? ps[0].ida.id : vs.length > 0 ? vs[0].id : null;
+      if (id !== null) { this.autoOpenDone = true; this.cardAbierto.set(id); }
+    }, { allowSignalWrites: true });
+
     effect(() => {
       const apts = this.aeropuertoService.aeropuertos();
       if (!apts.length || !this.params) return;
@@ -236,12 +254,47 @@ export class ResultadosComponent implements OnInit {
       replaceUrl: true,
     });
     this.params = newParams;
+    this.autoOpenDone = false;
+    this.cardAbierto.set(null);
     window.scrollTo({ top: 0, behavior: 'instant' });
     this.cerrarModal();
     this.vueloService.buscar(newParams);
     if (newParams.tipo === 'idavuelta' && newParams.fechaVuelta) {
       this.vueloService.buscarVuelta(newParams);
     }
+  }
+
+  toggleCard(id: number): void {
+    this.cardAbierto.set(this.cardAbierto() === id ? null : id);
+  }
+
+  airlineCls(nombre: string): string {
+    const n = nombre.toLowerCase();
+    if (n.includes('latam')) return 'al-latam';
+    if (n.includes('sky'))   return 'al-sky';
+    if (n.includes('jet'))   return 'al-jet';
+    return 'al-other';
+  }
+
+  airlineInitials(nombre: string): string {
+    const n = nombre.toLowerCase();
+    if (n.includes('latam')) return 'LA';
+    if (n.includes('sky'))   return 'SK';
+    if (n.includes('jet'))   return 'JS';
+    return nombre.slice(0, 2).toUpperCase();
+  }
+
+  airlineLogo(nombre: string): string {
+    const n = nombre.toLowerCase();
+    if (n.includes('latam')) return 'assets/logos/latam.svg';
+    if (n.includes('sky'))   return 'assets/logos/sky.svg';
+    if (n.includes('jet'))   return 'assets/logos/jetsmart.svg';
+    return '';
+  }
+
+  aptLabel(code: string): string {
+    const a = this.aeropuertoService.aeropuertos().find(x => x.code === code);
+    return a ? `${a.ciudad} · ${a.nombre} (${code})` : code;
   }
 
   volver(): void { this.location.back(); }
