@@ -1,19 +1,23 @@
 .navbar {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  padding: 0 2rem;
+  z-index: 200;
+  background: rgba(8, 13, 26, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-inner {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
-  height: 68px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 2rem;
 }
 
 // ── Logo ─────────────────────────────────────────────────────────
@@ -22,12 +26,12 @@
   align-items: center;
   gap: 0.4rem;
   text-decoration: none;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #fff;
+  color: #f8fafc;
   letter-spacing: -0.02em;
 
-  .logo-icon { font-size: 1.5rem; }
+  .logo-icon { font-size: 1.4rem; }
   strong { color: #fbbf24; }
 }
 
@@ -38,69 +42,147 @@
   gap: 0.75rem;
 }
 
-.btn-login {
-  padding: 0.5rem 1.1rem;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.88);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
-  }
+// ── Pill de usuario ───────────────────────────────────────────────
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 50px;
 }
 
-.btn-registro {
-  padding: 0.5rem 1.1rem;
-  background: #fff;
-  color: #1d4ed8;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+// ── Avatar circular ───────────────────────────────────────────────
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
   font-weight: 700;
-  text-decoration: none;
-  transition: all 0.2s;
-  letter-spacing: 0.01em;
+  flex-shrink: 0;
 
-  &:hover {
-    background: #f0f9ff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  &.avatar-free {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff;
+  }
+  &.avatar-premium {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.45);
+  }
+  &.avatar-admin {
+    background: linear-gradient(135deg, #ef4444, #7c3aed);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
   }
 }
 
+// ── Info del usuario ──────────────────────────────────────────────
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.user-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f8fafc;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Badges de rol ─────────────────────────────────────────────────
+.role-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.45rem;
+  border-radius: 20px;
+  width: fit-content;
+
+  &.badge-free {
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.3);
+  }
+  &.badge-premium {
+    background: linear-gradient(90deg, rgba(251,191,36,0.2), rgba(245,158,11,0.2));
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+  }
+  &.badge-admin {
+    background: linear-gradient(90deg, rgba(239,68,68,0.2), rgba(124,58,237,0.2));
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+}
+
+// ── Botones ───────────────────────────────────────────────────────
 .btn-dashboard {
-  padding: 0.5rem 1.1rem;
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  padding: 0.45rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: background 0.2s;
 
-  &:hover { background: rgba(255, 255, 255, 0.2); }
+  &:hover { background: rgba(255, 255, 255, 0.14); }
 }
 
 .btn-logout {
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 0.9rem;
   background: transparent;
-  color: rgba(255, 255, 255, 0.65);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.2s;
 
   &:hover {
     color: #fca5a5;
-    border-color: rgba(252, 165, 165, 0.4);
+    border-color: rgba(252, 165, 165, 0.35);
+  }
+}
+
+.btn-login {
+  padding: 0.45rem 1rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover { background: rgba(255, 255, 255, 0.08); }
+}
+
+.btn-registro {
+  padding: 0.45rem 1.1rem;
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
   }
 }

@@ -1,0 +1,47 @@
+<footer class="footer">
+  <div class="footer-inner">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <a routerLink="/" class="brand-logo">
+        <span>✈</span> Pasaje<strong>Ya</strong>
+      </a>
+      <p class="brand-tagline">El comparador de vuelos nacionales<br>más rápido del Perú. Precios en soles.</p>
+    </div>
+
+    <!-- Aerolíneas -->
+    <div class="footer-section">
+      <h4>Aerolíneas</h4>
+      <div class="airline-logos">
+        <img src="assets/logos/latam.svg"    alt="LATAM Airlines"  class="airline-logo" />
+        <img src="assets/logos/sky.svg"      alt="Sky Airline"     class="airline-logo" />
+        <img src="assets/logos/jetsmart.svg" alt="JetSmart"        class="airline-logo" />
+      </div>
+    </div>
+
+    <!-- Rutas -->
+    <div class="footer-section">
+      <h4>Rutas populares</h4>
+      <ul>
+        <li><a routerLink="/resultados" [queryParams]="{origen:'LIM',destino:'CUZ',fecha:'2026-06-20',pasajeros:1}">Lima → Cusco</a></li>
+        <li><a routerLink="/resultados" [queryParams]="{origen:'LIM',destino:'AQP',fecha:'2026-06-20',pasajeros:1}">Lima → Arequipa</a></li>
+        <li><a routerLink="/resultados" [queryParams]="{origen:'LIM',destino:'PIU',fecha:'2026-06-20',pasajeros:1}">Lima → Piura</a></li>
+      </ul>
+    </div>
+
+    <!-- Cuenta -->
+    <div class="footer-section">
+      <h4>Mi cuenta</h4>
+      <ul>
+        <li><a routerLink="/auth">Iniciar sesión</a></li>
+        <li><a routerLink="/auth">Crear cuenta gratis</a></li>
+        <li><a routerLink="/dashboard">Dashboard</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <p>© {{ anio }} PasajeYa S.A.C. &nbsp;·&nbsp; RUC 20612345678 &nbsp;·&nbsp; Miraflores, Lima — Perú &nbsp;·&nbsp; Todos los derechos reservados</p>
+  </div>
+</footer>

@@ -1,56 +1,129 @@
 <div class="dashboard">
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="nav-brand">
-      <span>✈</span>
-      Pasaje<strong>Ya</strong>
-    </div>
-    <div class="nav-right">
-      <span class="nav-hora">{{ hora() }}</span>
-      <span class="nav-user">👤 {{ nombreUsuario() }}</span>
-      <button class="btn-salir" (click)="salir()">Salir</button>
-    </div>
-  </nav>
+  <app-navbar />
 
-  <!-- Hero buscador -->
+  <!-- ══ HERO ══════════════════════════════════════════════════════ -->
   <section class="hero">
+    <!-- Orbes decorativos -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
     <div class="container">
 
-      <div class="bienvenida">
-        <h1>Hola, <span class="nombre">{{ nombreUsuario() }}</span> 👋</h1>
-        <p>¿A dónde viajas? Encuentra el mejor precio en segundos.</p>
+      <div class="hero-top">
+        <h1>Encuentra el vuelo ideal<br><span class="accent-line">al mejor precio del mercado</span></h1>
+        <p class="hero-desc">Compara LATAM, Sky y JetSMART en una sola búsqueda. Precios reales en soles, sin cargos ocultos.</p>
       </div>
 
+      <!-- Buscador -->
       <div class="search-card">
         <form [formGroup]="form" (ngSubmit)="buscar()">
+
+          <div class="trip-toggle">
+            <button type="button" class="trip-btn" [class.active]="tripType() === 'idavuelta'"
+                    (click)="setTripType('idavuelta')">Ida y vuelta</button>
+            <button type="button" class="trip-btn" [class.active]="tripType() === 'ida'"
+                    (click)="setTripType('ida')">Solo ida</button>
+          </div>
 
           <div class="route-row">
             <div class="field">
               <label>Origen</label>
-              <select formControlName="origen">
-                @for (a of aeropuertos; track a.code) {
-                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+              <div class="ac-wrap">
+                <input #inpO type="text" class="ac-input" autocomplete="off"
+                       placeholder="Ciudad o aeropuerto"
+                       (focus)="focusO()"
+                       (blur)="blurO()"
+                       (input)="filtroO.set($any($event.target).value); showDropO.set($any($event.target).value.length > 0)">
+                @if (showDropO()) {
+                  <div class="ac-drop">
+                    @if (aeropuertoService.cargando()) {
+                      <div class="ac-loading">Cargando aeropuertos…</div>
+                    } @else if (filtradosO().length === 0) {
+                      <div class="ac-empty">Sin resultados</div>
+                    } @else {
+                      @for (a of filtradosO(); track a.code) {
+                        <div class="ac-opt" (mousedown)="pickO(a)">
+                          <span class="ac-icon">✈</span>
+                          <div class="ac-info">
+                            <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
+                              <span class="ac-code">{{ a.code }}</span>
+                            </span>
+                            <span class="ac-apt">{{ a.nombre }}</span>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
                 }
-              </select>
+              </div>
             </div>
 
             <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">⇄</button>
 
             <div class="field">
               <label>Destino</label>
-              <select formControlName="destino">
-                @for (a of aeropuertos; track a.code) {
-                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+              <div class="ac-wrap">
+                <input #inpD type="text" class="ac-input" autocomplete="off"
+                       placeholder="Ciudad o aeropuerto"
+                       (focus)="focusD()"
+                       (blur)="blurD()"
+                       (input)="filtroD.set($any($event.target).value); showDropD.set($any($event.target).value.length > 0)">
+                @if (showDropD()) {
+                  <div class="ac-drop">
+                    @if (aeropuertoService.cargando()) {
+                      <div class="ac-loading">Cargando aeropuertos…</div>
+                    } @else if (filtradosD().length === 0) {
+                      <div class="ac-empty">Sin resultados</div>
+                    } @else {
+                      @for (a of filtradosD(); track a.code) {
+                        <div class="ac-opt" (mousedown)="pickD(a)">
+                          <span class="ac-icon">✈</span>
+                          <div class="ac-info">
+                            <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
+                              <span class="ac-code">{{ a.code }}</span>
+                            </span>
+                            <span class="ac-apt">{{ a.nombre }}</span>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
                 }
-              </select>
+              </div>
             </div>
           </div>
 
           <div class="details-row">
-            <div class="field">
-              <label>Fecha de ida</label>
-              <input type="date" formControlName="fecha" [min]="fechaMin">
+
+            <div class="field cal-wrap">
+              <label>{{ tripType() === 'idavuelta' ? 'Fechas' : 'Fecha de ida' }}</label>
+              <button type="button" class="cal-btn" (click)="showCal.set(!showCal())">
+                @if (form.value.fecha) {
+                  <span class="cal-btn-text">
+                    <span>{{ fmtFecha(form.value.fecha || '') }}</span>
+                    @if (tripType() === 'idavuelta' && form.value.fechaVuelta) {
+                      <span class="cal-arrow">→</span>
+                      <span>{{ fmtFecha(form.value.fechaVuelta || '') }}</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="cal-placeholder">Seleccionar fechas</span>
+                }
+                <span class="cal-ico">🗓</span>
+              </button>
+              @if (showCal()) {
+                <div class="cal-backdrop" (click)="showCal.set(false)"></div>
+                <app-calendario
+                  [modo]="tripType() === 'idavuelta' ? 'rango' : 'simple'"
+                  [fechaIda]="form.value.fecha || ''"
+                  [fechaVuelta]="form.value.fechaVuelta || ''"
+                  (seleccionIda)="onFechaIda($event)"
+                  (seleccionVuelta)="onFechaVuelta($event)"
+                  (cerrar)="showCal.set(false)"
+                />
+              }
             </div>
 
             <div class="field">
@@ -61,6 +134,7 @@
                 <button type="button" (click)="incrementar()">+</button>
               </div>
             </div>
+
           </div>
 
           <button type="submit" class="search-btn" [disabled]="form.invalid">
@@ -70,50 +144,201 @@
         </form>
       </div>
 
-      <div class="aerolineas">
-        <span class="badge latam">LATAM</span>
-        <span class="badge sky">SKY</span>
-        <span class="badge jetsmart">JetSmart</span>
+      <!-- Logos aerolíneas -->
+      <div class="airline-strip">
+        <span class="airline-label">Comparamos en</span>
+        <img src="assets/logos/latam.svg"    alt="LATAM"    class="airline-img" />
+        <img src="assets/logos/sky.svg"      alt="Sky"      class="airline-img" />
+        <img src="assets/logos/jetsmart.svg" alt="JetSmart" class="airline-img" />
       </div>
 
     </div>
   </section>
 
-  <!-- Rutas populares -->
-  <section class="quick-actions">
-    <div class="container">
-      <h2>Rutas populares</h2>
-      <div class="cards-grid">
+  <!-- ══ STATS STRIP ═══════════════════════════════════════════════ -->
+  <section class="stats-strip">
+    <div class="container stats-inner">
+      <div class="stat">
+        <span class="stat-value">3</span>
+        <span class="stat-label">Aerolíneas comparadas</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">+200</span>
+        <span class="stat-label">Vuelos disponibles</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">100%</span>
+        <span class="stat-label">Gratis para el viajero</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">15</span>
+        <span class="stat-label">Destinos nacionales</span>
+      </div>
+    </div>
+  </section>
 
-        <div class="route-card" (click)="irRuta('LIM','CUZ')">
-          <div class="route-icon">🏔️</div>
-          <div class="route-info">
-            <strong>Lima → Cusco</strong>
-            <span>Desde S/ 119</span>
+  <!-- ══ CÓMO FUNCIONA ══════════════════════════════════════════════ -->
+  <section class="como-funciona">
+    <div class="container">
+      <div class="section-header">
+        <h2>¿Cómo funciona?</h2>
+        <p>Encuentra el mejor precio en 3 pasos. Sin registros obligatorios, sin sorpresas.</p>
+      </div>
+
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-icon">🔍</div>
+          <h3>Elige tu ruta</h3>
+          <p>Selecciona origen, destino, fecha y número de pasajeros. Simple y rápido.</p>
+        </div>
+
+        <div class="step-connector">
+          <div class="connector-line"></div>
+          <span class="connector-arrow">→</span>
+        </div>
+
+        <div class="step">
+          <div class="step-icon">🚦</div>
+          <h3>Compara con semáforo</h3>
+          <p>Ve todos los vuelos ordenados por precio. El semáforo indica si el precio está por encima o debajo del histórico.</p>
+        </div>
+
+        <div class="step-connector">
+          <div class="connector-line"></div>
+          <span class="connector-arrow">→</span>
+        </div>
+
+        <div class="step">
+          <div class="step-icon">💸</div>
+          <h3>Elige y ahorra</h3>
+          <p>Selecciona la mejor tarifa con información clara: equipaje, reembolso y tipo de asiento.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BENEFICIOS ════════════════════════════════════════════════ -->
+  <section class="beneficios">
+    <div class="container">
+      <div class="section-header light">
+        <h2>Todo en un solo lugar</h2>
+        <p>PasajeYa fue construido para que el viajero peruano encuentre el mejor precio sin complicaciones.</p>
+      </div>
+
+      <div class="benefits-grid">
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-blue">⚡</div>
+          <h4>Búsqueda instantánea</h4>
+          <p>Resultados en menos de 2 segundos. Compara las 3 aerolíneas principales al mismo tiempo.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-green">🚦</div>
+          <h4>Semáforo de precios</h4>
+          <p>Sabemos si el precio de hoy está barato, normal o caro respecto al historial de esa ruta.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-amber">🔔</div>
+          <h4>Alertas de precio</h4>
+          <p>Activa una alerta y te avisamos por correo cuando el precio de tu ruta baje.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-purple">🛡️</div>
+          <h4>Sin cargos ocultos</h4>
+          <p>Mostramos el precio final con todos los impuestos incluidos. Sin sorpresas al pagar.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-red">✈️</div>
+          <h4>Info completa del vuelo</h4>
+          <p>Equipaje, tipo de tarifa, duración, escala, aeropuerto de salida — todo visible antes de decidir.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-teal">🆓</div>
+          <h4>100% gratis</h4>
+          <p>PasajeYa es completamente gratuito para el viajero. Nunca cobraremos por comparar precios.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ RUTAS POPULARES ════════════════════════════════════════════ -->
+  <section class="rutas">
+    <div class="container">
+      <div class="section-header">
+        <h2>Rutas populares</h2>
+        <p>Las rutas más buscadas en PasajeYa. Haz clic para ver precios en tiempo real.</p>
+      </div>
+
+      <div class="routes-grid">
+
+        <div class="route-card featured" (click)="irRuta('LIM','CUZ')">
+          <div class="route-content">
+            <div class="route-tag">Más popular</div>
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Cusco</span>
+            </div>
+            <div class="route-code">LIM → CUZ</div>
+            <div class="route-price">Desde <strong>S/ 119</strong></div>
           </div>
-          <span class="arrow">→</span>
+          <button class="route-btn">Ver vuelos →</button>
         </div>
 
         <div class="route-card" (click)="irRuta('LIM','AQP')">
-          <div class="route-icon">🌋</div>
-          <div class="route-info">
-            <strong>Lima → Arequipa</strong>
-            <span>Desde S/ 99</span>
+          <div class="route-content">
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Arequipa</span>
+            </div>
+            <div class="route-code">LIM → AQP</div>
+            <div class="route-price">Desde <strong>S/ 99</strong></div>
           </div>
-          <span class="arrow">→</span>
+          <button class="route-btn">Ver vuelos →</button>
         </div>
 
         <div class="route-card" (click)="irRuta('LIM','PIU')">
-          <div class="route-icon">🌊</div>
-          <div class="route-info">
-            <strong>Lima → Piura</strong>
-            <span>Desde S/ 89</span>
+          <div class="route-content">
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Piura</span>
+            </div>
+            <div class="route-code">LIM → PIU</div>
+            <div class="route-price">Desde <strong>S/ 89</strong></div>
           </div>
-          <span class="arrow">→</span>
+          <button class="route-btn">Ver vuelos →</button>
+        </div>
+
+        <div class="route-card" (click)="irRuta('LIM','TRU')">
+          <div class="route-content">
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Trujillo</span>
+            </div>
+            <div class="route-code">LIM → TRU</div>
+            <div class="route-price">Desde <strong>S/ 79</strong></div>
+          </div>
+          <button class="route-btn">Ver vuelos →</button>
         </div>
 
       </div>
     </div>
   </section>
+
+  <app-footer />
 
 </div>

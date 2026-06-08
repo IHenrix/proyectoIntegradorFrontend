@@ -1,26 +1,189 @@
 <div class="resultados-page">
 
-  <!-- Top bar -->
+  <!-- ══ TOP BAR (read-only preview) ══════════════════════════════ -->
   <header class="top-bar">
-    <a routerLink="/" class="logo">✈ Pasaje<strong>Ya</strong></a>
 
-    <div class="ruta-info">
-      <span class="ruta">
-        {{ ciudadDe(params.origen) }}
-        <span class="flecha-ruta">→</span>
-        {{ ciudadDe(params.destino) }}
-      </span>
-      <span class="sub">{{ params.fecha }} · {{ params.pasajeros }} pasajero{{ params.pasajeros > 1 ? 's' : '' }}</span>
-    </div>
-
-    <button class="btn-excel" (click)="exportar()" title="Exportar a Excel">
-      ↓ Excel
+    <button class="btn-back" (click)="volver()" title="Volver">
+      <i class="fa-solid fa-arrow-left"></i>
     </button>
+
+    <button class="preview-btn" (click)="abrirModal()">
+      <div class="preview-content">
+        <span class="preview-ruta">
+          <i class="fa-solid fa-plane"></i>
+          {{ ciudadDe(params.origen) }}
+          <span class="preview-flecha">{{ params.tipo === 'idavuelta' ? '⇄' : '→' }}</span>
+          {{ ciudadDe(params.destino) }}
+        </span>
+        <span class="preview-sub">
+          {{ fmtFechaCorta(params.fecha) }}
+          @if (params.tipo === 'idavuelta' && params.fechaVuelta) {
+            &nbsp;—&nbsp;{{ fmtFechaCorta(params.fechaVuelta) }}
+          }
+          &nbsp;·&nbsp;{{ params.pasajeros }} pasajero{{ params.pasajeros > 1 ? 's' : '' }}
+          &nbsp;·&nbsp;{{ params.tipo === 'idavuelta' ? 'Ida y vuelta' : 'Solo ida' }}
+        </span>
+      </div>
+      <span class="preview-edit">
+        <i class="fa-solid fa-pen-to-square"></i>
+      </span>
+    </button>
+
+    <button class="btn-excel" (click)="exportar()">
+      <i class="fa-solid fa-download"></i>
+      <span class="excel-txt"> Excel</span>
+    </button>
+
   </header>
 
+  <!-- ══ MODAL OVERLAY ════════════════════════════════════════════ -->
+  @if (showModal()) {
+
+    <div class="modal-backdrop" (click)="cerrarModal()"></div>
+
+    <div class="modal-top">
+
+      <!-- Fila superior: tipo viaje + cerrar -->
+      <div class="modal-hdr">
+        <div class="trip-toggle">
+          <button type="button" class="trip-opt" [class.active]="tripType() === 'idavuelta'"
+                  (click)="setTripType('idavuelta')">
+            <i class="fa-solid fa-right-left"></i> Ida y vuelta
+          </button>
+          <button type="button" class="trip-opt" [class.active]="tripType() === 'ida'"
+                  (click)="setTripType('ida')">
+            <i class="fa-solid fa-arrow-right"></i> Solo ida
+          </button>
+        </div>
+        <button type="button" class="modal-x" (click)="cerrarModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Formulario principal -->
+      <form class="modal-form" [formGroup]="form" (ngSubmit)="buscarNuevo()">
+
+        <!-- Origen -->
+        <div class="mf-field">
+          <span class="mf-label">Origen</span>
+          <div class="inp-wrap">
+            <input #inpO type="text" class="mf-input" autocomplete="off"
+                   placeholder="Ciudad o aeropuerto"
+                   (focus)="focusO()"
+                   (blur)="blurO()"
+                   (input)="filtroO.set($any($event.target).value); showDropO.set($any($event.target).value.length > 0)">
+            @if (showDropO() && filtradosO().length > 0) {
+              <div class="ac-drop">
+                @for (a of filtradosO(); track a.code) {
+                  <div class="ac-opt" (mousedown)="pickO(a)">
+                    <i class="fa-solid fa-plane ac-ico"></i>
+                    <div class="ac-info">
+                      <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
+                        <strong class="ac-code">{{ a.code }}</strong>
+                      </span>
+                      <span class="ac-apt">{{ a.nombre }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Swap -->
+        <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">
+          <i class="fa-solid fa-right-left"></i>
+        </button>
+
+        <!-- Destino -->
+        <div class="mf-field">
+          <span class="mf-label">Destino</span>
+          <div class="inp-wrap">
+            <input #inpD type="text" class="mf-input" autocomplete="off"
+                   placeholder="Ciudad o aeropuerto"
+                   (focus)="focusD()"
+                   (blur)="blurD()"
+                   (input)="filtroD.set($any($event.target).value); showDropD.set($any($event.target).value.length > 0)">
+            @if (showDropD() && filtradosD().length > 0) {
+              <div class="ac-drop">
+                @for (a of filtradosD(); track a.code) {
+                  <div class="ac-opt" (mousedown)="pickD(a)">
+                    <i class="fa-solid fa-plane ac-ico"></i>
+                    <div class="ac-info">
+                      <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
+                        <strong class="ac-code">{{ a.code }}</strong>
+                      </span>
+                      <span class="ac-apt">{{ a.nombre }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="mf-sep"></div>
+
+        <!-- Fechas -->
+        <div class="mf-field">
+          <span class="mf-label">{{ tripType() === 'idavuelta' ? 'Fechas' : 'Fecha de ida' }}</span>
+          <div class="cal-wrap">
+            <button type="button" class="mf-date-btn" (click)="showCal.set(!showCal())">
+              @if (form.value.fecha) {
+                {{ fmtFechaCorta(form.value.fecha || '') }}
+                @if (tripType() === 'idavuelta' && form.value.fechaVuelta) {
+                  <span class="mf-arrow"> — </span>
+                  {{ fmtFechaCorta(form.value.fechaVuelta || '') }}
+                }
+              } @else {
+                <span class="mf-ph">Seleccionar</span>
+              }
+              <i class="fa-regular fa-calendar mf-cal-ico"></i>
+            </button>
+            @if (showCal()) {
+              <app-calendario
+                [modo]="tripType() === 'idavuelta' ? 'rango' : 'simple'"
+                [fechaIda]="form.value.fecha || ''"
+                [fechaVuelta]="form.value.fechaVuelta || ''"
+                (seleccionIda)="onFechaIda($event)"
+                (seleccionVuelta)="onFechaVuelta($event)"
+                (cerrar)="showCal.set(false)"
+              />
+            }
+          </div>
+        </div>
+
+        <div class="mf-sep"></div>
+
+        <!-- Pasajeros -->
+        <div class="mf-field mf-pax">
+          <span class="mf-label">Pasajeros</span>
+          <div class="pax-row">
+            <button type="button" class="pax-ctrl" (click)="decrementar()">
+              <i class="fa-solid fa-minus"></i>
+            </button>
+            <span class="pax-num">{{ form.value.pasajeros }}</span>
+            <button type="button" class="pax-ctrl" (click)="incrementar()">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Buscar -->
+        <button type="submit" class="btn-buscar-modal" [disabled]="form.invalid">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Buscar
+        </button>
+
+      </form>
+    </div>
+
+  }
+
+  <!-- ══ CONTENIDO ════════════════════════════════════════════════ -->
   <main class="content">
 
-    <!-- Cargando -->
+    <!-- Cargando IDA -->
     @if (vueloService.cargando()) {
       <div class="estado">
         <div class="spinner"></div>
@@ -37,25 +200,36 @@
       </div>
     }
 
-    <!-- Resultados -->
     @if (!vueloService.cargando() && !vueloService.error()) {
 
-      <div class="results-header">
-        <p class="total">
-          <strong>{{ vueloService.vuelos().length }}</strong> vuelos encontrados
-        </p>
-        <p class="ordenado">Ordenado por precio</p>
-      </div>
+      <!-- Cabecera sección IDA -->
+      @if (params.tipo === 'idavuelta') {
+        <div class="seccion-hdr">
+          <div class="seccion-izq">
+            <span class="seccion-icono">✈</span>
+            <div>
+              <p class="seccion-titulo">Salida</p>
+              <p class="seccion-sub">{{ ciudadDe(params.origen) }} → {{ ciudadDe(params.destino) }}</p>
+            </div>
+          </div>
+          <div class="seccion-der">
+            <span class="seccion-fecha">{{ fmtFecha(params.fecha) }}</span>
+            <span class="seccion-count">{{ vueloService.vuelos().length }} vuelos</span>
+          </div>
+        </div>
+      } @else {
+        <div class="results-header">
+          <p class="total"><strong>{{ vueloService.vuelos().length }}</strong> vuelos encontrados</p>
+          <p class="ordenado">Ordenado por precio</p>
+        </div>
+      }
 
+      <!-- Cards IDA -->
       <div class="cards">
         @for (v of vueloService.vuelos(); track v.id) {
           <div class="card">
-
-            <!-- Aerolínea + horario -->
             <div class="card-left">
-              <span class="airline-badge" [class]="v.aerolinea.toLowerCase()">
-                {{ v.aerolinea }}
-              </span>
+              <span class="airline-badge" [class]="v.aerolinea.toLowerCase()">{{ v.aerolinea }}</span>
               <div class="horario">
                 <span class="hora">{{ v.horaSalida }}</span>
                 <span class="flecha">→</span>
@@ -63,28 +237,20 @@
               </div>
               <span class="duracion">{{ v.duracion }}</span>
             </div>
-
             <div class="divider"></div>
-
-            <!-- Tarifa + detalles + semáforo -->
             <div class="card-mid">
               <span class="tarifa">{{ v.tipoTarifa | titlecase }}</span>
-
               <div class="detalles">
-                <span class="detalle-item">
+                <span class="detalle-item" [class.positivo]="v.equipajeBodegaKg > 0">
                   {{ v.equipajeBodegaKg > 0 ? '✓ Bodega ' + v.equipajeBodegaKg + ' kg' : '✗ Sin bodega' }}
                 </span>
-                <span class="detalle-item">
+                <span class="detalle-item" [class.positivo]="v.equipajeManoKg > 0">
                   {{ v.equipajeManoKg > 0 ? '✓ Mano ' + v.equipajeManoKg + ' kg' : '✗ Sin mano' }}
                 </span>
-                <span class="detalle-item">
+                <span class="detalle-item" [class.positivo]="v.permiteReembolso">
                   {{ v.permiteReembolso ? '✓ Reembolsable' : '✗ No reembolsable' }}
                 </span>
-                @if (v.asientoSeleccionable) {
-                  <span class="detalle-item">✓ Asiento seleccionable</span>
-                }
               </div>
-
               <div class="semaforo" [class]="v.semaforo">
                 <span class="dot"></span>
                 <span class="label">
@@ -94,25 +260,96 @@
                 </span>
               </div>
             </div>
-
-            <!-- Precio y acción -->
             <div class="card-right">
               <div class="precio-box">
                 <span class="moneda">S/</span>
                 <span class="precio">{{ v.precio | number:'1.2-2' }}</span>
               </div>
               <span class="por-persona">por persona</span>
-              <a [href]="urlAerolinea(v.aerolinea)"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="btn-oferta">
+              <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer" class="btn-oferta">
                 Ver oferta →
               </a>
             </div>
-
           </div>
         }
       </div>
+
+    }
+
+    <!-- Sección VUELTA -->
+    @if (params.tipo === 'idavuelta') {
+
+      <div class="seccion-hdr vuelta-hdr">
+        <div class="seccion-izq">
+          <span class="seccion-icono vuelta-ico">↩</span>
+          <div>
+            <p class="seccion-titulo">Vuelta</p>
+            <p class="seccion-sub">{{ ciudadDe(params.destino) }} → {{ ciudadDe(params.origen) }}</p>
+          </div>
+        </div>
+        <div class="seccion-der">
+          <span class="seccion-fecha">{{ fmtFecha(params.fechaVuelta || '') }}</span>
+          @if (!vueloService.cargandoVuelta()) {
+            <span class="seccion-count">{{ vueloService.vuelosVuelta().length }} vuelos</span>
+          }
+        </div>
+      </div>
+
+      @if (vueloService.cargandoVuelta()) {
+        <div class="estado">
+          <div class="spinner"></div>
+          <p>Buscando vuelos de regreso...</p>
+        </div>
+      } @else {
+        <div class="cards">
+          @for (v of vueloService.vuelosVuelta(); track v.id) {
+            <div class="card">
+              <div class="card-left">
+                <span class="airline-badge" [class]="v.aerolinea.toLowerCase()">{{ v.aerolinea }}</span>
+                <div class="horario">
+                  <span class="hora">{{ v.horaSalida }}</span>
+                  <span class="flecha">→</span>
+                  <span class="hora">{{ v.horaLlegada }}</span>
+                </div>
+                <span class="duracion">{{ v.duracion }}</span>
+              </div>
+              <div class="divider"></div>
+              <div class="card-mid">
+                <span class="tarifa">{{ v.tipoTarifa | titlecase }}</span>
+                <div class="detalles">
+                  <span class="detalle-item" [class.positivo]="v.equipajeBodegaKg > 0">
+                    {{ v.equipajeBodegaKg > 0 ? '✓ Bodega ' + v.equipajeBodegaKg + ' kg' : '✗ Sin bodega' }}
+                  </span>
+                  <span class="detalle-item" [class.positivo]="v.equipajeManoKg > 0">
+                    {{ v.equipajeManoKg > 0 ? '✓ Mano ' + v.equipajeManoKg + ' kg' : '✗ Sin mano' }}
+                  </span>
+                  <span class="detalle-item" [class.positivo]="v.permiteReembolso">
+                    {{ v.permiteReembolso ? '✓ Reembolsable' : '✗ No reembolsable' }}
+                  </span>
+                </div>
+                <div class="semaforo" [class]="v.semaforo">
+                  <span class="dot"></span>
+                  <span class="label">
+                    @if (v.semaforo === 'verde')    { Precio conveniente }
+                    @if (v.semaforo === 'amarillo') { Precio normal }
+                    @if (v.semaforo === 'rojo')     { Precio alto }
+                  </span>
+                </div>
+              </div>
+              <div class="card-right">
+                <div class="precio-box">
+                  <span class="moneda">S/</span>
+                  <span class="precio">{{ v.precio | number:'1.2-2' }}</span>
+                </div>
+                <span class="por-persona">por persona</span>
+                <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer" class="btn-oferta">
+                  Ver oferta →
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      }
     }
 
   </main>

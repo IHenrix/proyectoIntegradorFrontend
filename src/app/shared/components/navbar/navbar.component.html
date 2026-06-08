@@ -1,20 +1,40 @@
 <nav class="navbar">
   <div class="nav-inner">
 
+    <!-- Logo -->
     <a routerLink="/" class="logo">
       <span class="logo-icon">✈</span>
       Pasaje<strong>Ya</strong>
     </a>
 
+    <!-- Acciones -->
     <div class="nav-actions">
-      @if (authService.estaAutenticado()) {
+
+      @if (auth.estaAutenticado()) {
+
+        <!-- Usuario autenticado -->
+        <div class="user-pill">
+          <div class="avatar" [class]="rolInfo().avatar">
+            {{ inicial() }}
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ auth.nombre() }}</span>
+            @if (rolInfo().badge) {
+              <span class="role-badge" [class]="rolInfo().css">{{ rolInfo().label }}</span>
+            }
+          </div>
+        </div>
+
         <a routerLink="/dashboard" class="btn-dashboard">Mi cuenta</a>
-        <button class="btn-logout" (click)="authService.cerrarSesion()">Salir</button>
+        <button class="btn-logout" (click)="auth.cerrarSesion()">Salir</button>
+
       } @else {
+
         <a routerLink="/auth" class="btn-login">Iniciar sesión</a>
         <a routerLink="/auth" class="btn-registro">Registrarse →</a>
-      }
-    </div>
 
+      }
+
+    </div>
   </div>
 </nav>

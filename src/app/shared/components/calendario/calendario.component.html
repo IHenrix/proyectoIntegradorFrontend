@@ -1,0 +1,82 @@
+<div class="cal-panel" [class.rango]="modo === 'rango'" (mousedown)="$event.preventDefault()">
+
+  <p class="cal-hint">{{ labelFase() }}</p>
+
+  <div class="cal-meses">
+
+    <!-- Mes izquierdo -->
+    <div class="cal-mes">
+      <div class="cal-nav">
+        <button type="button" class="nav-btn" (click)="navPrev()">‹</button>
+        <span class="mes-titulo">{{ nombreMes(anio(), mes()) }}</span>
+        @if (modo === 'simple') {
+          <button type="button" class="nav-btn" (click)="navNext()">›</button>
+        } @else {
+          <span class="nav-esp"></span>
+        }
+      </div>
+      <div class="cal-grilla">
+        @for (d of DIAS; track d) { <div class="dow">{{ d }}</div> }
+        @for (dia of diasMes1(); track $index) {
+          @if (dia) {
+            <div class="dia"
+              [class.pas]="pasado(dia)"
+              [class.hoy]="esHoy(dia) && !esIda(dia) && !esVuelta(dia)"
+              [class.sel-ida]="esIda(dia)"
+              [class.sel-vuelta]="esVuelta(dia)"
+              [class.ida-r]="esIdaConRango(dia)"
+              [class.vuelta-r]="esVueltaConRango(dia)"
+              [class.en-rango]="enRango(dia)"
+              [class.en-hover]="enHover(dia)"
+              (click)="click(dia)"
+              (mouseenter)="hovFecha.set(dia)"
+              (mouseleave)="hovFecha.set(null)">
+              <span class="num">{{ dia.getDate() }}</span>
+            </div>
+          } @else {
+            <div class="dia vacio"></div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Separador vertical -->
+    @if (modo === 'rango') {
+      <div class="sep-v"></div>
+
+      <!-- Mes derecho -->
+      <div class="cal-mes">
+        <div class="cal-nav">
+          <span class="nav-esp"></span>
+          <span class="mes-titulo">{{ nombreMes(anio2, mes2) }}</span>
+          <button type="button" class="nav-btn" (click)="navNext()">›</button>
+        </div>
+        <div class="cal-grilla">
+          @for (d of DIAS; track d) { <div class="dow">{{ d }}</div> }
+          @for (dia of diasMes2(); track $index) {
+            @if (dia) {
+              <div class="dia"
+                [class.pas]="pasado(dia)"
+                [class.hoy]="esHoy(dia) && !esIda(dia) && !esVuelta(dia)"
+                [class.sel-ida]="esIda(dia)"
+                [class.sel-vuelta]="esVuelta(dia)"
+                [class.ida-r]="esIdaConRango(dia)"
+                [class.vuelta-r]="esVueltaConRango(dia)"
+                [class.en-rango]="enRango(dia)"
+                [class.en-hover]="enHover(dia)"
+                (click)="click(dia)"
+                (mouseenter)="hovFecha.set(dia)"
+                (mouseleave)="hovFecha.set(null)">
+                <span class="num">{{ dia.getDate() }}</span>
+              </div>
+            } @else {
+              <div class="dia vacio"></div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+
+</div>

@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import {
   ReactiveFormsModule, FormBuilder, Validators,
   AbstractControl, ValidationErrors, ValidatorFn
@@ -6,6 +6,7 @@ import {
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
 
 function passwordFuerte(ctrl: AbstractControl): ValidationErrors | null {
   const v: string = ctrl.value ?? '';
@@ -27,7 +28,7 @@ const REGLAS_DOC: Record<number, { pattern: RegExp; msg: string; placeholder: st
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
-export class AuthComponent implements OnInit, OnDestroy {
+export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
   private fb           = inject(FormBuilder);
   private router       = inject(Router);
   private route        = inject(ActivatedRoute);
@@ -42,6 +43,10 @@ export class AuthComponent implements OnInit, OnDestroy {
   mostrarPassC = signal(false);
 
   private docSub?: Subscription;
+  private captchaLoginId:    number | null = null;
+  private captchaRegistroId: number | null = null;
+
+  readonly recaptchaSiteKey = environment.recaptchaSiteKey;
 
   // Fecha máxima nacimiento: hoy (sin restricción de edad para demo)
   readonly fechaMaxNac = new Date().toISOString().split('T')[0];
@@ -91,6 +96,10 @@ export class AuthComponent implements OnInit, OnDestroy {
       const msg = params.get('msg');
       this.error.set(msg ?? 'El enlace de verificación no es válido o ya fue utilizado.');
     }
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.renderWidget('recaptcha-login', 'login'), 200);
   }
 
   ngOnDestroy(): void {
@@ -160,19 +169,52 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.modo.set(m);
     this.error.set(null);
     this.mensaje.set(null);
+    if (m === 'registro') {
+      setTimeout(() => this.renderWidget('recaptcha-registro', 'registro'), 80);
+    } else {
+      setTimeout(() => this.renderWidget('recaptcha-login', 'login'), 80);
+    }
+  }
+
+  private renderWidget(elementId: string, tipo: 'login' | 'registro'): void {
+    const g = (window as any).grecaptcha;
+    if (!g) return;
+    const el = document.getElementById(elementId);
+    if (!el || el.childElementCount > 0) return;
+    const id = g.render(el, { sitekey: this.recaptchaSiteKey, theme: 'dark' });
+    if (tipo === 'login') this.captchaLoginId = id;
+    else this.captchaRegistroId = id;
+  }
+
+  private resetWidget(tipo: 'login' | 'registro'): void {
+    const g = (window as any).grecaptcha;
+    const widgetId = tipo === 'login' ? this.captchaLoginId : this.captchaRegistroId;
+    if (g && widgetId !== null) g.reset(widgetId);
+  }
+
+  private getCaptchaToken(tipo: 'login' | 'registro'): string {
+    const g = (window as any).grecaptcha;
+    const widgetId = tipo === 'login' ? this.captchaLoginId : this.captchaRegistroId;
+    return g?.getResponse(widgetId ?? undefined) ?? '';
   }
 
   entrar(): void {
+    if (this.cargando()) return;
     this.loginForm.markAllAsTouched();
     if (this.loginForm.invalid) return;
+
+    const captchaToken = this.getCaptchaToken('login');
+    if (!captchaToken) {
+      this.error.set('Por favor completa el captcha antes de continuar.');
+      return;
+    }
+
     this.cargando.set(true);
     this.error.set(null);
     const { email, password } = this.loginForm.value;
-    this.authService.login(email!, password!).subscribe({
+    this.authService.login(email!, password!, captchaToken).subscribe({
       next: res => {
-        this.authService.guardarToken(res.token);
-        localStorage.setItem('nombre', res.nombre);
-        localStorage.setItem('rol', res.rol);
+        this.authService.iniciarSesion(res);
         this.router.navigate(['/dashboard']);
       },
       error: err => {
@@ -180,13 +222,22 @@ export class AuthComponent implements OnInit, OnDestroy {
         const msg = raw?.message ?? (typeof raw === 'string' ? raw : 'Credenciales incorrectas');
         this.error.set(msg);
         this.cargando.set(false);
+        this.resetWidget('login');
       }
     });
   }
 
   registrarse(): void {
+    if (this.cargando()) return;
     this.registroForm.markAllAsTouched();
     if (this.registroForm.invalid || this.passwordsNoCoinciden) return;
+
+    const captchaToken = this.getCaptchaToken('registro');
+    if (!captchaToken) {
+      this.error.set('Por favor completa el captcha antes de continuar.');
+      return;
+    }
+
     this.cargando.set(true);
     this.error.set(null);
     this.mensaje.set(null);
@@ -201,7 +252,8 @@ export class AuthComponent implements OnInit, OnDestroy {
       telefono:        v.telefono ?? '',
       fechaNacimiento: v.fechaNacimiento ?? '',
       tipoDocumentoId: v.tipoDocumentoId ?? null,
-      nroDocumento:    v.nroDocumento ?? ''
+      nroDocumento:    v.nroDocumento ?? '',
+      captchaToken
     }).subscribe({
       next: () => {
         const emailUsado = v.email!;
@@ -216,6 +268,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         const msg = raw?.message ?? (typeof raw === 'string' ? raw : 'Error al registrarse');
         this.error.set(msg);
         this.cargando.set(false);
+        this.resetWidget('registro');
       }
     });
   }

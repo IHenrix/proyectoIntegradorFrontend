@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -10,5 +10,16 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent {
-  authService = inject(AuthService);
+  readonly auth = inject(AuthService);
+
+  readonly rolInfo = computed(() => {
+    const r = this.auth.rol();
+    if (r === 'admin')           return { label: 'ADMIN',     css: 'badge-admin',   avatar: 'avatar-admin',   badge: true };
+    if (r === 'usuario_premium') return { label: '★ PREMIUM', css: 'badge-premium', avatar: 'avatar-premium', badge: true };
+    return { label: '', css: '', avatar: 'avatar-free', badge: false };
+  });
+
+  readonly inicial = computed(() =>
+    (this.auth.nombre() ?? 'U').trim().charAt(0).toUpperCase()
+  );
 }

@@ -1,0 +1,223 @@
+// ── Panel ─────────────────────────────────────────────────────────
+.cal-panel {
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.16);
+  padding: 1.5rem 1.5rem 1.25rem;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 400;
+  width: 320px;
+
+  &.rango { width: 660px; }
+}
+
+.cal-hint {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f97316;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 1.25rem;
+}
+
+// ── Meses ─────────────────────────────────────────────────────────
+.cal-meses {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+
+.cal-mes { flex: 1; min-width: 0; }
+
+.sep-v {
+  width: 1px;
+  background: #f1f5f9;
+  align-self: stretch;
+  margin: 0 1.25rem;
+  flex-shrink: 0;
+}
+
+// ── Navegación ────────────────────────────────────────────────────
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+}
+
+.mes-titulo {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #0f172a;
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
+}
+
+.nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1.05rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s;
+  padding: 0;
+
+  &:hover {
+    background: #fff7ed;
+    border-color: #f97316;
+    color: #f97316;
+  }
+}
+
+.nav-esp { width: 28px; flex-shrink: 0; }
+
+// ── Grilla ────────────────────────────────────────────────────────
+.cal-grilla {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.dow {
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #94a3b8;
+  padding-bottom: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+// ── Día ───────────────────────────────────────────────────────────
+.dia {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  cursor: pointer;
+
+  // Fondo de rango (se extiende de borde a borde de la celda)
+  &::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 0;
+    right: 0;
+    background: transparent;
+    z-index: 0;
+    border-radius: 0;
+  }
+
+  // Rango completo (días intermedios)
+  &.en-rango::before, &.en-hover::before {
+    background: rgba(249,115,22,0.1);
+  }
+
+  // Inicio del rango: bg sólo en la mitad derecha
+  &.ida-r::before {
+    left: 50%;
+    background: rgba(249,115,22,0.1);
+  }
+
+  // Fin del rango: bg sólo en la mitad izquierda
+  &.vuelta-r::before {
+    right: 50%;
+    background: rgba(249,115,22,0.1);
+  }
+
+  // Mismo día ida y vuelta: sin bg
+  &.ida-r.vuelta-r::before { background: transparent; }
+
+  // Vacío / pasado
+  &.vacio, &.pas { pointer-events: none; cursor: default; }
+}
+
+// ── Número (círculo) ──────────────────────────────────────────────
+.num {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #0f172a;
+  transition: background 0.1s, color 0.1s;
+
+  // Hover normal (días disponibles no seleccionados)
+  .dia:not(.pas):not(.sel-ida):not(.sel-vuelta):hover & {
+    background: #fff7ed;
+    color: #f97316;
+    font-weight: 600;
+  }
+
+  // Pasado
+  .pas & { color: #cbd5e1; }
+
+  // Hoy (sin selección)
+  .hoy & {
+    font-weight: 800;
+    color: #f97316;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #f97316;
+    }
+  }
+
+  // Ida seleccionada
+  .sel-ida & {
+    background: #f97316;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(249,115,22,0.4);
+  }
+
+  // Vuelta seleccionada
+  .sel-vuelta & {
+    background: #ea580c;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(234,88,12,0.4);
+  }
+
+  // En rango (días entre ida y vuelta)
+  .en-rango & { color: #c2410c; font-weight: 600; }
+  .en-hover &  { color: #9a3412; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 700px) {
+  .cal-panel {
+    &.rango {
+      width: calc(100vw - 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  .cal-meses { flex-direction: column; gap: 1.5rem; }
+  .sep-v { display: none; }
+}

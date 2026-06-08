@@ -85,6 +85,10 @@
             }
           </div>
 
+          <div class="captcha-wrapper">
+            <div id="recaptcha-login"></div>
+          </div>
+
           <button type="submit" class="btn-submit" [disabled]="cargando()">
             @if (cargando()) {
               <span class="spinner"></span> Ingresando...
@@ -260,6 +264,10 @@
                      [max]="fechaMaxNac"
                      [min]="fechaMinNac">
             </div>
+          </div>
+
+          <div class="captcha-wrapper">
+            <div id="recaptcha-registro"></div>
           </div>
 
           <button type="submit" class="btn-submit" [disabled]="cargando()">

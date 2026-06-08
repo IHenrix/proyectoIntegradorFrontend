@@ -385,6 +385,13 @@ form {
   letter-spacing: 0;
 }
 
+// ── Captcha ───────────────────────────────────────────────────────
+.captcha-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 0.25rem 0;
+}
+
 // ── Botón submit ──────────────────────────────────────────────────
 .btn-submit {
   width: 100%;

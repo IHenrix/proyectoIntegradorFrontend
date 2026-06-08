@@ -1,48 +1,266 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, inject, OnInit, ViewChild, ElementRef, signal, computed, effect } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { VueloService } from '../../core/services/vuelo.service';
-import { BusquedaParams, AEROPUERTOS } from '../../core/models/vuelo.model';
-import { DecimalPipe, TitleCasePipe } from '@angular/common';
-
-const AIRLINE_URLS: Record<string, string> = {
-  LATAM:    'https://www.latam.com/es_pe/',
-  Sky:      'https://www.skyairline.com/peru',
-  JetSmart: 'https://jetsmart.com/pe/es/'
-};
+import { AeropuertoService, Aeropuerto } from '../../core/services/aeropuerto.service';
+import { BusquedaParams } from '../../core/models/vuelo.model';
+import { CalendarioComponent } from '../../shared/components/calendario/calendario.component';
 
 @Component({
   selector: 'app-resultados',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, TitleCasePipe],
+  imports: [DecimalPipe, TitleCasePipe, ReactiveFormsModule, CalendarioComponent],
   templateUrl: './resultados.component.html',
   styleUrl: './resultados.component.scss'
 })
 export class ResultadosComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  vueloService  = inject(VueloService);
+  private route     = inject(ActivatedRoute);
+  private router    = inject(Router);
+  private location  = inject(Location);
+  private fb        = inject(FormBuilder);
+  vueloService      = inject(VueloService);
+  aeropuertoService = inject(AeropuertoService);
+
+  @ViewChild('inpO') inpO!: ElementRef<HTMLInputElement>;
+  @ViewChild('inpD') inpD!: ElementRef<HTMLInputElement>;
 
   params!: BusquedaParams;
+  private prevOrigenCode  = '';
+  private prevDestinoCode = '';
+
+  showModal = signal(false);
+  tripType  = signal<'ida' | 'idavuelta'>('idavuelta');
+  showCal   = signal(false);
+  filtroO   = signal('');
+  filtroD   = signal('');
+  showDropO = signal(false);
+  showDropD = signal(false);
+
+  form = this.fb.group({
+    origen:      ['', Validators.required],
+    destino:     ['', Validators.required],
+    fecha:       ['', Validators.required],
+    fechaVuelta: [''],
+    pasajeros:   [1, [Validators.required, Validators.min(1)]],
+  });
+
+  filtradosO = computed(() => {
+    const q = this.filtroO().toLowerCase().trim();
+    if (!q) return [];
+    return this.aeropuertoService.aeropuertos().filter(a =>
+      a.ciudad.toLowerCase().includes(q) ||
+      a.code.toLowerCase().includes(q) ||
+      a.nombre.toLowerCase().includes(q)
+    );
+  });
+
+  filtradosD = computed(() => {
+    const q = this.filtroD().toLowerCase().trim();
+    if (!q) return [];
+    return this.aeropuertoService.aeropuertos().filter(a =>
+      a.ciudad.toLowerCase().includes(q) ||
+      a.code.toLowerCase().includes(q) ||
+      a.nombre.toLowerCase().includes(q)
+    );
+  });
+
+  constructor() {
+    effect(() => {
+      const apts = this.aeropuertoService.aeropuertos();
+      if (!apts.length || !this.params) return;
+      const o = apts.find(a => a.code === this.params.origen);
+      const d = apts.find(a => a.code === this.params.destino);
+      if (this.inpO?.nativeElement && o) this.inpO.nativeElement.value = `${o.ciudad} (${o.code})`;
+      if (this.inpD?.nativeElement && d) this.inpD.nativeElement.value = `${d.ciudad} (${d.code})`;
+    });
+  }
 
   ngOnInit(): void {
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const q = this.route.snapshot.queryParams;
     this.params = {
-      origen:    q['origen']    ?? 'LIM',
-      destino:   q['destino']   ?? 'CUZ',
-      fecha:     q['fecha']     ?? '',
-      pasajeros: +q['pasajeros'] || 1
+      origen:      q['origen']      ?? 'LIM',
+      destino:     q['destino']     ?? 'CUZ',
+      fecha:       q['fecha']       ?? '',
+      pasajeros:   +q['pasajeros']  || 1,
+      fechaVuelta: q['fechaVuelta'] ?? undefined,
+      tipo:        q['tipo']        ?? 'ida',
     };
     this.vueloService.buscar(this.params);
+    if (this.params.tipo === 'idavuelta' && this.params.fechaVuelta) {
+      this.vueloService.buscarVuelta(this.params);
+    }
   }
 
-  ciudadDe(code: string): string {
-    return AEROPUERTOS.find(a => a.code === code)?.ciudad ?? code;
+  // ── Modal ────────────────────────────────────────────────────────
+
+  abrirModal(): void {
+    this.tripType.set(this.params.tipo === 'idavuelta' ? 'idavuelta' : 'ida');
+    this.form.patchValue({
+      origen:      this.params.origen,
+      destino:     this.params.destino,
+      fecha:       this.params.fecha,
+      fechaVuelta: this.params.fechaVuelta ?? '',
+      pasajeros:   this.params.pasajeros,
+    });
+    this.showModal.set(true);
+    // Después del render, pone los labels en los inputs
+    setTimeout(() => {
+      const apts = this.aeropuertoService.aeropuertos();
+      const o = apts.find(a => a.code === this.params.origen);
+      const d = apts.find(a => a.code === this.params.destino);
+      if (this.inpO?.nativeElement)
+        this.inpO.nativeElement.value = o ? `${o.ciudad} (${o.code})` : this.params.origen;
+      if (this.inpD?.nativeElement)
+        this.inpD.nativeElement.value = d ? `${d.ciudad} (${d.code})` : this.params.destino;
+    });
   }
 
-  urlAerolinea(aerolinea: string): string {
-    return AIRLINE_URLS[aerolinea] ?? '#';
+  cerrarModal(): void {
+    this.showModal.set(false);
+    this.showDropO.set(false);
+    this.showDropD.set(false);
+    this.showCal.set(false);
+    this.filtroO.set('');
+    this.filtroD.set('');
   }
 
-  exportar(): void {
-    this.vueloService.exportarExcel(this.params);
+  // ── Autocomplete ─────────────────────────────────────────────────
+
+  focusO(): void {
+    this.prevOrigenCode = this.form.value.origen ?? '';
+    this.form.patchValue({ origen: '' });
+    this.inpO.nativeElement.select();
+    this.showDropD.set(false);
+    this.showCal.set(false);
   }
+
+  blurO(): void {
+    setTimeout(() => {
+      this.showDropO.set(false);
+      this.filtroO.set('');
+      if (!this.form.value.origen && this.prevOrigenCode) {
+        this.form.patchValue({ origen: this.prevOrigenCode });
+        const a = this.aeropuertoService.aeropuertos().find(x => x.code === this.prevOrigenCode);
+        if (this.inpO?.nativeElement)
+          this.inpO.nativeElement.value = a ? `${a.ciudad} (${a.code})` : this.prevOrigenCode;
+      }
+    }, 150);
+  }
+
+  focusD(): void {
+    this.prevDestinoCode = this.form.value.destino ?? '';
+    this.form.patchValue({ destino: '' });
+    this.inpD.nativeElement.select();
+    this.showDropO.set(false);
+    this.showCal.set(false);
+  }
+
+  blurD(): void {
+    setTimeout(() => {
+      this.showDropD.set(false);
+      this.filtroD.set('');
+      if (!this.form.value.destino && this.prevDestinoCode) {
+        this.form.patchValue({ destino: this.prevDestinoCode });
+        const a = this.aeropuertoService.aeropuertos().find(x => x.code === this.prevDestinoCode);
+        if (this.inpD?.nativeElement)
+          this.inpD.nativeElement.value = a ? `${a.ciudad} (${a.code})` : this.prevDestinoCode;
+      }
+    }, 150);
+  }
+
+  pickO(a: Aeropuerto): void {
+    this.form.patchValue({ origen: a.code });
+    this.inpO.nativeElement.value = `${a.ciudad} (${a.code})`;
+    this.filtroO.set('');
+    this.showDropO.set(false);
+  }
+
+  pickD(a: Aeropuerto): void {
+    this.form.patchValue({ destino: a.code });
+    this.inpD.nativeElement.value = `${a.ciudad} (${a.code})`;
+    this.filtroD.set('');
+    this.showDropD.set(false);
+  }
+
+  intercambiar(): void {
+    const o = this.form.value.origen ?? '';
+    const d = this.form.value.destino ?? '';
+    this.form.patchValue({ origen: d, destino: o });
+    const txtO = this.inpO.nativeElement.value;
+    const txtD = this.inpD.nativeElement.value;
+    this.inpO.nativeElement.value = txtD;
+    this.inpD.nativeElement.value = txtO;
+  }
+
+  setTripType(t: 'ida' | 'idavuelta'): void {
+    this.tripType.set(t);
+    this.showCal.set(false);
+    if (t === 'ida') this.form.patchValue({ fechaVuelta: '' });
+  }
+
+  onFechaIda(iso: string):    void { this.form.patchValue({ fecha: iso }); }
+  onFechaVuelta(iso: string): void { this.form.patchValue({ fechaVuelta: iso }); }
+
+  incrementar(): void {
+    const v = this.form.value.pasajeros ?? 1;
+    if (v < 9) this.form.patchValue({ pasajeros: v + 1 });
+  }
+
+  decrementar(): void {
+    const v = this.form.value.pasajeros ?? 1;
+    if (v > 1) this.form.patchValue({ pasajeros: v - 1 });
+  }
+
+  buscarNuevo(): void {
+    if (this.form.invalid) return;
+    const v = this.form.value;
+    const newParams: BusquedaParams = {
+      origen:      v.origen!,
+      destino:     v.destino!,
+      fecha:       v.fecha!,
+      pasajeros:   v.pasajeros!,
+      fechaVuelta: this.tripType() === 'idavuelta' && v.fechaVuelta ? v.fechaVuelta : undefined,
+      tipo:        this.tripType(),
+    };
+    this.router.navigate([], {
+      queryParams: {
+        origen:    newParams.origen,
+        destino:   newParams.destino,
+        fecha:     newParams.fecha,
+        pasajeros: newParams.pasajeros,
+        ...(newParams.fechaVuelta ? { fechaVuelta: newParams.fechaVuelta } : {}),
+        tipo:      newParams.tipo,
+      },
+      replaceUrl: true,
+    });
+    this.params = newParams;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    this.cerrarModal();
+    this.vueloService.buscar(newParams);
+    if (newParams.tipo === 'idavuelta' && newParams.fechaVuelta) {
+      this.vueloService.buscarVuelta(newParams);
+    }
+  }
+
+  volver(): void { this.location.back(); }
+
+  ciudadDe(code: string): string { return this.aeropuertoService.ciudad(code); }
+
+  fmtFecha(iso: string): string {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d)
+      .toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  fmtFechaCorta(iso: string): string {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return `${dt.toLocaleDateString('es-PE', { weekday: 'short' })} ${d}/${m}`;
+  }
+
+  exportar(): void { this.vueloService.exportarExcel(this.params); }
 }

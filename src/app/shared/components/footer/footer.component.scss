@@ -1,0 +1,114 @@
+.footer {
+  background: #080d1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(248, 250, 252, 0.55);
+  font-size: 0.875rem;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 2rem 2rem;
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1fr;
+  gap: 2.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Brand ─────────────────────────────────────────────────────────
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f8fafc;
+  text-decoration: none;
+  letter-spacing: -0.02em;
+
+  strong { color: #fbbf24; }
+}
+
+.brand-tagline {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(248, 250, 252, 0.4);
+  margin: 0;
+}
+
+// ── Secciones ─────────────────────────────────────────────────────
+.footer-section {
+  h4 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(248, 250, 252, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 1rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+
+    a {
+      color: rgba(248, 250, 252, 0.5);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+
+      &:hover { color: #fbbf24; }
+    }
+  }
+}
+
+// ── Logos aerolíneas ──────────────────────────────────────────────
+.airline-logos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.airline-logo {
+  height: 26px;
+  width: auto;
+  max-width: 110px;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px 10px;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
+
+  &:hover { opacity: 1; transform: translateY(-1px); }
+}
+
+// ── Bottom bar ────────────────────────────────────────────────────
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.25rem 2rem;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(248, 250, 252, 0.28);
+  }
+}

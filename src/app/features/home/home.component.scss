@@ -2,6 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-top: 64px;
 }
 
 // ── Hero ─────────────────────────────────────────────────────────
@@ -13,7 +14,6 @@
     radial-gradient(ellipse at 50% 110%, rgba(14,165,233,0.07) 0%, transparent 45%);
   padding: 8rem 0 5.5rem;
   position: relative;
-  overflow: hidden;
 
   // dot grid
   &::before {
@@ -119,6 +119,51 @@
   grid-template-columns: 2fr 1fr;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+// ── Calendar trigger ──────────────────────────────────────────────
+.cal-wrap { position: relative; }
+
+.cal-btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #0f172a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  text-align: left;
+
+  &:hover, &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  }
+}
+
+.cal-btn-text {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.cal-arrow   { color: #94a3b8; font-size: 0.85rem; }
+.cal-placeholder { color: #94a3b8; }
+.cal-ico     { color: #94a3b8; font-size: 1rem; flex-shrink: 0; }
+
+.cal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 399;
 }
 
 .field {
@@ -358,32 +403,153 @@
   margin-bottom: 1.5rem;
 }
 
-.airline-badges {
+.airline-logos {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 2.5rem;
   flex-wrap: wrap;
 }
 
-.badge {
-  padding: 0.65rem 1.75rem;
-  border-radius: 12px;
-  font-size: 0.88rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  border: 2px solid transparent;
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: default;
+.airline-logo {
+  height: 32px;
+  width: auto;
+  max-width: 130px;
+  border-radius: 8px;
+  padding: 5px 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  opacity: 0.85;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
 
   &:hover {
+    opacity: 1;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
+}
 
-  &.latam    { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
-  &.sky      { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; }
-  &.jetsmart { background: #fff7ed; color: #ea580c; border-color: #fed7aa; }
+// ── Trip toggle ───────────────────────────────────────────────────
+.trip-toggle {
+  display: flex;
+  gap: 3px;
+  background: #f1f5f9;
+  border-radius: 100px;
+  padding: 3px;
+  width: fit-content;
+  margin-bottom: 1.5rem;
+}
+
+.trip-btn {
+  padding: 0.38rem 1.1rem;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s;
+
+  &.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+}
+
+// ── Autocomplete ──────────────────────────────────────────────────
+.ac-wrap { position: relative; }
+
+.ac-input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #f8fafc;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  }
+}
+
+.ac-drop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.ac-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  & + & { border-top: 1px solid #f1f5f9; }
+  &:hover { background: #f0f9ff; }
+}
+
+.ac-icon {
+  font-size: 1rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.ac-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  overflow: hidden;
+}
+
+.ac-city {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ac-code {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #3b82f6;
+  background: #eff6ff;
+  border-radius: 4px;
+  padding: 0.05rem 0.4rem;
+}
+
+.ac-apt {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-loading, .ac-empty {
+  padding: 0.9rem 1rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
 }
 
 // ── Responsive ────────────────────────────────────────────────────

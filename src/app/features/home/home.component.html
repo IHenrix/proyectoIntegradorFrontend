@@ -18,32 +18,110 @@
       <div class="search-card">
         <form [formGroup]="form" (ngSubmit)="buscar()">
 
+          <div class="trip-toggle">
+            <button type="button" class="trip-btn" [class.active]="tripType() === 'idavuelta'"
+                    (click)="setTripType('idavuelta')">Ida y vuelta</button>
+            <button type="button" class="trip-btn" [class.active]="tripType() === 'ida'"
+                    (click)="setTripType('ida')">Solo ida</button>
+          </div>
+
           <div class="route-row">
             <div class="field">
               <label>Origen</label>
-              <select formControlName="origen">
-                @for (a of aeropuertos; track a.code) {
-                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+              <div class="ac-wrap">
+                <input #inpO type="text" class="ac-input" autocomplete="off"
+                       placeholder="Ciudad o aeropuerto"
+                       (focus)="focusO()"
+                       (blur)="blurO()"
+                       (input)="filtroO.set($any($event.target).value); showDropO.set($any($event.target).value.length > 0)">
+                @if (showDropO()) {
+                  <div class="ac-drop">
+                    @if (aeropuertoService.cargando()) {
+                      <div class="ac-loading">Cargando aeropuertos…</div>
+                    } @else if (filtradosO().length === 0) {
+                      <div class="ac-empty">Sin resultados</div>
+                    } @else {
+                      @for (a of filtradosO(); track a.code) {
+                        <div class="ac-opt" (mousedown)="pickO(a)">
+                          <span class="ac-icon">✈</span>
+                          <div class="ac-info">
+                            <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
+                              <span class="ac-code">{{ a.code }}</span>
+                            </span>
+                            <span class="ac-apt">{{ a.nombre }}</span>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
                 }
-              </select>
+              </div>
             </div>
 
             <button type="button" class="swap-btn" (click)="intercambiar()" title="Intercambiar">⇄</button>
 
             <div class="field">
               <label>Destino</label>
-              <select formControlName="destino">
-                @for (a of aeropuertos; track a.code) {
-                  <option [value]="a.code">{{ a.code }} — {{ a.ciudad }}</option>
+              <div class="ac-wrap">
+                <input #inpD type="text" class="ac-input" autocomplete="off"
+                       placeholder="Ciudad o aeropuerto"
+                       (focus)="focusD()"
+                       (blur)="blurD()"
+                       (input)="filtroD.set($any($event.target).value); showDropD.set($any($event.target).value.length > 0)">
+                @if (showDropD()) {
+                  <div class="ac-drop">
+                    @if (aeropuertoService.cargando()) {
+                      <div class="ac-loading">Cargando aeropuertos…</div>
+                    } @else if (filtradosD().length === 0) {
+                      <div class="ac-empty">Sin resultados</div>
+                    } @else {
+                      @for (a of filtradosD(); track a.code) {
+                        <div class="ac-opt" (mousedown)="pickD(a)">
+                          <span class="ac-icon">✈</span>
+                          <div class="ac-info">
+                            <span class="ac-city">{{ a.ciudad }}, {{ a.pais }}
+                              <span class="ac-code">{{ a.code }}</span>
+                            </span>
+                            <span class="ac-apt">{{ a.nombre }}</span>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
                 }
-              </select>
+              </div>
             </div>
           </div>
 
           <div class="details-row">
-            <div class="field">
-              <label>Fecha de ida</label>
-              <input type="date" formControlName="fecha" [min]="fechaMin">
+
+            <div class="field cal-wrap">
+              <label>{{ tripType() === 'idavuelta' ? 'Fechas' : 'Fecha de ida' }}</label>
+              <button type="button" class="cal-btn" (click)="showCal.set(!showCal())">
+                @if (form.value.fecha) {
+                  <span class="cal-btn-text">
+                    <span>{{ fmtFecha(form.value.fecha || '') }}</span>
+                    @if (tripType() === 'idavuelta' && form.value.fechaVuelta) {
+                      <span class="cal-arrow">→</span>
+                      <span>{{ fmtFecha(form.value.fechaVuelta || '') }}</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="cal-placeholder">Seleccionar fechas</span>
+                }
+                <span class="cal-ico">🗓</span>
+              </button>
+              @if (showCal()) {
+                <div class="cal-backdrop" (click)="showCal.set(false)"></div>
+                <app-calendario
+                  [modo]="tripType() === 'idavuelta' ? 'rango' : 'simple'"
+                  [fechaIda]="form.value.fecha || ''"
+                  [fechaVuelta]="form.value.fechaVuelta || ''"
+                  (seleccionIda)="onFechaIda($event)"
+                  (seleccionVuelta)="onFechaVuelta($event)"
+                  (cerrar)="showCal.set(false)"
+                />
+              }
             </div>
 
             <div class="field">
@@ -54,6 +132,7 @@
                 <button type="button" (click)="incrementar()">+</button>
               </div>
             </div>
+
           </div>
 
           <button type="submit" class="search-btn" [disabled]="form.invalid">
@@ -120,12 +199,14 @@
   <section class="airlines-section">
     <div class="container">
       <p class="airlines-label">Comparamos directamente de</p>
-      <div class="airline-badges">
-        <span class="badge latam">LATAM</span>
-        <span class="badge sky">SKY</span>
-        <span class="badge jetsmart">JetSmart</span>
+      <div class="airline-logos">
+        <img src="assets/logos/latam.svg"    alt="LATAM Airlines" class="airline-logo" />
+        <img src="assets/logos/sky.svg"      alt="Sky Airline"    class="airline-logo" />
+        <img src="assets/logos/jetsmart.svg" alt="JetSmart"       class="airline-logo" />
       </div>
     </div>
   </section>
+
+  <app-footer />
 
 </div>
