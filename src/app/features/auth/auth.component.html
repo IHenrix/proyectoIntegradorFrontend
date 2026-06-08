@@ -4,27 +4,29 @@
   <aside class="auth-left">
     <a routerLink="/" class="back-link">← Inicio</a>
 
-    <div class="brand">
-      <span>✈</span>
-      <span class="brand-name">Pasaje<strong>Ya</strong></span>
-    </div>
+    <div class="left-content">
+      <div class="brand">
+        <span>✈</span>
+        <span class="brand-name">Pasaje<strong>Ya</strong></span>
+      </div>
 
-    <p class="tagline">
-      Compara vuelos nacionales<br>
-      y ahorra en <span class="accent">soles</span>
-    </p>
+      <p class="tagline">
+        Compara vuelos nacionales<br>
+        y ahorra en <span class="accent">soles</span>
+      </p>
 
-    <ul class="features">
-      <li><span class="check">✓</span> Precios en tiempo real LATAM · Sky · JetSmart</li>
-      <li><span class="check">✓</span> Predicción IA — ¿el precio subirá o bajará?</li>
-      <li><span class="check">✓</span> Alertas automáticas por correo</li>
-      <li><span class="check">✓</span> 100% gratis para el viajero</li>
-    </ul>
+      <ul class="features">
+        <li><span class="check">✓</span> Precios en tiempo real LATAM · Sky · JetSmart</li>
+        <li><span class="check">✓</span> Predicción IA — ¿el precio subirá o bajará?</li>
+        <li><span class="check">✓</span> Alertas automáticas por correo</li>
+        <li><span class="check">✓</span> 100% gratis para el viajero</li>
+      </ul>
 
-    <div class="badges">
-      <span class="badge latam">LATAM</span>
-      <span class="badge sky">SKY</span>
-      <span class="badge jetsmart">JetSmart</span>
+      <div class="badges">
+        <span class="badge latam">LATAM</span>
+        <span class="badge sky">SKY</span>
+        <span class="badge jetsmart">JetSmart</span>
+      </div>
     </div>
   </aside>
 
@@ -103,28 +105,48 @@
 
         <form [formGroup]="registroForm" (ngSubmit)="registrarse()">
 
+          <div class="field">
+            <label>Nombre(s) <span class="req">*</span></label>
+            <input type="text" formControlName="nombre"
+                   placeholder="Tu nombre"
+                   autocomplete="given-name"
+                   (input)="toMayusculas('nombre')"
+                   [class.error]="tieneError('registro','nombre')">
+            @if (tieneError('registro','nombre')) {
+              <span class="hint">Mínimo 2 caracteres</span>
+            }
+          </div>
+
           <div class="grid-2">
             <div class="field">
-              <label>Nombre <span class="req">*</span></label>
-              <input type="text" formControlName="nombre"
-                     placeholder="Tu nombre"
-                     autocomplete="given-name"
-                     [class.error]="tieneError('registro','nombre')">
-              @if (tieneError('registro','nombre')) {
-                <span class="hint">Mínimo 2 caracteres</span>
+              <label>Apellido paterno <span class="req">*</span></label>
+              <input type="text" formControlName="apellidoPaterno"
+                     placeholder="Apellido paterno"
+                     autocomplete="family-name"
+                     (input)="toMayusculas('apellidoPaterno')"
+                     [class.error]="tieneError('registro','apellidoPaterno')">
+              @if (tieneError('registro','apellidoPaterno')) {
+                <span class="hint">Requerido</span>
               }
             </div>
 
             <div class="field">
-              <label>Apellido <span class="req">*</span></label>
-              <input type="text" formControlName="apellido"
-                     placeholder="Tu apellido"
-                     autocomplete="family-name"
-                     [class.error]="tieneError('registro','apellido')">
-              @if (tieneError('registro','apellido')) {
-                <span class="hint">Mínimo 2 caracteres</span>
-              }
+              <label>Apellido materno <span class="opt">opcional</span></label>
+              <input type="text" formControlName="apellidoMaterno"
+                     placeholder="Apellido materno"
+                     autocomplete="additional-name"
+                     (input)="toMayusculas('apellidoMaterno')">
             </div>
+          </div>
+
+          <div class="field">
+            <label>Género <span class="opt">opcional</span></label>
+            <select formControlName="genero">
+              <option value="">— Seleccionar —</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+              <option value="O">Prefiero no decir</option>
+            </select>
           </div>
 
           <div class="field">
@@ -143,31 +165,100 @@
             <div class="pass-wrapper">
               <input [type]="mostrarPassR() ? 'text' : 'password'"
                      formControlName="password"
-                     placeholder="Mínimo 6 caracteres"
+                     placeholder="Mínimo 8 caracteres"
                      autocomplete="new-password"
                      [class.error]="tieneError('registro','password')">
               <button type="button" class="show-pass"
                       (click)="mostrarPassR.set(!mostrarPassR())"
-                      [attr.aria-label]="mostrarPassR() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                      [attr.aria-label]="mostrarPassR() ? 'Ocultar' : 'Mostrar'">
                 @if (mostrarPassR()) { 🙈 } @else { 👁 }
               </button>
             </div>
-            @if (tieneError('registro','password')) {
-              <span class="hint">Mínimo 6 caracteres</span>
+            @if (registroForm.get('password')?.dirty) {
+              <div class="pass-requisitos">
+                <span [class.ok]="passReq.longitud">{{ passReq.longitud ? '✓' : '○' }} 8 caracteres mínimo</span>
+                <span [class.ok]="passReq.mayuscula">{{ passReq.mayuscula ? '✓' : '○' }} Una mayúscula</span>
+                <span [class.ok]="passReq.minuscula">{{ passReq.minuscula ? '✓' : '○' }} Una minúscula</span>
+                <span [class.ok]="passReq.numero">{{ passReq.numero ? '✓' : '○' }} Un número</span>
+                <span [class.ok]="passReq.especial">{{ passReq.especial ? '✓' : '○' }} Un carácter especial</span>
+              </div>
             }
+          </div>
+
+          <div class="field">
+            <label>Confirmar contraseña <span class="req">*</span></label>
+            <div class="pass-wrapper">
+              <input [type]="mostrarPassC() ? 'text' : 'password'"
+                     formControlName="confirmarPassword"
+                     placeholder="Repite tu contraseña"
+                     autocomplete="new-password"
+                     [class.error]="(tieneError('registro','confirmarPassword') || passwordsNoCoinciden)">
+              <button type="button" class="show-pass"
+                      (click)="mostrarPassC.set(!mostrarPassC())"
+                      [attr.aria-label]="mostrarPassC() ? 'Ocultar' : 'Mostrar'">
+                @if (mostrarPassC()) { 🙈 } @else { 👁 }
+              </button>
+            </div>
+            @if (tieneError('registro','confirmarPassword')) {
+              <span class="hint">Confirma tu contraseña</span>
+            } @else if (passwordsNoCoinciden) {
+              <span class="hint">Las contraseñas no coinciden</span>
+            }
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Tipo de documento <span class="opt">opcional</span></label>
+              <select formControlName="tipoDocumentoId">
+                <option [ngValue]="null">— Seleccionar —</option>
+                @for (t of tiposDoc; track t.id) {
+                  <option [ngValue]="t.id">{{ t.nombre }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>
+                Nro. de documento
+                @if (registroForm.get('tipoDocumentoId')?.value) {
+                  <span class="req">*</span>
+                } @else {
+                  <span class="opt">opcional</span>
+                }
+              </label>
+              <input type="text" formControlName="nroDocumento"
+                     [placeholder]="nroDocInfo.placeholder"
+                     autocomplete="off"
+                     [class.error]="tieneError('registro','nroDocumento')"
+                     (input)="registroForm.get('tipoDocumentoId')?.value === 1 || registroForm.get('tipoDocumentoId')?.value === 4
+                       ? soloNumeros('nroDocumento', $event)
+                       : soloAlfanum('nroDocumento', $event)">
+              @if (nroDocInfo.hint && !tieneError('registro','nroDocumento')) {
+                <span class="doc-hint">{{ nroDocInfo.hint }}</span>
+              }
+              @if (tieneError('registro','nroDocumento')) {
+                <span class="hint">{{ nroDocInfo.errorMsg || 'Campo requerido' }}</span>
+              }
+            </div>
           </div>
 
           <div class="grid-2">
             <div class="field">
               <label>Teléfono <span class="opt">WhatsApp · opcional</span></label>
               <input type="tel" formControlName="telefono"
-                     placeholder="+51 999 999 999"
-                     autocomplete="tel">
+                     placeholder="Ej: 999 999 999"
+                     autocomplete="tel"
+                     [class.error]="tieneError('registro','telefono')">
+              @if (tieneError('registro','telefono')) {
+                <span class="hint">9 dígitos — empieza en 9 (ej: 999999999)</span>
+              }
             </div>
 
             <div class="field">
               <label>Nacimiento <span class="opt">opcional</span></label>
-              <input type="date" formControlName="fechaNacimiento">
+              <input type="date" formControlName="fechaNacimiento"
+                     [max]="fechaMaxNac"
+                     [min]="fechaMinNac">
             </div>
           </div>
 

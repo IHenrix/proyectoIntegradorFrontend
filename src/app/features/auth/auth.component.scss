@@ -13,8 +13,9 @@
     radial-gradient(ellipse at 80% 15%, rgba(29,78,216,0.35) 0%, transparent 50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 4rem 3rem;
+  padding: 4rem 2rem;
   color: white;
   position: relative;
   overflow: hidden;
@@ -41,6 +42,12 @@
   }
 
   @media (max-width: 768px) { display: none; }
+}
+
+.left-content {
+  max-width: 360px;
+  width: 100%;
+  position: relative;
 }
 
 .back-link {
@@ -250,14 +257,34 @@ form {
   gap: 0.35rem;
 
   label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: rgba(248,250,252,0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(248,250,252,0.5);
     display: flex;
     align-items: center;
     gap: 0.3rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #f8fafc;
+    background: rgba(255,255,255,0.05);
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+
+    option { background: #1e293b; color: #f8fafc; }
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: rgba(59,130,246,0.08);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.14);
+    }
   }
 
   input {
@@ -291,7 +318,33 @@ form {
     }
   }
 
-  .hint { font-size: 0.72rem; color: #f87171; }
+  .hint     { font-size: 0.72rem; color: #f87171; }
+  .doc-hint { font-size: 0.72rem; color: rgba(248,250,252,0.35); }
+}
+
+// ── Requisitos de contraseña ──────────────────────────────────────
+.pass-requisitos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 0.5rem;
+  margin-top: 0.4rem;
+  padding: 0.7rem 0.85rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+
+  span {
+    font-size: 0.72rem;
+    color: rgba(248,250,252,0.35);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: color 0.2s;
+
+    &.ok {
+      color: #4ade80;
+    }
+  }
 }
 
 // ── Wrapper para contraseña con toggle ────────────────────────────

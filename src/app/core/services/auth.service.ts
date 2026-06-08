@@ -4,12 +4,16 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 
 export interface RegistroData {
-  nombre:          string;
-  apellido:        string;
-  email:           string;
-  password:        string;
-  telefono?:       string;
-  fechaNacimiento?: string;
+  nombre:            string;
+  apellidoPaterno:   string;
+  apellidoMaterno?:  string;
+  genero?:           string;
+  email:             string;
+  password:          string;
+  telefono?:         string;
+  fechaNacimiento?:  string;
+  tipoDocumentoId?:  number | null;
+  nroDocumento?:     string;
 }
 
 @Injectable({ providedIn: 'root' })
