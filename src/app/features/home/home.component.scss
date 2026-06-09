@@ -321,6 +321,30 @@
   &:disabled { opacity: 0.38; cursor: not-allowed; }
 }
 
+// ── Validación mismo origen/destino ──────────────────────────────
+.mismo-error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+  animation: shake 0.3s ease;
+
+  &::before { content: '✕'; font-size: 0.7rem; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-4px); }
+  75%       { transform: translateX(4px); }
+}
+
 // ── Trust bar ────────────────────────────────────────────────────
 .trust-bar {
   display: flex;

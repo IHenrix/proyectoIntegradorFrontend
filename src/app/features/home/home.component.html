@@ -111,6 +111,12 @@
             </div>
           </div>
 
+          @if (mismoCodigo()) {
+            <div class="mismo-error">
+              El destino no puede ser igual al origen
+            </div>
+          }
+
           <div class="details-row">
 
             <div class="field cal-wrap">

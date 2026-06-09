@@ -34,18 +34,22 @@ export class CalendarioComponent implements OnInit, AfterViewInit, OnDestroy {
     const host = this.el.nativeElement as HTMLElement;
     if (!this.trigger) return;
 
-    const trigger = this.trigger.getBoundingClientRect();
-    const panelW  = this.modo === 'rango' ? Math.min(660, window.innerWidth - 16) : 300;
-    const panelH  = host.offsetHeight;
+    const triggerRect = this.trigger.getBoundingClientRect();
+    const panelW = this.modo === 'rango' ? Math.min(660, window.innerWidth - 16) : 300;
+    // usar altura real si ya renderizó, si no usar estimado conservador
+    const panelH = host.offsetHeight > 50 ? host.offsetHeight : (this.modo === 'rango' ? 380 : 340);
 
-    // Solo ir arriba si hay altura real Y no cabe abajo Y cabe arriba
-    const spaceBelow = window.innerHeight - trigger.bottom;
-    const goUp = panelH > 0 && spaceBelow < panelH + 8 && trigger.top >= panelH + 8;
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const goUp = spaceBelow < panelH + 12;
     this.abrirArriba.set(goUp);
 
-    const top = goUp ? trigger.top - panelH - 8 : trigger.bottom + 6;
+    // abajo: nace del borde inferior del trigger
+    // arriba: su borde inferior queda pegado al borde inferior del trigger
+    const top = goUp
+      ? triggerRect.bottom - panelH   // borde inferior del panel = borde inferior del trigger
+      : triggerRect.bottom + 6;       // borde superior del panel = borde inferior del trigger + gap
 
-    let left = trigger.left;
+    let left = triggerRect.left;
     if (left + panelW > window.innerWidth - 8) left = window.innerWidth - panelW - 8;
     if (left < 8) left = 8;
 

@@ -25,8 +25,9 @@ export class HomeComponent {
   tripType  = signal<'ida' | 'idavuelta'>('idavuelta');
   filtroO   = signal('');
   filtroD   = signal('');
-  showDropO = signal(false);
-  showDropD = signal(false);
+  showDropO  = signal(false);
+  showDropD  = signal(false);
+  mismoCodigo = signal(false);
   showCal   = signal(false);
 
   private filtrar(q: string) {
@@ -92,6 +93,16 @@ export class HomeComponent {
     }, 150);
   }
   pickD(a: { code: string }): void {
+    if (a.code === this.form.get('origen')?.value) {
+      this.inpD.nativeElement.value = '';
+      this.form.patchValue({ destino: '' });
+      this.showDropD.set(false);
+      this.filtroD.set('');
+      this.mismoCodigo.set(true);
+      setTimeout(() => this.mismoCodigo.set(false), 2500);
+      return;
+    }
+    this.mismoCodigo.set(false);
     this.form.patchValue({ destino: a.code });
     this.inpD.nativeElement.value = this.aeropuertoService.label(a.code);
     this.showDropD.set(false);
