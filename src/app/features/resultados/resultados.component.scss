@@ -1,14 +1,16 @@
 .resultados-page {
   min-height: 100vh;
-  background: #f1f5f9;
+  background: linear-gradient(160deg, #f0f4ff 0%, #f8fafc 40%, #fff7f0 100%);
   display: flex;
   flex-direction: column;
 }
 
-// ── Top bar (read-only) ───────────────────────────────────────────
+// ── Top bar ───────────────────────────────────────────────────────
 .top-bar {
-  background: #080d1a;
-  padding: 0 1rem;
+  background: rgba(8, 13, 26, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 0 1.25rem;
   height: 64px;
   display: flex;
   align-items: center;
@@ -16,7 +18,33 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+// Logo en top-bar
+.top-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+}
+
+.top-logo-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(249,115,22,0.38);
+  flex-shrink: 0;
+  i { color: #fff; font-size: 0.82rem; }
+}
+
+.top-logo-text {
+  font-size: 1rem; font-weight: 700;
+  color: #f8fafc; letter-spacing: -0.02em;
+  strong { color: #fbbf24; font-weight: 900; }
 }
 
 .btn-back {
@@ -143,11 +171,32 @@
   animation: slideDown 0.2s ease;
 }
 
+// Logo dentro del modal
+.modal-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.modal-logo-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  display: flex; align-items: center; justify-content: center;
+  i { color: #fff; font-size: 0.75rem; }
+}
+.modal-logo-text {
+  font-size: 0.95rem; font-weight: 700;
+  color: #0f172a; letter-spacing: -0.02em;
+  strong { color: #f97316; font-weight: 900; }
+}
+
 // Fila tipo viaje + cerrar
 .modal-hdr {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
@@ -383,9 +432,9 @@
 
 // ── Contenido principal ───────────────────────────────────────────
 .content {
-  max-width: 900px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 2rem 1rem 5rem;
+  padding: 2rem 2rem 5rem;
   width: 100%;
 }
 
@@ -404,6 +453,60 @@
 }
 
 .ordenado { font-size: 0.78rem; color: #94a3b8; }
+
+// ── Leyenda semáforo ──────────────────────────────────────────────
+.sema-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 6px rgba(15,23,42,0.04);
+}
+
+.sema-legend-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.25rem;
+  white-space: nowrap;
+}
+
+.sema-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.28rem 0.75rem;
+  border-radius: 20px;
+  border: 1.5px solid;
+  white-space: nowrap;
+
+  &.legend-verde {
+    color: #15803d; background: #f0fdf4; border-color: #86efac;
+    i { color: #16a34a; }
+  }
+  &.legend-amarillo {
+    color: #854d0e; background: #fefce8; border-color: #fde68a;
+    i { color: #ca8a04; }
+  }
+  &.legend-rojo {
+    color: #b91c1c; background: #fff1f2; border-color: #fca5a5;
+    i { color: #dc2626; }
+  }
+}
+
+@media (max-width: 680px) {
+  .sema-legend { gap: 0.4rem; }
+  .sema-legend-title { width: 100%; }
+}
 
 // ── Sección header (Kayak style) ──────────────────────────────────
 .seccion-hdr {
@@ -482,6 +585,8 @@
   transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
   user-select: none;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     box-shadow: 0 6px 28px rgba(0,0,0,0.10);
@@ -493,17 +598,69 @@
     transform: translateY(-2px);
   }
 
-  &.card-verde    { border-left-color: #16a34a; }
-  &.card-amarillo { border-left-color: #eab308; }
-  &.card-rojo     { border-left-color: #dc2626; }
+  &.card-verde {
+    border-left-color: #16a34a;
+    .sema-strip { background: #f0fdf4; border-top-color: #bbf7d0; }
+    .sema-ico   { color: #16a34a; }
+    .sema-label { color: #15803d; }
+    &.card-open .card-row {
+      background: linear-gradient(to right, #f0fdf4 0%, #fff 60%);
+      border-bottom: 2px solid #bbf7d0;
+    }
+  }
+  &.card-amarillo {
+    border-left-color: #eab308;
+    .sema-strip { background: #fefce8; border-top-color: #fde68a; }
+    .sema-ico   { color: #ca8a04; }
+    .sema-label { color: #854d0e; }
+    &.card-open .card-row {
+      background: linear-gradient(to right, #fefce8 0%, #fff 60%);
+      border-bottom: 2px solid #fde68a;
+    }
+  }
+  &.card-rojo {
+    border-left-color: #dc2626;
+    .sema-strip { background: #fff1f2; border-top-color: #fecaca; }
+    .sema-ico   { color: #dc2626; }
+    .sema-label { color: #b91c1c; }
+    &.card-open .card-row {
+      background: linear-gradient(to right, #fff1f2 0%, #fff 60%);
+      border-bottom: 2px solid #fecaca;
+    }
+  }
 }
 
 // Fila colapsada (siempre visible)
 .card-row {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  padding: 1.4rem 1.6rem;
+  gap: 1.2rem;
+  padding: 1.4rem 1.8rem 1.4rem 1.6rem;
+  flex: 1;
+}
+
+// ── Franja semáforo inferior (siempre visible, estilo Kayak) ───────
+.sema-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 1.6rem;
+  border-top: 1.5px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.sema-ico   { font-size: 0.78rem; }
+.sema-label {
+  font-size: 0.72rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.sema-desc  {
+  font-size: 0.72rem; color: #94a3b8; font-weight: 500;
+  margin-left: 0.2rem;
+}
+.sema-strip-spacer { flex: 1; }
+.sema-pct {
+  font-size: 0.7rem; font-weight: 700; color: #94a3b8;
 }
 
 // Logo aerolínea circular — MISMO tamaño en ida y vuelta
@@ -518,7 +675,6 @@
   padding: 7px;
   overflow: hidden;
 
-  // mismo tamaño que el principal (ya no hay .al-logo-sm diferente)
   &.al-logo-sm {
     width: 48px; height: 48px;
     padding: 7px;
@@ -535,9 +691,9 @@
 // Horario
 .card-horario { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 
-.card-hora { font-size: 1.25rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
+.card-hora { font-size: 1.3rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
 
-.crd-arrow { color: #94a3b8; font-size: 0.72rem; }
+.crd-arrow { color: #cbd5e1; font-size: 0.72rem; }
 
 // Ruta
 .card-ruta { font-size: 0.8rem; font-weight: 600; color: #64748b; flex-shrink: 0; }
@@ -553,46 +709,53 @@
 }
 
 // Duración
-.card-dur { font-size: 0.78rem; color: #64748b; font-weight: 500; flex-shrink: 0; }
+.card-dur {
+  font-size: 0.78rem; color: #94a3b8; font-weight: 600; flex-shrink: 0;
+  background: #f8fafc; border: 1.5px solid #e2e8f0;
+  padding: 0.2rem 0.6rem; border-radius: 20px;
+}
 
 // Spacer
 .card-spacer { flex: 1; }
 
-// Badge semáforo
+// Badge semáforo (mantenido para compatibilidad, ya no se muestra si usamos strip)
 .sema-badge {
-  display: flex; align-items: center; gap: 0.32rem;
-  font-size: 0.71rem; font-weight: 800;
-  padding: 0.3rem 0.75rem; border-radius: 20px;
-  flex-shrink: 0; white-space: nowrap;
-
-  &.sema-verde    { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
-  &.sema-amarillo { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde047; }
-  &.sema-rojo     { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+  display: none; // reemplazado por .sema-strip
 }
 
 // Precio coloreado por semáforo
-.card-precio { display: flex; align-items: baseline; gap: 0.1rem; flex-shrink: 0; }
+.card-precio {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 0; flex-shrink: 0;
+}
+
+.card-precio-row { display: flex; align-items: baseline; gap: 0.1rem; }
 
 .card-moneda { font-size: 0.9rem; font-weight: 700; }
-.card-monto  { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+.card-monto  { font-size: 1.85rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
 
 .precio-verde    { .card-moneda, .card-monto { color: #16a34a; } }
 .precio-amarillo { .card-moneda, .card-monto { color: #ca8a04; } }
 .precio-rojo     { .card-moneda, .card-monto { color: #dc2626; } }
 
+.card-precio-sub {
+  font-size: 0.67rem; color: #94a3b8; font-weight: 500;
+  text-align: right; margin-top: 2px;
+}
+
 // Chevron toggle
 .card-chevron {
-  color: #94a3b8; font-size: 0.85rem; flex-shrink: 0;
+  color: #cbd5e1; font-size: 0.85rem; flex-shrink: 0; margin-left: 0.3rem;
   transition: transform 0.25s ease;
   &.rotado { transform: rotate(180deg); }
 }
 
 // ── Card paquete (ida y vuelta) ───────────────────────────────────
-.pkg-row { align-items: stretch; gap: 1.1rem; }
+.pkg-row { align-items: stretch; gap: 1.2rem; }
 
 .pkg-logos {
   display: flex; flex-direction: column; align-items: center;
-  gap: 6px; flex-shrink: 0; justify-content: center;
+  gap: 8px; flex-shrink: 0; justify-content: center;
 }
 
 .pkg-legs {
@@ -602,14 +765,14 @@
 
 .pkg-leg {
   display: flex; align-items: center; gap: 0.9rem;
-  padding: 0.55rem 0;
+  padding: 0.6rem 0;
   flex-wrap: nowrap;
 }
 
 .pkg-sep {
-  height: 1.5px;
+  height: 1px;
   background: #f1f5f9;
-  margin: 0.1rem 0;
+  margin: 0.05rem 0;
 }
 
 // Cabeceras de cada leg en el detalle expandido
@@ -626,9 +789,9 @@
   i { font-size: 0.85rem; }
 
   &.hdr-vuelta {
-    color: #ea580c;
-    background: #fff7ed;
-    border-color: #fed7aa;
+    color: #7c3aed;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
   }
 }
 
@@ -645,10 +808,10 @@
 
 // ── Detalle expandido ─────────────────────────────────────────────
 .card-detalle {
-  border-top: 2px solid #f1f5f9;
+  border-top: none;
   padding: 1.6rem 1.8rem 1.8rem;
   cursor: default;
-  background: #fafbfc;
+  background: #f8fafc;
   animation: expandir 0.22s ease;
 }
 
@@ -660,11 +823,22 @@
 // Itinerario paso a paso
 .itin-wrap {
   display: flex; flex-direction: column;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.1rem;
   background: #fff;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   padding: 1rem 1.2rem;
+  gap: 0;
+}
+
+// Pills de equipaje dentro de cada itin-wrap (por leg)
+.itin-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
 }
 
 .itin-endpoint { display: flex; align-items: center; gap: 0.85rem; }
@@ -785,8 +959,11 @@
   .seccion-hdr { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   .seccion-der { align-items: flex-start; }
   .sema-badge  { font-size: 0.65rem; padding: 0.22rem 0.55rem; }
+  .sema-desc   { display: none; }
   .det-footer  { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
   .det-actions { width: 100%; flex-direction: column; }
   .btn-seleccionar { width: 100%; justify-content: center; }
   .btn-detalle { width: 100%; justify-content: center; }
+  .card-precio-sub { display: none; }
+  .content { padding: 1.25rem 1rem 4rem; }
 }

@@ -5,6 +5,10 @@
     <button class="btn-back" (click)="volver()" title="Volver">
       <i class="fa-solid fa-arrow-left"></i>
     </button>
+    <a routerLink="/" class="top-logo">
+      <span class="top-logo-icon"><i class="fa-solid fa-plane-departure"></i></span>
+      <span class="top-logo-text">Pasaje<strong>Ya</strong></span>
+    </a>
     <button class="preview-btn" (click)="abrirModal()">
       <div class="preview-content">
         <span class="preview-ruta">
@@ -35,6 +39,10 @@
     <div class="modal-backdrop" (click)="cerrarModal()"></div>
     <div class="modal-top">
       <div class="modal-hdr">
+        <span class="modal-logo">
+          <span class="modal-logo-icon"><i class="fa-solid fa-plane-departure"></i></span>
+          <span class="modal-logo-text">Pasaje<strong>Ya</strong></span>
+        </span>
         <div class="trip-toggle">
           <button type="button" class="trip-opt" [class.active]="tripType() === 'idavuelta'"
                   (click)="setTripType('idavuelta')">
@@ -170,10 +178,24 @@
             </p>
           </div>
 
+          <div class="sema-legend">
+            <span class="sema-legend-title">Semáforo de precios:</span>
+            <span class="sema-legend-item legend-verde">
+              <i class="fa-solid fa-circle-check"></i> Buen precio — más barato que el histórico
+            </span>
+            <span class="sema-legend-item legend-amarillo">
+              <i class="fa-solid fa-circle-minus"></i> Precio normal — similar al histórico
+            </span>
+            <span class="sema-legend-item legend-rojo">
+              <i class="fa-solid fa-circle-exclamation"></i> Precio alto — más caro que el histórico
+            </span>
+          </div>
+
           <div class="cards">
             @for (p of paquetes(); track p.ida.id) {
 
               <div class="card"
+                   [attr.data-card-id]="p.ida.id"
                    [class.card-verde]="p.ida.semaforo === 'verde'"
                    [class.card-amarillo]="p.ida.semaforo === 'amarillo'"
                    [class.card-rojo]="p.ida.semaforo === 'rojo'"
@@ -183,7 +205,7 @@
                 <!-- FILA COLAPSADA (2 legs) -->
                 <div class="card-row pkg-row">
 
-                  <!-- Logos apilados -->
+                  <!-- Logos apilados — mismo tamaño -->
                   <div class="pkg-logos">
                     <div class="al-logo-wrap">
                       <img class="al-logo-img" [src]="airlineLogo(p.ida.aerolinea)" [alt]="p.ida.aerolinea">
@@ -199,7 +221,7 @@
                       <span class="card-hora">{{ p.ida.horaSalida }}</span>
                       <i class="fa-solid fa-arrow-right crd-arrow"></i>
                       <span class="card-hora">{{ p.ida.horaLlegada }}</span>
-                      <span class="card-ruta">{{ p.ida.origen }} → {{ p.ida.destino }}</span>
+                      <span class="card-ruta">{{ p.ida.origen }} – {{ p.ida.destino }}</span>
                       <span class="badge-directo"><i class="fa-solid fa-circle-check"></i> Directo</span>
                       <span class="card-dur">{{ p.ida.duracion }}</span>
                     </div>
@@ -208,7 +230,7 @@
                       <span class="card-hora">{{ p.vuelta.horaSalida }}</span>
                       <i class="fa-solid fa-arrow-right crd-arrow"></i>
                       <span class="card-hora">{{ p.vuelta.horaLlegada }}</span>
-                      <span class="card-ruta">{{ p.vuelta.origen }} → {{ p.vuelta.destino }}</span>
+                      <span class="card-ruta">{{ p.vuelta.origen }} – {{ p.vuelta.destino }}</span>
                       <span class="badge-directo"><i class="fa-solid fa-circle-check"></i> Directo</span>
                       <span class="card-dur">{{ p.vuelta.duracion }}</span>
                     </div>
@@ -216,22 +238,38 @@
 
                   <span class="card-spacer"></span>
 
-                  @if (p.ida.semaforo !== 'amarillo') {
-                    <span class="sema-badge"
-                          [class.sema-verde]="p.ida.semaforo === 'verde'"
-                          [class.sema-rojo]="p.ida.semaforo === 'rojo'">
-                      @if (p.ida.semaforo === 'verde') { <i class="fa-solid fa-fire"></i> ¡Buen precio! }
-                      @if (p.ida.semaforo === 'rojo')  { <i class="fa-solid fa-arrow-trend-up"></i> Precio alto }
-                    </span>
-                  }
-
                   <div [class]="'card-precio precio-' + p.ida.semaforo">
-                    <span class="card-moneda">S/</span>
-                    <span class="card-monto">{{ (p.ida.precio + p.vuelta.precio) | number:'1.0-0' }}</span>
+                    <div class="card-precio-row">
+                      <span class="card-moneda">S/</span>
+                      <span class="card-monto">{{ (p.ida.precio + p.vuelta.precio) | number:'1.0-0' }}</span>
+                    </div>
+                    <span class="card-precio-sub">precio total · 2 pasajes</span>
                   </div>
 
                   <i class="fa-solid fa-chevron-down card-chevron"
                      [class.rotado]="cardAbierto() === p.ida.id"></i>
+                </div>
+
+                <!-- FRANJA SEMÁFORO — siempre visible -->
+                <div class="sema-strip">
+                  @if (p.ida.semaforo === 'verde') {
+                    <i class="fa-solid fa-circle-check sema-ico"></i>
+                    <span class="sema-label">Buen precio</span>
+                    <span class="sema-desc">— por debajo del histórico</span>
+                  } @else if (p.ida.semaforo === 'amarillo') {
+                    <i class="fa-solid fa-circle-minus sema-ico"></i>
+                    <span class="sema-label">Precio normal</span>
+                    <span class="sema-desc">— similar al histórico</span>
+                  } @else {
+                    <i class="fa-solid fa-circle-exclamation sema-ico"></i>
+                    <span class="sema-label">Precio alto</span>
+                    <span class="sema-desc">— por encima del histórico</span>
+                  }
+                  <span class="sema-strip-spacer"></span>
+                  <span class="sema-pct">
+                    <i class="fa-solid fa-tag"></i>
+                    {{ p.ida.tipoTarifa | titlecase }}
+                  </span>
                 </div>
 
                 <!-- DETALLE EXPANDIDO (ambos legs) -->
@@ -262,6 +300,22 @@
                         <span class="itin-hora">{{ p.ida.horaLlegada }}</span>
                         <span class="itin-apt">{{ aptLabel(p.ida.destino) }}</span>
                       </div>
+                      <div class="itin-pills">
+                        <span class="det-pill" [class.pill-ok]="p.ida.equipajeBodegaKg > 0" [class.pill-no]="p.ida.equipajeBodegaKg === 0">
+                          <i class="fa-solid fa-suitcase-rolling"></i>
+                          {{ p.ida.equipajeBodegaKg > 0 ? 'Bodega ' + p.ida.equipajeBodegaKg + ' kg' : 'Sin bodega' }}
+                        </span>
+                        <span class="det-pill pill-ok">
+                          <i class="fa-solid fa-briefcase"></i>Mano {{ p.ida.equipajeManoKg }} kg
+                        </span>
+                        <span class="det-pill" [class.pill-ok]="p.ida.permiteReembolso" [class.pill-no]="!p.ida.permiteReembolso">
+                          <i class="fa-solid fa-rotate-left"></i>
+                          {{ p.ida.permiteReembolso ? 'Reembolsable' : 'No reembolsable' }}
+                        </span>
+                        @if (p.ida.asientoSeleccionable) {
+                          <span class="det-pill pill-ok"><i class="fa-solid fa-couch"></i> Asiento</span>
+                        }
+                      </div>
                     </div>
 
                     <div class="pkg-leg-sep"></div>
@@ -290,33 +344,25 @@
                         <span class="itin-hora">{{ p.vuelta.horaLlegada }}</span>
                         <span class="itin-apt">{{ aptLabel(p.vuelta.destino) }}</span>
                       </div>
+                      <div class="itin-pills">
+                        <span class="det-pill" [class.pill-ok]="p.vuelta.equipajeBodegaKg > 0" [class.pill-no]="p.vuelta.equipajeBodegaKg === 0">
+                          <i class="fa-solid fa-suitcase-rolling"></i>
+                          {{ p.vuelta.equipajeBodegaKg > 0 ? 'Bodega ' + p.vuelta.equipajeBodegaKg + ' kg' : 'Sin bodega' }}
+                        </span>
+                        <span class="det-pill pill-ok">
+                          <i class="fa-solid fa-briefcase"></i>Mano {{ p.vuelta.equipajeManoKg }} kg
+                        </span>
+                        <span class="det-pill" [class.pill-ok]="p.vuelta.permiteReembolso" [class.pill-no]="!p.vuelta.permiteReembolso">
+                          <i class="fa-solid fa-rotate-left"></i>
+                          {{ p.vuelta.permiteReembolso ? 'Reembolsable' : 'No reembolsable' }}
+                        </span>
+                        @if (p.vuelta.asientoSeleccionable) {
+                          <span class="det-pill pill-ok"><i class="fa-solid fa-couch"></i> Asiento</span>
+                        }
+                      </div>
                     </div>
 
                     <div class="det-divider"></div>
-
-                    <div class="det-pills">
-                      <span class="det-pill"
-                            [class.pill-ok]="p.ida.equipajeBodegaKg > 0"
-                            [class.pill-no]="p.ida.equipajeBodegaKg === 0">
-                        <i class="fa-solid fa-suitcase-rolling"></i>
-                        {{ p.ida.equipajeBodegaKg > 0 ? 'Bodega ' + p.ida.equipajeBodegaKg + ' kg' : 'Sin bodega' }}
-                      </span>
-                      <span class="det-pill pill-ok">
-                        <i class="fa-solid fa-briefcase"></i>
-                        Mano {{ p.ida.equipajeManoKg }} kg
-                      </span>
-                      <span class="det-pill"
-                            [class.pill-ok]="p.ida.permiteReembolso"
-                            [class.pill-no]="!p.ida.permiteReembolso">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        {{ p.ida.permiteReembolso ? 'Reembolsable' : 'No reembolsable' }}
-                      </span>
-                      @if (p.ida.asientoSeleccionable) {
-                        <span class="det-pill pill-ok">
-                          <i class="fa-solid fa-couch"></i> Asiento incluido
-                        </span>
-                      }
-                    </div>
 
                     <div class="det-footer">
                       <span [class]="'det-tarifa tarifa-' + p.ida.tipoTarifa">
@@ -349,10 +395,24 @@
           <p class="ordenado">Ordenado por precio</p>
         </div>
 
+        <div class="sema-legend">
+          <span class="sema-legend-title">Semáforo de precios:</span>
+          <span class="sema-legend-item legend-verde">
+            <i class="fa-solid fa-circle-check"></i> Buen precio — más barato que el histórico
+          </span>
+          <span class="sema-legend-item legend-amarillo">
+            <i class="fa-solid fa-circle-minus"></i> Precio normal — similar al histórico
+          </span>
+          <span class="sema-legend-item legend-rojo">
+            <i class="fa-solid fa-circle-exclamation"></i> Precio alto — más caro que el histórico
+          </span>
+        </div>
+
         <div class="cards">
           @for (v of vueloService.vuelos(); track v.id) {
 
             <div class="card"
+                 [attr.data-card-id]="v.id"
                  [class.card-verde]="v.semaforo === 'verde'"
                  [class.card-amarillo]="v.semaforo === 'amarillo'"
                  [class.card-rojo]="v.semaforo === 'rojo'"
@@ -369,26 +429,43 @@
                   <i class="fa-solid fa-arrow-right crd-arrow"></i>
                   <span class="card-hora">{{ v.horaLlegada }}</span>
                 </div>
-                <div class="card-ruta">{{ v.origen }} → {{ v.destino }}</div>
+                <div class="card-ruta">{{ v.origen }} – {{ v.destino }}</div>
                 <span class="badge-directo">
                   <i class="fa-solid fa-circle-check"></i> Directo
                 </span>
                 <span class="card-dur">{{ v.duracion }}</span>
                 <span class="card-spacer"></span>
-                @if (v.semaforo !== 'amarillo') {
-                  <span class="sema-badge"
-                        [class.sema-verde]="v.semaforo === 'verde'"
-                        [class.sema-rojo]="v.semaforo === 'rojo'">
-                    @if (v.semaforo === 'verde') { <i class="fa-solid fa-fire"></i> ¡Buen precio! }
-                    @if (v.semaforo === 'rojo')  { <i class="fa-solid fa-arrow-trend-up"></i> Precio alto }
-                  </span>
-                }
                 <div [class]="'card-precio precio-' + v.semaforo">
-                  <span class="card-moneda">S/</span>
-                  <span class="card-monto">{{ v.precio | number:'1.0-0' }}</span>
+                  <div class="card-precio-row">
+                    <span class="card-moneda">S/</span>
+                    <span class="card-monto">{{ v.precio | number:'1.0-0' }}</span>
+                  </div>
+                  <span class="card-precio-sub">por pasajero</span>
                 </div>
                 <i class="fa-solid fa-chevron-down card-chevron"
                    [class.rotado]="cardAbierto() === v.id"></i>
+              </div>
+
+              <!-- FRANJA SEMÁFORO — siempre visible -->
+              <div class="sema-strip">
+                @if (v.semaforo === 'verde') {
+                  <i class="fa-solid fa-circle-check sema-ico"></i>
+                  <span class="sema-label">Buen precio</span>
+                  <span class="sema-desc">— por debajo del histórico</span>
+                } @else if (v.semaforo === 'amarillo') {
+                  <i class="fa-solid fa-circle-minus sema-ico"></i>
+                  <span class="sema-label">Precio normal</span>
+                  <span class="sema-desc">— similar al histórico</span>
+                } @else {
+                  <i class="fa-solid fa-circle-exclamation sema-ico"></i>
+                  <span class="sema-label">Precio alto</span>
+                  <span class="sema-desc">— por encima del histórico</span>
+                }
+                <span class="sema-strip-spacer"></span>
+                <span class="sema-pct">
+                  <i class="fa-solid fa-tag"></i>
+                  {{ v.tipoTarifa | titlecase }}
+                </span>
               </div>
 
               <!-- DETALLE EXPANDIDO -->

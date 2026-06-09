@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, ViewChild, ElementRef, signal, computed, effect } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { VueloService } from '../../core/services/vuelo.service';
@@ -10,7 +10,7 @@ import { CalendarioComponent } from '../../shared/components/calendario/calendar
 @Component({
   selector: 'app-resultados',
   standalone: true,
-  imports: [DecimalPipe, TitleCasePipe, ReactiveFormsModule, CalendarioComponent],
+  imports: [DecimalPipe, TitleCasePipe, ReactiveFormsModule, CalendarioComponent, RouterLink],
   templateUrl: './resultados.component.html',
   styleUrl: './resultados.component.scss'
 })
@@ -265,7 +265,14 @@ export class ResultadosComponent implements OnInit {
   }
 
   toggleCard(id: number): void {
-    this.cardAbierto.set(this.cardAbierto() === id ? null : id);
+    const opening = this.cardAbierto() !== id;
+    this.cardAbierto.set(opening ? id : null);
+    if (opening) {
+      setTimeout(() => {
+        const el = document.querySelector(`[data-card-id="${id}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+    }
   }
 
   verDetalle(id: number, event: Event): void {
