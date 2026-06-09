@@ -1,0 +1,227 @@
+@if (svc.abierto()) {
+  <div class="pm-backdrop" (click)="cerrar()">
+    <div class="pm-modal" (click)="$event.stopPropagation()">
+
+      <!-- ── PASO: FORMULARIO ───────────────────────────────── -->
+      @if (step() === 'form') {
+
+        <button class="pm-close" type="button" (click)="cerrar()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Cabecera -->
+        <div class="pm-header">
+          <div class="pm-lock-icon">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h2>Pago seguro</h2>
+          <p>Activa tu plan <strong>{{ plan().label }}</strong></p>
+        </div>
+
+        <!-- Resumen del plan -->
+        <div class="pm-plan-summary">
+          <div class="pm-plan-info">
+            <span class="pm-plan-name">
+              <i class="fa-solid fa-bolt"></i>
+              {{ plan().label }}
+            </span>
+            @if (plan().ahorro) {
+              <span class="pm-ahorro">{{ plan().ahorro }}</span>
+            }
+          </div>
+          <div class="pm-plan-price">
+            <span class="pm-price-big">{{ plan().precio }}</span>
+            <span class="pm-price-per">{{ plan().periodo }}</span>
+          </div>
+        </div>
+
+        <!-- Selector mensual / anual -->
+        <div class="pm-plan-tabs">
+          <button type="button"
+                  [class.active]="svc.plan() === 'mensual'"
+                  (click)="svc.abrir('mensual')">
+            Mensual &nbsp;<strong>S/ 19</strong>
+          </button>
+          <button type="button"
+                  [class.active]="svc.plan() === 'anual'"
+                  (click)="svc.abrir('anual')">
+            Anual &nbsp;<strong>S/ 120</strong>
+            <span class="tab-badge">-47%</span>
+          </button>
+        </div>
+
+        <!-- Formulario tarjeta -->
+        <form class="pm-form" [formGroup]="form" (ngSubmit)="pagar()">
+
+          <!-- Titular -->
+          <div class="pm-field" [class.error]="invalid('titular')">
+            <label>Nombre en la tarjeta</label>
+            <div class="pm-input-wrap">
+              <i class="fa-solid fa-user pm-input-icon"></i>
+              <input type="text" formControlName="titular"
+                     placeholder="JUAN MORALES" autocomplete="cc-name">
+            </div>
+            @if (invalid('titular')) {
+              <span class="pm-err">Ingresa el nombre completo</span>
+            }
+          </div>
+
+          <!-- Número de tarjeta -->
+          <div class="pm-field" [class.error]="invalid('numero')">
+            <label>Número de tarjeta</label>
+            <div class="pm-input-wrap">
+              <i class="fa-solid fa-credit-card pm-input-icon"></i>
+              <input type="text" inputmode="numeric"
+                     placeholder="1234 5678 9012 3456"
+                     autocomplete="cc-number"
+                     maxlength="19"
+                     (input)="formatNumero($event)">
+              <!-- Logo de la marca -->
+              <span class="pm-card-brand">
+                @switch (cardBrand()) {
+                  @case ('visa') {
+                    <span class="brand-visa">VISA</span>
+                  }
+                  @case ('mastercard') {
+                    <span class="brand-mc">
+                      <i class="fa-brands fa-cc-mastercard"></i>
+                    </span>
+                  }
+                  @case ('amex') {
+                    <span class="brand-amex">AMEX</span>
+                  }
+                  @default {
+                    <i class="fa-solid fa-credit-card brand-generic"></i>
+                  }
+                }
+              </span>
+            </div>
+            @if (invalid('numero')) {
+              <span class="pm-err">Número de tarjeta inválido</span>
+            }
+          </div>
+
+          <!-- Expiración + CVV -->
+          <div class="pm-row">
+            <div class="pm-field" [class.error]="invalid('expiracion')">
+              <label>Vencimiento</label>
+              <div class="pm-input-wrap">
+                <i class="fa-regular fa-calendar pm-input-icon"></i>
+                <input type="text" inputmode="numeric"
+                       placeholder="MM/AA" maxlength="5"
+                       autocomplete="cc-exp"
+                       (input)="formatExp($event)">
+              </div>
+              @if (invalid('expiracion')) {
+                <span class="pm-err">Fecha inválida</span>
+              }
+            </div>
+
+            <div class="pm-field" [class.error]="invalid('cvv')">
+              <label>CVV</label>
+              <div class="pm-input-wrap">
+                <i class="fa-solid fa-shield-halved pm-input-icon"></i>
+                <input type="password" inputmode="numeric"
+                       formControlName="cvv"
+                       placeholder="123" maxlength="4"
+                       autocomplete="cc-csc">
+              </div>
+              @if (invalid('cvv')) {
+                <span class="pm-err">CVV inválido</span>
+              }
+            </div>
+          </div>
+
+          <!-- Email de confirmación -->
+          <div class="pm-field" [class.error]="invalid('email')">
+            <label>Email de confirmación</label>
+            <div class="pm-input-wrap">
+              <i class="fa-solid fa-envelope pm-input-icon"></i>
+              <input type="email" formControlName="email"
+                     placeholder="tu@email.com" autocomplete="email">
+            </div>
+            @if (invalid('email')) {
+              <span class="pm-err">Email inválido</span>
+            }
+          </div>
+
+          <!-- Botón pagar -->
+          <button type="submit" class="pm-btn-pagar">
+            <i class="fa-solid fa-lock"></i>
+            Pagar {{ plan().precio }} ahora
+          </button>
+
+        </form>
+
+        <!-- Seguridad -->
+        <div class="pm-security">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Pago seguro · Cifrado SSL · Cancela cuando quieras</span>
+          <div class="pm-badges">
+            <span class="badge-ssl">SSL</span>
+            <span class="badge-pci">PCI DSS</span>
+          </div>
+        </div>
+
+      }
+
+      <!-- ── PASO: PROCESANDO ────────────────────────────────── -->
+      @if (step() === 'processing') {
+        <div class="pm-processing">
+          <div class="pm-spinner">
+            <svg viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="34" class="sp-track"/>
+              <circle cx="40" cy="40" r="34" class="sp-fill"/>
+            </svg>
+          </div>
+          <h3>Procesando pago...</h3>
+          <p>No cierres esta ventana</p>
+          <div class="pm-proc-steps">
+            <span class="proc-step done"><i class="fa-solid fa-check"></i> Verificando datos</span>
+            <span class="proc-step active"><i class="fa-solid fa-circle-notch fa-spin"></i> Autorizando pago</span>
+            <span class="proc-step"><i class="fa-regular fa-circle"></i> Activando plan</span>
+          </div>
+        </div>
+      }
+
+      <!-- ── PASO: ÉXITO ─────────────────────────────────────── -->
+      @if (step() === 'success') {
+        <div class="pm-success">
+          <div class="pm-success-icon">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <h3>¡Pago exitoso!</h3>
+          <p>Tu plan <strong>{{ plan().label }}</strong> está activo.</p>
+
+          <div class="pm-receipt">
+            <div class="receipt-row">
+              <span>Plan</span><strong>{{ plan().label }}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>Monto</span><strong>{{ plan().precio }}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>Estado</span>
+              <strong class="receipt-ok">
+                <i class="fa-solid fa-circle-check"></i> Aprobado
+              </strong>
+            </div>
+            <div class="receipt-row">
+              <span>Ref.</span><strong>#PY-{{ refNum() }}</strong>
+            </div>
+          </div>
+
+          <button type="button" class="pm-btn-pagar pm-btn-ok" (click)="cerrar()">
+            <i class="fa-solid fa-rocket"></i>
+            ¡Empezar a usar PRO!
+          </button>
+          <p class="pm-email-note">
+            <i class="fa-solid fa-envelope"></i>
+            Recibirás una confirmación en tu correo
+          </p>
+        </div>
+      }
+
+    </div>
+  </div>
+}

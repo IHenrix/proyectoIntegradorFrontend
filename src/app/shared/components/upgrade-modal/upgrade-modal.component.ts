@@ -1,19 +1,25 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { UpgradeModalService, UPGRADE_COPY } from '../../../core/services/upgrade-modal.service';
+import { PaymentModalService } from '../../../core/services/payment-modal.service';
 
 @Component({
   selector: 'app-upgrade-modal',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './upgrade-modal.component.html',
   styleUrl: './upgrade-modal.component.scss'
 })
 export class UpgradeModalComponent {
-  svc = inject(UpgradeModalService);
-  copy = UPGRADE_COPY;
+  svc     = inject(UpgradeModalService);
+  payment = inject(PaymentModalService);
+  copy    = UPGRADE_COPY;
 
   featureCopy() { return this.copy[this.svc.feature()]; }
+
+  irAPagar(): void {
+    this.svc.cerrar();
+    this.payment.abrir('mensual');
+  }
 
   readonly FREE_FEATURES = [
     { ok: true,  text: 'Resultados ilimitados' },

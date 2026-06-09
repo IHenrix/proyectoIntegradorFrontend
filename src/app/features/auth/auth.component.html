@@ -1,32 +1,102 @@
 <div class="auth-page">
 
   <!-- ── Panel izquierdo ── -->
-  <aside class="auth-left">
-    <a routerLink="/" class="back-link">← Inicio</a>
+  <aside class="auth-left" [style.--bg]="'url(assets/hero/hero-' + slideActivo() + '.jpg)'">
 
+    <!-- Slides de fondo -->
+    @for (i of slides; track i) {
+      <div class="slide" [class.active]="slideActivo() === i"
+           [style.background-image]="'url(assets/hero/hero-' + i + '.jpg)'">
+      </div>
+    }
+
+    <!-- Overlay degradado -->
+    <div class="left-overlay"></div>
+
+    <!-- Contenido sobre la imagen -->
     <div class="left-content">
+
+      <a routerLink="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> Volver al inicio
+      </a>
+
+      <!-- Brand -->
       <div class="brand">
-        <span>✈</span>
+        <div class="brand-icon"><i class="fa-solid fa-plane"></i></div>
         <span class="brand-name">Pasaje<strong>Ya</strong></span>
       </div>
 
-      <p class="tagline">
-        Compara vuelos nacionales<br>
-        y ahorra en <span class="accent">soles</span>
+      <h2 class="tagline">
+        Vuela más lejos<br>
+        <span class="accent">gastando menos</span>
+      </h2>
+
+      <p class="tagline-sub">
+        Compara LATAM, Sky y JetSmart en tiempo real.<br>
+        Alertas de precio, predicción IA y más.
       </p>
 
+      <!-- Features -->
       <ul class="features">
-        <li><span class="check">✓</span> Precios en tiempo real LATAM · Sky · JetSmart</li>
-        <li><span class="check">✓</span> Predicción IA — ¿el precio subirá o bajará?</li>
-        <li><span class="check">✓</span> Alertas automáticas por correo</li>
-        <li><span class="check">✓</span> 100% gratis para el viajero</li>
+        <li>
+          <span class="feat-icon"><i class="fa-solid fa-chart-line"></i></span>
+          <div>
+            <strong>Precios en tiempo real</strong>
+            <span>Actualización cada hora en todas las rutas</span>
+          </div>
+        </li>
+        <li>
+          <span class="feat-icon"><i class="fa-solid fa-brain"></i></span>
+          <div>
+            <strong>Predicción IA</strong>
+            <span>¿El precio subirá o bajará? Nosotros lo calculamos</span>
+          </div>
+        </li>
+        <li>
+          <span class="feat-icon"><i class="fa-brands fa-whatsapp"></i></span>
+          <div>
+            <strong>Alertas por WhatsApp</strong>
+            <span>Te avisamos cuando el precio baje de tu objetivo</span>
+          </div>
+        </li>
+        <li>
+          <span class="feat-icon"><i class="fa-solid fa-circle-check"></i></span>
+          <div>
+            <strong>100% gratis para empezar</strong>
+            <span>Sin tarjeta. Sin compromisos.</span>
+          </div>
+        </li>
       </ul>
 
-      <div class="badges">
-        <span class="badge latam">LATAM</span>
-        <span class="badge sky">SKY</span>
-        <span class="badge jetsmart">JetSmart</span>
+      <!-- Aerolíneas con logos -->
+      <div class="airline-logos">
+        <span class="al-label">Aerolíneas disponibles</span>
+        <div class="al-row">
+          <div class="al-pill al-latam">
+            <img src="assets/logos/latam.svg" alt="LATAM">
+            <span>LATAM</span>
+          </div>
+          <div class="al-pill al-sky">
+            <img src="assets/logos/sky.svg" alt="Sky">
+            <span>Sky</span>
+          </div>
+          <div class="al-pill al-jet">
+            <img src="assets/logos/jetsmart.svg" alt="JetSmart">
+            <span>JetSmart</span>
+          </div>
+        </div>
       </div>
+
+      <!-- Indicadores de slide -->
+      <div class="slide-dots">
+        @for (i of slides; track i) {
+          <button type="button" class="dot"
+                  [class.active]="slideActivo() === i"
+                  (click)="slideActivo.set(i)">
+          </button>
+        }
+      </div>
+
     </div>
   </aside>
 
@@ -246,24 +316,56 @@
             </div>
           </div>
 
-          <div class="grid-2">
-            <div class="field">
-              <label>Teléfono <span class="opt">WhatsApp · opcional</span></label>
-              <input type="tel" formControlName="telefono"
-                     placeholder="Ej: 999 999 999"
-                     autocomplete="tel"
-                     [class.error]="tieneError('registro','telefono')">
-              @if (tieneError('registro','telefono')) {
-                <span class="hint">9 dígitos — empieza en 9 (ej: 999999999)</span>
+          <div class="field" style="position:relative; z-index:50;">
+            <label>Teléfono <span class="opt">WhatsApp · opcional</span></label>
+            <div class="tel-wrap-outer">
+              <div class="tel-input-wrap" [class.error]="tieneError('registro','telefono')">
+                <div class="country-select-wrap" (click)="$event.stopPropagation(); togglePaises()">
+                  <img class="country-flag-img"
+                       [src]="'https://flagcdn.com/20x15/' + paisSeleccionado().flag + '.png'"
+                       [alt]="paisSeleccionado().code">
+                  <span class="country-dial">{{ paisSeleccionado().dial }}</span>
+                  <i class="fa-solid fa-chevron-down country-chevron" [class.open]="mostrarPaises()"></i>
+                </div>
+                <input type="tel" formControlName="telefono"
+                       placeholder="999 999 999"
+                       autocomplete="tel">
+              </div>
+              @if (mostrarPaises()) {
+                <div class="country-dropdown" (click)="$event.stopPropagation()">
+                  <div class="country-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" class="country-search" placeholder="Buscar país..."
+                           [value]="filtroPaises()"
+                           (input)="filtroPaises.set($any($event.target).value)">
+                  </div>
+                  <div class="country-list">
+                    @for (p of paisesFiltrados(); track p.code) {
+                      <div class="country-option" (click)="seleccionarPais(p)">
+                        <img class="co-flag-img"
+                             [src]="'https://flagcdn.com/20x15/' + p.flag + '.png'"
+                             [alt]="p.code">
+                        <span class="co-name">{{ p.name }}</span>
+                        <span class="co-dial">{{ p.dial }}</span>
+                      </div>
+                    }
+                    @if (paisesFiltrados().length === 0) {
+                      <div class="country-empty">Sin resultados</div>
+                    }
+                  </div>
+                </div>
               }
             </div>
+            @if (tieneError('registro','telefono')) {
+              <span class="hint">Solo dígitos, entre 6 y 15 caracteres</span>
+            }
+          </div>
 
-            <div class="field">
-              <label>Nacimiento <span class="opt">opcional</span></label>
-              <input type="date" formControlName="fechaNacimiento"
-                     [max]="fechaMaxNac"
-                     [min]="fechaMinNac">
-            </div>
+          <div class="field">
+            <label>Fecha de nacimiento <span class="opt">opcional</span></label>
+            <input type="date" formControlName="fechaNacimiento"
+                   [max]="fechaMaxNac"
+                   [min]="fechaMinNac">
           </div>
 
           <div class="captcha-wrapper">

@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, AfterViewInit, NgZone, HostListener, computed } from '@angular/core';
 import {
   ReactiveFormsModule, FormBuilder, Validators,
   AbstractControl, ValidationErrors, ValidatorFn
@@ -7,6 +7,26 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
+
+export interface Pais {
+  code: string; name: string; dial: string; flag: string;
+}
+
+const PAISES: Pais[] = [
+  { code: 'pe', name: 'Perú',           dial: '+51',  flag: 'pe' },
+  { code: 'co', name: 'Colombia',       dial: '+57',  flag: 'co' },
+  { code: 'cl', name: 'Chile',          dial: '+56',  flag: 'cl' },
+  { code: 'ar', name: 'Argentina',      dial: '+54',  flag: 'ar' },
+  { code: 'mx', name: 'México',         dial: '+52',  flag: 'mx' },
+  { code: 'ec', name: 'Ecuador',        dial: '+593', flag: 'ec' },
+  { code: 'bo', name: 'Bolivia',        dial: '+591', flag: 'bo' },
+  { code: 've', name: 'Venezuela',      dial: '+58',  flag: 've' },
+  { code: 'py', name: 'Paraguay',       dial: '+595', flag: 'py' },
+  { code: 'uy', name: 'Uruguay',        dial: '+598', flag: 'uy' },
+  { code: 'br', name: 'Brasil',         dial: '+55',  flag: 'br' },
+  { code: 'us', name: 'Estados Unidos', dial: '+1',   flag: 'us' },
+  { code: 'es', name: 'España',         dial: '+34',  flag: 'es' },
+];
 
 function passwordFuerte(ctrl: AbstractControl): ValidationErrors | null {
   const v: string = ctrl.value ?? '';
@@ -32,9 +52,45 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
   private fb           = inject(FormBuilder);
   private router       = inject(Router);
   private route        = inject(ActivatedRoute);
+  private zone         = inject(NgZone);
   readonly authService = inject(AuthService);
 
   modo         = signal<'login' | 'registro'>('login');
+
+  // ── Selector de país ─────────────────────────────────────────
+  mostrarPaises    = signal(false);
+  filtroPaises     = signal('');
+  paisSeleccionado = signal<Pais>(PAISES[0]);
+
+  paisesFiltrados = computed(() => {
+    const q = this.filtroPaises().toLowerCase().trim();
+    if (!q) return PAISES;
+    return PAISES.filter(p => p.name.toLowerCase().includes(q) || p.dial.includes(q));
+  });
+
+  private skipNextClose = false;
+
+  @HostListener('document:click')
+  cerrarPaises(): void {
+    if (this.skipNextClose) { this.skipNextClose = false; return; }
+    this.mostrarPaises.set(false);
+    this.filtroPaises.set('');
+  }
+
+  togglePaises(): void {
+    this.skipNextClose = true;
+    this.mostrarPaises.update(v => !v);
+  }
+
+  seleccionarPais(p: Pais): void {
+    this.paisSeleccionado.set(p);
+    this.mostrarPaises.set(false);
+    this.filtroPaises.set('');
+  }
+
+  readonly slides    = [1, 2, 3, 4, 6] as const;
+  slideActivo        = signal<1|2|3|4|6>(1);
+  private slideTimer?: ReturnType<typeof setInterval>;
   cargando     = signal(false);
   mensaje      = signal<string | null>(null);
   error        = signal<string | null>(null);
@@ -69,7 +125,7 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
     confirmarPassword: ['', [Validators.required]],
     tipoDocumentoId:   [null as number | null],
     nroDocumento:      [''],
-    telefono:          ['', [Validators.pattern(/^(\+?51)?9[0-9]{8}$/)]],
+    telefono:          ['', [Validators.pattern(/^\d{6,15}$/)]],
     fechaNacimiento:   ['']
   });
 
@@ -81,6 +137,16 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    this.zone.runOutsideAngular(() => {
+      this.slideTimer = setInterval(() => {
+        this.zone.run(() => {
+          const order: (1|2|3|4|6)[] = [1,2,3,4,6];
+          const idx  = order.indexOf(this.slideActivo());
+          const next = order[(idx + 1) % order.length];
+          this.slideActivo.set(next);
+        });
+      }, 4500);
+    });
     this.docSub = this.registroForm.get('tipoDocumentoId')!.valueChanges
       .subscribe(val => {
         this.actualizarValidadoresDoc(val);
@@ -104,6 +170,7 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.docSub?.unsubscribe();
+    if (this.slideTimer) clearInterval(this.slideTimer);
   }
 
   private actualizarValidadoresDoc(tipoId: number | null): void {
@@ -242,6 +309,9 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
     this.error.set(null);
     this.mensaje.set(null);
     const v = this.registroForm.value;
+    const telCompleto = v.telefono
+      ? `${this.paisSeleccionado().dial}${v.telefono}`
+      : '';
     this.authService.registro({
       nombre:          v.nombre!,
       apellidoPaterno: v.apellidoPaterno!,
@@ -249,7 +319,7 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
       genero:          v.genero ?? '',
       email:           v.email!,
       password:        v.password!,
-      telefono:        v.telefono ?? '',
+      telefono:        telCompleto,
       fechaNacimiento: v.fechaNacimiento ?? '',
       tipoDocumentoId: v.tipoDocumentoId ?? null,
       nroDocumento:    v.nroDocumento ?? '',
@@ -259,9 +329,10 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
         const emailUsado = v.email!;
         this.cargando.set(false);
         this.registroForm.reset();
+        this.captchaLoginId = null;
         this.modo.set('login');
-        this.loginForm.patchValue({ email: emailUsado });
         this.mensaje.set('Cuenta creada. Revisa tu correo y haz clic en "Validar correo" para activar tu cuenta.');
+        setTimeout(() => this.renderWidget('recaptcha-login', 'login'), 80);
       },
       error: err => {
         const raw = err.error;
