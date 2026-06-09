@@ -1,6 +1,7 @@
 import { Component, inject, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AlertaService } from '../../../core/services/alerta.service';
 
 @Component({
   selector: 'app-navbar',
@@ -10,7 +11,14 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent {
-  readonly auth = inject(AuthService);
+  readonly auth         = inject(AuthService);
+  readonly alertaService = inject(AlertaService);
+
+  readonly alertaBadge = computed(() => {
+    const n = this.alertaService.alertas().length;
+    if (n === 0) return null;
+    return n >= 10 ? '9+' : String(n);
+  });
 
   readonly rolInfo = computed(() => {
     const r = this.auth.rol();

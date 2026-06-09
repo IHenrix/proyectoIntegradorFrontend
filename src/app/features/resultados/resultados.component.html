@@ -256,9 +256,12 @@
                   <div [class]="'card-precio precio-' + p.ida.semaforo">
                     <div class="card-precio-row">
                       <span class="card-moneda">S/</span>
-                      <span class="card-monto">{{ (p.ida.precio + p.vuelta.precio) | number:'1.0-0' }}</span>
+                      <span class="card-monto">{{ p.ida.precio + p.vuelta.precio | number:'1.0-0' }}</span>
                     </div>
-                    <span class="card-precio-sub">precio total · 2 pasajes</span>
+                    <span class="card-precio-sub">por pasajero</span>
+                    @if (params.pasajeros > 1) {
+                      <span class="card-precio-total">S/ {{ (p.ida.precio + p.vuelta.precio) * params.pasajeros | number:'1.0-0' }} total</span>
+                    }
                   </div>
 
                   <i class="fa-solid fa-chevron-down card-chevron"
@@ -499,6 +502,9 @@
                     <span class="card-monto">{{ v.precio | number:'1.0-0' }}</span>
                   </div>
                   <span class="card-precio-sub">por pasajero</span>
+                  @if (params.pasajeros > 1) {
+                    <span class="card-precio-total">S/ {{ v.precio * params.pasajeros | number:'1.0-0' }} total</span>
+                  }
                 </div>
                 <i class="fa-solid fa-chevron-down card-chevron"
                    [class.rotado]="cardAbierto() === v.id"></i>

@@ -96,6 +96,37 @@
   }
 }
 
+.alerta-badge-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.alerta-badge {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 1.5px solid rgba(8,13,26,.9);
+  animation: badgePop .3s cubic-bezier(.175,.885,.32,1.275);
+}
+
+@keyframes badgePop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
 // ── Pill de usuario → perfil ──────────────────────────────────────
 .user-pill {
   display: flex;

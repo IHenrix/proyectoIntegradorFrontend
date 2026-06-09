@@ -80,6 +80,12 @@
                 <button type="button" class="cf-btn" [class.cf-active]="rango() === 30" [class.cf-locked]="!esPremium()" (click)="tryRango(30)">
                   @if (!esPremium()) { <i class="fa-solid fa-lock cf-lock-icon"></i> } 30D
                 </button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 60" [class.cf-locked]="!esPremium()" (click)="tryRango(60)">
+                  @if (!esPremium()) { <i class="fa-solid fa-lock cf-lock-icon"></i> } 3M
+                </button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 90" [class.cf-locked]="!esPremium()" (click)="tryRango(90)">
+                  @if (!esPremium()) { <i class="fa-solid fa-lock cf-lock-icon"></i> } 6M
+                </button>
               </div>
             </div>
 
@@ -294,12 +300,6 @@
               }
             </form>
 
-            @if (mensaje()) {
-              <div class="ok-msg">
-                <i class="fa-solid fa-circle-check"></i>
-                {{ mensaje() }}
-              </div>
-            }
             @if (error()) {
               <div class="err-msg">
                 <i class="fa-solid fa-triangle-exclamation"></i>
@@ -320,3 +320,34 @@
 
   <app-footer />
 </div>
+
+<!-- ── Overlay celebración alerta creada ── -->
+@if (celebracion()) {
+  <div class="celebracion-overlay" (click)="celebracion.set(false)">
+    <div class="celebracion-card" (click)="$event.stopPropagation()">
+
+      <div class="celeb-confetti">
+        <span>🎉</span><span>✨</span><span>🎊</span>
+      </div>
+
+      <div class="celeb-icon">
+        <i class="fa-solid fa-bell"></i>
+      </div>
+
+      <h2 class="celeb-titulo">¡Felicidades!</h2>
+      <p class="celeb-sub">Tu alerta de precio fue creada exitosamente.</p>
+      <p class="celeb-desc">
+        <i class="fa-brands fa-whatsapp"></i>
+        Te avisaremos por <strong>WhatsApp</strong> en cuanto el precio baje.
+      </p>
+
+      <button class="celeb-btn" (click)="celebracion.set(false)">
+        <i class="fa-solid fa-check"></i> ¡Entendido!
+      </button>
+
+      <div class="celeb-barra">
+        <div class="celeb-barra-fill"></div>
+      </div>
+    </div>
+  </div>
+}

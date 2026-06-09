@@ -34,20 +34,21 @@ export class DetalleComponent implements OnInit {
     return r === 'usuario_premium' || r === 'admin';
   });
 
-  tryRango(dias: 7 | 15 | 30): void {
+  tryRango(dias: 7 | 15 | 30 | 60 | 90): void {
     if (dias === 7 || this.esPremium()) {
       this.rango.set(dias);
     } else {
-      this.upgrade.abrir(dias === 15 ? 'historial_15d' : 'historial_30d');
+      this.upgrade.abrir('historial_30d');
     }
   }
 
   detalle  = signal<VueloDetalle | null>(null);
   cargando = signal(true);
-  error    = signal<string | null>(null);
-  mensaje  = signal<string | null>(null);
+  error             = signal<string | null>(null);
+  mensaje           = signal<string | null>(null);
+  celebracion       = signal(false);
 
-  rango = signal<7 | 15 | 30>(7);
+  rango = signal<7 | 15 | 30 | 60 | 90>(7);
 
   telefonoGuardado = signal<string | null>(localStorage.getItem('telefono'));
 
@@ -169,7 +170,10 @@ export class DetalleComponent implements OnInit {
       precioObjetivo: Number(this.form.value.precioObjetivo),
       telefono,
     }).subscribe({
-      next: () => this.mensaje.set('¡Alerta creada! Te avisaremos por WhatsApp cuando baje el precio.'),
+      next: () => {
+        this.celebracion.set(true);
+        setTimeout(() => this.celebracion.set(false), 4000);
+      },
       error: err => {
         const msg = err.error?.message ?? '';
         if (msg === 'LIMITE_ALERTAS') {

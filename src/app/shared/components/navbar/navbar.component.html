@@ -16,7 +16,12 @@
 
         <!-- Alertas -->
         <a routerLink="/alertas" routerLinkActive="active" class="nav-icon-btn" title="Alertas">
-          <i class="fa-solid fa-bell"></i>
+          <span class="alerta-badge-wrap">
+            <i class="fa-solid fa-bell"></i>
+            @if (alertaBadge()) {
+              <span class="alerta-badge">{{ alertaBadge() }}</span>
+            }
+          </span>
           <span>Alertas</span>
         </a>
 
