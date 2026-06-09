@@ -471,19 +471,27 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 // ── Cards ─────────────────────────────────────────────────────────
-.cards { display: flex; flex-direction: column; gap: 0.9rem; }
+.cards { display: flex; flex-direction: column; gap: 1rem; }
 
 .card {
   background: #fff;
-  border-radius: 14px;
-  border: 1.5px solid #e8edf2;
-  border-left: 5px solid #cbd5e1;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  border-left: 6px solid #cbd5e1;
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.15s;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
   user-select: none;
+  overflow: hidden;
 
-  &:hover     { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-1px); }
-  &.card-open { box-shadow: 0 8px 32px rgba(0,0,0,0.11); transform: translateY(-2px); }
+  &:hover {
+    box-shadow: 0 6px 28px rgba(0,0,0,0.10);
+    border-color: #c7d2da;
+    transform: translateY(-2px);
+  }
+  &.card-open {
+    box-shadow: 0 10px 40px rgba(0,0,0,0.13);
+    transform: translateY(-2px);
+  }
 
   &.card-verde    { border-left-color: #16a34a; }
   &.card-amarillo { border-left-color: #eab308; }
@@ -494,26 +502,27 @@
 .card-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.2rem 1.4rem;
+  gap: 1.1rem;
+  padding: 1.4rem 1.6rem;
 }
 
-// Logo aerolínea circular
+// Logo aerolínea circular — MISMO tamaño en ida y vuelta
 .al-logo-wrap {
-  width: 52px; height: 52px;
+  width: 48px; height: 48px;
   border-radius: 50%;
   background: #fff;
-  border: 1.5px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   padding: 7px;
   overflow: hidden;
 
+  // mismo tamaño que el principal (ya no hay .al-logo-sm diferente)
   &.al-logo-sm {
-    width: 36px; height: 36px;
-    padding: 5px;
-    opacity: 0.85;
+    width: 48px; height: 48px;
+    padding: 7px;
+    opacity: 1;
   }
 }
 
@@ -524,22 +533,22 @@
 }
 
 // Horario
-.card-horario { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+.card-horario { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 
-.card-hora { font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
+.card-hora { font-size: 1.25rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
 
-.crd-arrow { color: #94a3b8; font-size: 0.7rem; }
+.crd-arrow { color: #94a3b8; font-size: 0.72rem; }
 
 // Ruta
-.card-ruta { font-size: 0.78rem; font-weight: 600; color: #64748b; flex-shrink: 0; }
+.card-ruta { font-size: 0.8rem; font-weight: 600; color: #64748b; flex-shrink: 0; }
 
 // Badge directo
 .badge-directo {
-  display: flex; align-items: center; gap: 0.3rem;
-  font-size: 0.69rem; font-weight: 700;
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.7rem; font-weight: 700;
   color: #0369a1; background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  padding: 0.2rem 0.6rem;
+  border: 1.5px solid #bae6fd;
+  padding: 0.25rem 0.65rem;
   border-radius: 20px; flex-shrink: 0;
 }
 
@@ -549,7 +558,7 @@
 // Spacer
 .card-spacer { flex: 1; }
 
-// Badge semáforo — llamativo, diferenciador
+// Badge semáforo
 .sema-badge {
   display: flex; align-items: center; gap: 0.32rem;
   font-size: 0.71rem; font-weight: 800;
@@ -562,10 +571,10 @@
 }
 
 // Precio coloreado por semáforo
-.card-precio { display: flex; align-items: baseline; gap: 0.12rem; flex-shrink: 0; }
+.card-precio { display: flex; align-items: baseline; gap: 0.1rem; flex-shrink: 0; }
 
-.card-moneda { font-size: 0.85rem; font-weight: 600; }
-.card-monto  { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.card-moneda { font-size: 0.9rem; font-weight: 700; }
+.card-monto  { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
 
 .precio-verde    { .card-moneda, .card-monto { color: #16a34a; } }
 .precio-amarillo { .card-moneda, .card-monto { color: #ca8a04; } }
@@ -573,17 +582,17 @@
 
 // Chevron toggle
 .card-chevron {
-  color: #94a3b8; font-size: 0.8rem; flex-shrink: 0;
+  color: #94a3b8; font-size: 0.85rem; flex-shrink: 0;
   transition: transform 0.25s ease;
   &.rotado { transform: rotate(180deg); }
 }
 
 // ── Card paquete (ida y vuelta) ───────────────────────────────────
-.pkg-row { align-items: stretch; gap: 1rem; }
+.pkg-row { align-items: stretch; gap: 1.1rem; }
 
 .pkg-logos {
   display: flex; flex-direction: column; align-items: center;
-  gap: 0.4rem; flex-shrink: 0; justify-content: center;
+  gap: 6px; flex-shrink: 0; justify-content: center;
 }
 
 .pkg-legs {
@@ -592,43 +601,54 @@
 }
 
 .pkg-leg {
-  display: flex; align-items: center; gap: 0.85rem;
-  padding: 0.45rem 0;
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.55rem 0;
   flex-wrap: nowrap;
 }
 
 .pkg-sep {
-  height: 1px; background: #e8edf2;
-  margin: 0.25rem 0;
+  height: 1.5px;
+  background: #f1f5f9;
+  margin: 0.1rem 0;
 }
 
 // Cabeceras de cada leg en el detalle expandido
 .pkg-leg-hdr {
-  display: flex; align-items: center; gap: 0.55rem;
-  font-size: 0.78rem; font-weight: 700;
-  color: #3b82f6; margin-bottom: 0.6rem;
-  padding: 0.4rem 0.6rem;
-  background: #eff6ff; border-radius: 8px;
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.8rem; font-weight: 800;
+  color: #1d4ed8;
+  margin-bottom: 1rem;
+  padding: 0.55rem 0.85rem;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
 
   i { font-size: 0.85rem; }
+
+  &.hdr-vuelta {
+    color: #ea580c;
+    background: #fff7ed;
+    border-color: #fed7aa;
+  }
 }
 
 .pkg-leg-fecha {
-  font-size: 0.72rem; font-weight: 500;
+  font-size: 0.73rem; font-weight: 600;
   color: #64748b; margin-left: auto; text-transform: capitalize;
 }
 
 .pkg-leg-sep {
-  height: 1.5px;
-  background: linear-gradient(to right, #3b82f6, #f97316);
-  margin: 0.85rem 0; border-radius: 2px;
+  height: 2px;
+  background: linear-gradient(to right, #bfdbfe, #fed7aa);
+  margin: 1.25rem 0; border-radius: 2px;
 }
 
 // ── Detalle expandido ─────────────────────────────────────────────
 .card-detalle {
-  border-top: 1.5px solid #f1f5f9;
-  padding: 1.25rem 1.5rem 1.5rem;
+  border-top: 2px solid #f1f5f9;
+  padding: 1.6rem 1.8rem 1.8rem;
   cursor: default;
+  background: #fafbfc;
   animation: expandir 0.22s ease;
 }
 
@@ -638,87 +658,105 @@
 }
 
 // Itinerario paso a paso
-.itin-wrap { display: flex; flex-direction: column; margin-bottom: 0.9rem; }
-
-.itin-endpoint { display: flex; align-items: center; gap: 0.75rem; }
-
-.itin-dot {
-  width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
-  &.dep { background: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.18); }
-  &.arr { background: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.18); }
+.itin-wrap {
+  display: flex; flex-direction: column;
+  margin-bottom: 1.25rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
 }
 
-.itin-hora { font-size: 1rem; font-weight: 800; color: #0f172a; min-width: 44px; }
-.itin-apt  { font-size: 0.77rem; color: #475569; }
+.itin-endpoint { display: flex; align-items: center; gap: 0.85rem; }
 
-.itin-middle { display: flex; align-items: center; gap: 0.75rem; padding: 0.22rem 0; }
+.itin-dot {
+  width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+  &.dep { background: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  &.arr { background: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.15); }
+}
+
+.itin-hora { font-size: 1.05rem; font-weight: 800; color: #0f172a; min-width: 48px; }
+.itin-apt  { font-size: 0.8rem; color: #374151; font-weight: 500; }
+
+.itin-middle { display: flex; align-items: center; gap: 0.85rem; padding: 0.3rem 0; }
 
 .itin-vline {
-  width: 2px; height: 26px;
-  background: linear-gradient(to bottom, #3b82f6, #f97316);
-  margin-left: 5.5px;
+  width: 2px; height: 28px;
+  background: linear-gradient(to bottom, #2563eb, #f97316);
+  margin-left: 6px;
   flex-shrink: 0;
 }
 
 .itin-flight-info {
-  font-size: 0.72rem; color: #64748b;
-  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.74rem; color: #64748b; font-weight: 500;
+  display: flex; align-items: center; gap: 0.4rem;
 }
 
 // Divisor interno
-.det-divider { height: 1px; background: #f1f5f9; margin-bottom: 0.8rem; }
+.det-divider { height: 1.5px; background: #e2e8f0; margin: 1rem 0 1.25rem; }
 
 // Pills de equipaje / políticas
-.det-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.det-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
 
 .det-pill {
-  display: flex; align-items: center; gap: 0.3rem;
-  font-size: 0.71rem; font-weight: 600;
-  padding: 0.28rem 0.7rem; border-radius: 20px; border: 1px solid;
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.35rem 0.8rem; border-radius: 20px; border: 1.5px solid;
 
-  &.pill-ok { color: #15803d; background: #f0fdf4; border-color: #bbf7d0; }
-  &.pill-no { color: #b91c1c; background: #fff1f2; border-color: #fecaca; }
+  &.pill-ok { color: #15803d; background: #f0fdf4; border-color: #86efac; }
+  &.pill-no { color: #b91c1c; background: #fff1f2; border-color: #fca5a5; }
 }
 
-// Footer: tarifa + botón seleccionar
-.det-footer { display: flex; align-items: center; justify-content: space-between; }
+// Footer: tarifa + botones
+.det-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 0.25rem;
+}
 
-.det-actions { display: flex; align-items: center; gap: 0.55rem; }
+.det-actions { display: flex; align-items: center; gap: 0.6rem; }
 
 .det-tarifa {
-  display: flex; align-items: center; gap: 0.35rem;
-  font-size: 0.77rem; font-weight: 700;
-  padding: 0.3rem 0.85rem; border-radius: 20px;
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.78rem; font-weight: 700;
+  padding: 0.35rem 0.9rem; border-radius: 20px;
 
-  &.tarifa-basica  { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-  &.tarifa-flex    { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
-  &.tarifa-premium { background: #fefce8; color: #854d0e; border: 1px solid #fde68a; }
+  &.tarifa-basica  { background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1; }
+  &.tarifa-flex    { background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac; }
+  &.tarifa-premium { background: #fefce8; color: #854d0e; border: 1.5px solid #fde68a; }
 }
 
 .btn-seleccionar {
-  display: flex; align-items: center; gap: 0.45rem;
-  padding: 0.62rem 1.6rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.68rem 1.7rem;
   background: linear-gradient(90deg, #f97316, #ea580c);
   color: #fff; border-radius: 10px;
-  font-size: 0.86rem; font-weight: 700;
-  font-family: inherit; text-decoration: none;
+  font-size: 0.88rem; font-weight: 800;
+  font-family: inherit; text-decoration: none; border: none;
+  box-shadow: 0 3px 12px rgba(249,115,22,0.28);
   transition: all 0.18s; cursor: pointer;
 
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(249,115,22,0.38); }
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 20px rgba(249,115,22,0.42);
+  }
 }
 
 .btn-detalle {
-  display: flex; align-items: center; gap: 0.45rem;
-  padding: 0.62rem 1.2rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.68rem 1.3rem;
   background: #fff;
   color: #2563eb;
-  border: 1px solid #bfdbfe;
+  border: 2px solid #bfdbfe;
   border-radius: 10px;
-  font-size: 0.86rem; font-weight: 700;
+  font-size: 0.88rem; font-weight: 800;
   font-family: inherit;
   transition: all 0.18s; cursor: pointer;
 
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,0.18); }
+  &:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+  }
 }
 
 // ── Responsive ────────────────────────────────────────────────────
