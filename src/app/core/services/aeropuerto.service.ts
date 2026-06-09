@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 export interface Aeropuerto {
   code:   string;
@@ -11,7 +12,7 @@ export interface Aeropuerto {
 @Injectable({ providedIn: 'root' })
 export class AeropuertoService {
   private http = inject(HttpClient);
-  private readonly API = 'http://localhost:8080/api';
+  private readonly API = environment.apiUrl;
 
   aeropuertos = signal<Aeropuerto[]>([]);
   cargando    = signal(true);

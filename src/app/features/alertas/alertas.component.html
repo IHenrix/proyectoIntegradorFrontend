@@ -1,0 +1,157 @@
+<div class="alertas-page">
+  <app-navbar />
+
+  <main class="alertas-shell">
+    <header class="page-head">
+      <div>
+        <span class="eyebrow">Monitor de precios</span>
+        <h1>Alertas WhatsApp</h1>
+        <p>Configura un precio objetivo y revisa tus alertas activas desde un solo lugar.</p>
+      </div>
+      <a routerLink="/" class="head-link">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        Buscar vuelos
+      </a>
+    </header>
+
+    <section class="layout">
+      <aside class="panel form-panel">
+        <div class="panel-title">
+          <span class="step-badge">Nueva</span>
+          <h2>Crear alerta</h2>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="crear()">
+          <div class="route-grid">
+            <label>
+              Origen
+              <select formControlName="origen">
+                @for (a of aeropuertoService.aeropuertos(); track a.code) {
+                  <option [value]="a.code">{{ a.ciudad }} ({{ a.code }})</option>
+                }
+              </select>
+            </label>
+            <label>
+              Destino
+              <select formControlName="destino">
+                @for (a of aeropuertoService.aeropuertos(); track a.code) {
+                  <option [value]="a.code">{{ a.ciudad }} ({{ a.code }})</option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="route-grid">
+            <label>
+              Fecha
+              <input type="date" [min]="fechaMin" formControlName="fecha">
+            </label>
+            <label>
+              Tarifa
+              <select formControlName="tipoTarifa">
+                <option value="basica">Basica</option>
+                <option value="flex">Flex</option>
+                <option value="premium">Premium</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="route-grid target-grid">
+            <label>
+              Precio objetivo
+              <input type="number" min="1" formControlName="precioObjetivo">
+            </label>
+            <label>
+              Celular WhatsApp
+              <input type="tel" placeholder="999999999" formControlName="telefono">
+            </label>
+          </div>
+
+          <button type="submit" [disabled]="form.invalid">
+            <i class="fa-solid fa-bell"></i>
+            Crear alerta
+          </button>
+        </form>
+
+        @if (mensaje()) {
+          <div class="ok-msg">{{ mensaje() }}</div>
+        }
+        @if (error()) {
+          <div class="err-msg">{{ error() }}</div>
+        }
+      </aside>
+
+      <section class="panel list-panel">
+        <div class="list-head">
+          <div>
+            <span class="eyebrow">Mis alertas</span>
+            <h2>{{ alertasActivas().length }} activas</h2>
+          </div>
+          <span class="total-pill">{{ alertaService.alertas().length }} total</span>
+        </div>
+
+        @if (listaError()) {
+          <div class="empty error-state">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <strong>{{ listaError() }}</strong>
+            <span>Verifica que el backend este encendido y vuelve a intentar.</span>
+          </div>
+        } @else if (alertaService.cargando()) {
+          <div class="empty">Cargando alertas...</div>
+        } @else if (alertaService.alertas().length === 0) {
+          <div class="empty empty-strong">
+            <i class="fa-regular fa-bell"></i>
+            <strong>Aun no tienes alertas configuradas</strong>
+            <span>Crea tu primera alerta con la ruta y el precio objetivo.</span>
+          </div>
+        } @else {
+          <div class="alert-list">
+            @for (a of alertaService.alertas(); track a.id) {
+              <article class="alert-card" [class.paused]="!a.activa">
+                <div class="route">
+                  <strong>{{ ciudad(a.origen) }} <i class="fa-solid fa-arrow-right"></i> {{ ciudad(a.destino) }}</strong>
+                  <span>{{ a.fecha }} · {{ a.horaSalida }} · {{ a.aerolinea }}</span>
+                </div>
+
+                <div class="price-stack">
+                  <div>
+                    <span>Objetivo</span>
+                    <strong>S/ {{ a.precioObjetivo | number:'1.0-0' }}</strong>
+                  </div>
+                  <div>
+                    <span>Actual</span>
+                    <strong>
+                      @if (a.precioActual) {
+                        S/ {{ a.precioActual | number:'1.0-0' }}
+                      } @else {
+                        -
+                      }
+                    </strong>
+                  </div>
+                </div>
+
+                <span class="fare-pill">{{ a.tipoTarifa | titlecase }}</span>
+                <span class="status" [class.off]="!a.activa">{{ a.estado }}</span>
+
+                <div class="actions">
+                  @if (a.activa) {
+                    <button type="button" (click)="pausar(a.id)">
+                      <i class="fa-solid fa-pause"></i>
+                      Pausar
+                    </button>
+                  }
+                  <button type="button" class="danger" (click)="eliminar(a.id)">
+                    <i class="fa-solid fa-trash"></i>
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </section>
+  </main>
+
+  <app-footer />
+</div>

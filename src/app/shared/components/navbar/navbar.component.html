@@ -25,7 +25,11 @@
           </div>
         </div>
 
-        <a routerLink="/dashboard" class="btn-dashboard">Mi cuenta</a>
+        <a routerLink="/alertas" routerLinkActive="active" class="nav-link">
+          <i class="fa-solid fa-bell"></i>
+          Alertas
+        </a>
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">Mi cuenta</a>
         <button class="btn-logout" (click)="auth.cerrarSesion()">Salir</button>
 
       } @else {

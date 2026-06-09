@@ -1,0 +1,215 @@
+<div class="detalle-page">
+  <app-navbar />
+
+  <main class="detalle-shell">
+    <button class="back-btn" type="button" (click)="volver()">
+      <i class="fa-solid fa-arrow-left"></i>
+      Volver a resultados
+    </button>
+
+    @if (cargando()) {
+      <div class="state">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        Cargando detalle...
+      </div>
+    } @else if (error() && !detalle()) {
+      <div class="state state-error">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        {{ error() }}
+      </div>
+    } @else if (detalle(); as d) {
+
+      <!-- ── Summary header ─────────────────────────── -->
+      <section class="summary">
+        <div class="route-main">
+          <div class="airline">
+            @if (airlineLogo(d.aerolinea)) {
+              <span class="logo-circle">
+                <img [src]="airlineLogo(d.aerolinea)" [alt]="d.aerolinea">
+              </span>
+            } @else {
+              <span class="logo-circle logo-fallback">
+                <i class="fa-solid fa-plane"></i>
+              </span>
+            }
+            <div>
+              <span class="muted">{{ d.aerolinea }}</span>
+              <h1>{{ d.origen }} <i class="fa-solid fa-arrow-right"></i> {{ d.destino }}</h1>
+              <span class="fecha-larga">{{ fmtFechaLarga(d.fecha) }}</span>
+            </div>
+          </div>
+          <div class="price-box">
+            <span>Precio actual</span>
+            <strong>S/ {{ d.precioActual | number:'1.0-0' }}</strong>
+            <em [class]="'sema sema-' + d.semaforo">
+              @if (d.semaforo === 'verde') { Precio bajo }
+              @else if (d.semaforo === 'amarillo') { Precio medio }
+              @else { Precio alto }
+            </em>
+          </div>
+        </div>
+
+        <div class="facts">
+          <span><i class="fa-regular fa-clock"></i>{{ d.horaSalida }} - {{ d.horaLlegada }}</span>
+          <span><i class="fa-solid fa-plane"></i>{{ d.duracion }}</span>
+          <span><i class="fa-solid fa-tag"></i>{{ d.tipoTarifa | titlecase }}</span>
+          @if (d.incluyeEquipaje) {
+            <span><i class="fa-solid fa-suitcase"></i>Equipaje incluido</span>
+          }
+        </div>
+      </section>
+
+      <!-- ── Main content ───────────────────────────── -->
+      <section class="content-grid">
+
+        <!-- Left: chart + policies -->
+        <div class="left-col">
+
+          <!-- Chart panel -->
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <span class="eyebrow">Historico + prediccion</span>
+                <h2>Evolucion del precio</h2>
+              </div>
+              <span class="model-pill">
+                <i class="fa-solid fa-brain"></i>
+                Regresion lineal · 7 dias
+              </span>
+            </div>
+
+            <div class="chart-wrap">
+              <div class="y-axis">
+                <span>{{ priceAtY(18) }}</span>
+                <span>{{ priceAtY(95) }}</span>
+                <span>{{ priceAtY(172) }}</span>
+              </div>
+              <div class="svg-box">
+                <svg viewBox="0 0 680 230" preserveAspectRatio="none">
+                  <!-- Grid lines -->
+                  <line x1="0" y1="38" x2="680" y2="38"></line>
+                  <line x1="0" y1="115" x2="680" y2="115"></line>
+                  <line x1="0" y1="192" x2="680" y2="192"></line>
+                  <!-- Data lines -->
+                  <polyline class="line-real" [attr.points]="actualPoints(d)"></polyline>
+                  <polyline class="line-pred" [attr.points]="prediccionPoints(d)"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div class="chart-footer">
+              <div class="legend">
+                <span><i class="dot real"></i> Historico</span>
+                <span><i class="dot pred"></i> Prediccion IA</span>
+              </div>
+              <div class="x-range">
+                <span>{{ chartXRange(d).start }}</span>
+                <span>{{ chartXRange(d).end }}</span>
+              </div>
+            </div>
+
+            <div [class]="'recommendation ' + recomClase(d.recomendacion)">
+              <i [class]="recomIcono(d.recomendacion)"></i>
+              <span>{{ d.recomendacion }}</span>
+            </div>
+          </article>
+
+          <!-- Policies panel -->
+          <article class="panel policies-panel">
+            <span class="eyebrow">Condiciones de la tarifa</span>
+            <h2 class="policies-title">{{ d.tipoTarifa | titlecase }}</h2>
+            <div class="policies-grid">
+              <div class="policy-item" [class.ok]="d.incluyeEquipaje">
+                <i [class]="d.incluyeEquipaje ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                <div>
+                  <strong>Equipaje de mano</strong>
+                  <span>{{ d.equipajeManoKg }} kg</span>
+                </div>
+              </div>
+              <div class="policy-item" [class.ok]="d.equipajeBodegaKg > 0">
+                <i [class]="d.equipajeBodegaKg > 0 ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                <div>
+                  <strong>Equipaje de bodega</strong>
+                  <span>{{ d.equipajeBodegaKg > 0 ? (d.equipajeBodegaKg + ' kg incluidos') : 'No incluido' }}</span>
+                </div>
+              </div>
+              <div class="policy-item" [class.ok]="d.permiteReembolso">
+                <i [class]="d.permiteReembolso ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                <div>
+                  <strong>Reembolso</strong>
+                  <span>{{ d.permiteReembolso ? 'Permitido' : 'No permitido' }}</span>
+                </div>
+              </div>
+              <div class="policy-item" [class.ok]="d.asientoSeleccionable">
+                <i [class]="d.asientoSeleccionable ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                <div>
+                  <strong>Seleccion de asiento</strong>
+                  <span>{{ d.asientoSeleccionable ? 'Incluida' : 'No incluida' }}</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Right: alert panel -->
+        <aside class="panel alert-panel">
+          <div class="alert-panel-head">
+            <span class="eyebrow">Alerta WhatsApp</span>
+            <h2>Avisame cuando baje</h2>
+            <p>Configura un precio objetivo para esta tarifa y te notificamos por WhatsApp.</p>
+          </div>
+
+          <div class="current-price-hint">
+            <span>Precio actual</span>
+            <strong>S/ {{ d.precioActual | number:'1.0-0' }}</strong>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="crearAlerta()">
+            <label>
+              Precio objetivo (S/)
+              <input type="number" min="1" formControlName="precioObjetivo">
+            </label>
+            <label>
+              Celular WhatsApp
+              <input type="tel" placeholder="999999999" formControlName="telefono">
+            </label>
+
+            @if (!auth.estaAutenticado()) {
+              <a class="auth-link" routerLink="/auth">
+                <i class="fa-solid fa-lock"></i>
+                Inicia sesion para crear alertas
+              </a>
+            }
+
+            <button type="submit" [disabled]="form.invalid">
+              <i class="fa-brands fa-whatsapp"></i>
+              Crear alerta
+            </button>
+          </form>
+
+          @if (mensaje()) {
+            <div class="ok-msg">
+              <i class="fa-solid fa-circle-check"></i>
+              {{ mensaje() }}
+            </div>
+          }
+          @if (error()) {
+            <div class="err-msg">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              {{ error() }}
+            </div>
+          }
+
+          <a routerLink="/alertas" class="manage-link">
+            <i class="fa-solid fa-list-check"></i>
+            Ver todas mis alertas
+          </a>
+        </aside>
+
+      </section>
+    }
+  </main>
+
+  <app-footer />
+</div>

@@ -1,11 +1,13 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BusquedaParams, Vuelo } from '../models/vuelo.model';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { BusquedaParams, Vuelo, VueloDetalle } from '../models/vuelo.model';
 
 @Injectable({ providedIn: 'root' })
 export class VueloService {
   private http = inject(HttpClient);
-  private readonly API = 'http://localhost:8080/api';
+  private readonly API = environment.apiUrl;
 
   vuelos         = signal<Vuelo[]>([]);
   cargando       = signal(false);
@@ -52,5 +54,9 @@ export class VueloService {
       a.click();
       URL.revokeObjectURL(url);
     });
+  }
+
+  detalle(tarifaId: number): Observable<VueloDetalle> {
+    return this.http.get<VueloDetalle>(`${this.API}/vuelos/tarifas/${tarifaId}`);
   }
 }

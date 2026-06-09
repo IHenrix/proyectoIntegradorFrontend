@@ -125,6 +125,7 @@
 }
 
 // ── Botones ───────────────────────────────────────────────────────
+.nav-link,
 .btn-dashboard {
   padding: 0.45rem 1rem;
   background: rgba(255, 255, 255, 0.08);
@@ -134,9 +135,16 @@
   font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   transition: background 0.2s;
 
-  &:hover { background: rgba(255, 255, 255, 0.14); }
+  &:hover,
+  &.active {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
 }
 
 .btn-logout {

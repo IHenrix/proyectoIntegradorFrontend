@@ -683,6 +683,8 @@
 // Footer: tarifa + botón seleccionar
 .det-footer { display: flex; align-items: center; justify-content: space-between; }
 
+.det-actions { display: flex; align-items: center; gap: 0.55rem; }
+
 .det-tarifa {
   display: flex; align-items: center; gap: 0.35rem;
   font-size: 0.77rem; font-weight: 700;
@@ -703,6 +705,20 @@
   transition: all 0.18s; cursor: pointer;
 
   &:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(249,115,22,0.38); }
+}
+
+.btn-detalle {
+  display: flex; align-items: center; gap: 0.45rem;
+  padding: 0.62rem 1.2rem;
+  background: #fff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  font-size: 0.86rem; font-weight: 700;
+  font-family: inherit;
+  transition: all 0.18s; cursor: pointer;
+
+  &:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,0.18); }
 }
 
 // ── Responsive ────────────────────────────────────────────────────
@@ -732,5 +748,7 @@
   .seccion-der { align-items: flex-start; }
   .sema-badge  { font-size: 0.65rem; padding: 0.22rem 0.55rem; }
   .det-footer  { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+  .det-actions { width: 100%; flex-direction: column; }
   .btn-seleccionar { width: 100%; justify-content: center; }
+  .btn-detalle { width: 100%; justify-content: center; }
 }

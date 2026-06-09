@@ -23,5 +23,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/resultados/resultados.component').then(m => m.ResultadosComponent)
   },
+  {
+    path: 'detalle/:id',
+    loadComponent: () =>
+      import('./features/detalle/detalle.component').then(m => m.DetalleComponent)
+  },
+  {
+    path: 'alertas',
+    loadComponent: () =>
+      import('./features/alertas/alertas.component').then(m => m.AlertasComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: '' }
 ];

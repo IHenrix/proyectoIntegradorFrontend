@@ -268,6 +268,11 @@ export class ResultadosComponent implements OnInit {
     this.cardAbierto.set(this.cardAbierto() === id ? null : id);
   }
 
+  verDetalle(id: number, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/detalle', id]);
+  }
+
   airlineCls(nombre: string): string {
     const n = nombre.toLowerCase();
     if (n.includes('latam')) return 'al-latam';

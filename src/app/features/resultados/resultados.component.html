@@ -322,10 +322,15 @@
                       <span [class]="'det-tarifa tarifa-' + p.ida.tipoTarifa">
                         <i class="fa-solid fa-tag"></i> Tarifa {{ p.ida.tipoTarifa | titlecase }}
                       </span>
-                      <a [href]="p.ida.urlAerolinea" target="_blank" rel="noopener noreferrer"
-                         class="btn-seleccionar" (click)="$event.stopPropagation()">
-                        <i class="fa-solid fa-ticket"></i> Seleccionar
-                      </a>
+                      <div class="det-actions">
+                        <button type="button" class="btn-detalle" (click)="verDetalle(p.ida.id, $event)">
+                          <i class="fa-solid fa-chart-line"></i> Ver detalle
+                        </button>
+                        <a [href]="p.ida.urlAerolinea" target="_blank" rel="noopener noreferrer"
+                           class="btn-seleccionar" (click)="$event.stopPropagation()">
+                          <i class="fa-solid fa-ticket"></i> Seleccionar
+                        </a>
+                      </div>
                     </div>
 
                   </div>
@@ -436,10 +441,15 @@
                     <span [class]="'det-tarifa tarifa-' + v.tipoTarifa">
                       <i class="fa-solid fa-tag"></i> Tarifa {{ v.tipoTarifa | titlecase }}
                     </span>
-                    <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer"
-                       class="btn-seleccionar" (click)="$event.stopPropagation()">
-                      <i class="fa-solid fa-ticket"></i> Seleccionar
-                    </a>
+                    <div class="det-actions">
+                      <button type="button" class="btn-detalle" (click)="verDetalle(v.id, $event)">
+                        <i class="fa-solid fa-chart-line"></i> Ver detalle
+                      </button>
+                      <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer"
+                         class="btn-seleccionar" (click)="$event.stopPropagation()">
+                        <i class="fa-solid fa-ticket"></i> Seleccionar
+                      </a>
+                    </div>
                   </div>
                 </div>
               }
