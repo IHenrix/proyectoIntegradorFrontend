@@ -19,6 +19,40 @@
             <i class="fa-solid fa-magnifying-glass"></i>
             Buscar vuelos
           </a>
+
+          @if (esPremium()) {
+            <button type="button" class="btn-reporte btn-excel"
+                    [disabled]="descargando() === 'excel'"
+                    (click)="descargarExcel()">
+              @if (descargando() === 'excel') {
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+              } @else {
+                <i class="fa-solid fa-file-excel"></i>
+              }
+              Excel
+            </button>
+            <button type="button" class="btn-reporte btn-pdf"
+                    [disabled]="descargando() === 'pdf'"
+                    (click)="descargarPdf()">
+              @if (descargando() === 'pdf') {
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+              } @else {
+                <i class="fa-solid fa-file-pdf"></i>
+              }
+              PDF
+            </button>
+          } @else {
+            <button type="button" class="btn-reporte btn-excel btn-reporte-locked"
+                    (click)="upgrade.abrir('pausar')">
+              <i class="fa-solid fa-file-excel"></i>
+              Excel
+            </button>
+            <button type="button" class="btn-reporte btn-pdf btn-reporte-locked"
+                    (click)="upgrade.abrir('pausar')">
+              <i class="fa-solid fa-file-pdf"></i>
+              PDF
+            </button>
+          }
         </div>
       </header>
     </div>

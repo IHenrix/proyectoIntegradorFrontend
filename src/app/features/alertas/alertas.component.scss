@@ -505,6 +505,50 @@ input, select {
   &:hover { opacity: .88; }
 }
 
+// ── Botones de reporte ───────────────────────────────────────────
+.btn-reporte {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform .14s, box-shadow .14s, opacity .14s;
+
+  &:hover:not(:disabled) { transform: translateY(-1px); }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+}
+
+.btn-excel {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(22,163,74,.3);
+  &:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(22,163,74,.4); }
+}
+
+.btn-pdf {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(220,38,38,.3);
+  &:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(220,38,38,.4); }
+}
+
+.btn-reporte-locked {
+  opacity: .55;
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(0,0,0,.08);
+  }
+}
+
 // ── Eyebrow ──────────────────────────────────────────────────────
 .eyebrow {
   display: block;

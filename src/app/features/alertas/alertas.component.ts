@@ -133,6 +133,35 @@ export class AlertasComponent implements OnInit {
     });
   }
 
+  descargando = signal<'excel' | 'pdf' | null>(null);
+
+  descargarExcel(): void {
+    if (!this.esPremium()) { this.upgrade.abrir('pausar'); return; }
+    this.descargando.set('excel');
+    this.alertaService.descargarExcel().subscribe({
+      next: blob => { this.triggerDescarga(blob, 'alertas_pasajeyа.xlsx'); this.descargando.set(null); },
+      error: () => { this.error.set('No se pudo generar el Excel.'); this.descargando.set(null); }
+    });
+  }
+
+  descargarPdf(): void {
+    if (!this.esPremium()) { this.upgrade.abrir('pausar'); return; }
+    this.descargando.set('pdf');
+    this.alertaService.descargarPdf().subscribe({
+      next: blob => { this.triggerDescarga(blob, 'alertas_pasajeyа.pdf'); this.descargando.set(null); },
+      error: () => { this.error.set('No se pudo generar el PDF.'); this.descargando.set(null); }
+    });
+  }
+
+  private triggerDescarga(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   esHit(a: { precioActual?: number | null; precioObjetivo: number }): boolean {
     return !!a.precioActual && a.precioActual < a.precioObjetivo;
   }

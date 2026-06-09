@@ -43,4 +43,12 @@ export class AlertaService {
       tap(() => this.alertas.update(items => items.filter(x => x.id !== id)))
     );
   }
+
+  descargarExcel(): Observable<Blob> {
+    return this.http.get(`${this.API}/reporte/excel`, { responseType: 'blob' });
+  }
+
+  descargarPdf(): Observable<Blob> {
+    return this.http.get(`${this.API}/reporte/pdf`, { responseType: 'blob' });
+  }
 }
