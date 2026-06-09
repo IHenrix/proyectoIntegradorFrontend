@@ -1,0 +1,170 @@
+<div class="perfil-page">
+  <app-navbar />
+
+  <main class="perfil-shell">
+
+    <div class="perfil-head">
+      <button class="back-btn" type="button" routerLink="/dashboard">
+        <i class="fa-solid fa-arrow-left"></i> Volver
+      </button>
+      <div>
+        <h1><i class="fa-solid fa-user-circle"></i> Mi perfil</h1>
+        <p class="perfil-sub">Gestiona tu información personal y contraseña</p>
+      </div>
+    </div>
+
+    @if (cargando()) {
+      <div class="state">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        Cargando perfil...
+      </div>
+    } @else {
+
+      <div class="perfil-grid">
+
+        <!-- Panel izquierdo: resumen cuenta -->
+        <aside class="panel cuenta-panel">
+          <div class="avatar-wrap">
+            <div class="avatar-circle">
+              {{ perfil()?.nombre?.charAt(0)?.toUpperCase() }}{{ perfil()?.apellidoPaterno?.charAt(0)?.toUpperCase() }}
+            </div>
+          </div>
+          <div class="cuenta-info">
+            <strong class="cuenta-nombre">{{ perfil()?.nombre }} {{ perfil()?.apellidoPaterno }}</strong>
+            <span class="cuenta-email">{{ perfil()?.email }}</span>
+            <span class="cuenta-rol" [class]="rolCss(perfil()?.rol ?? '')">
+              {{ rolLabel(perfil()?.rol ?? '') }}
+            </span>
+          </div>
+          <div class="cuenta-datos">
+            @if (perfil()?.telefono) {
+              <div class="dato-row">
+                <i class="fa-brands fa-whatsapp"></i>
+                <span>{{ perfil()!.telefono }}</span>
+              </div>
+            }
+            @if (perfil()?.fechaNacimiento) {
+              <div class="dato-row">
+                <i class="fa-regular fa-calendar"></i>
+                <span>{{ perfil()!.fechaNacimiento }}</span>
+              </div>
+            }
+          </div>
+          <a routerLink="/alertas" class="ver-alertas-btn">
+            <i class="fa-solid fa-bell"></i> Ver mis alertas
+          </a>
+        </aside>
+
+        <!-- Panel derecho: formulario -->
+        <section class="panel form-panel">
+          <form [formGroup]="form" (ngSubmit)="guardar()">
+
+            <!-- Datos personales -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fa-solid fa-id-card"></i> Datos personales
+              </h2>
+              <div class="form-grid">
+                <label class="field">
+                  <span>Nombre <span class="req">*</span></span>
+                  <input type="text" formControlName="nombre" placeholder="Tu nombre">
+                </label>
+                <label class="field">
+                  <span>Apellido paterno <span class="req">*</span></span>
+                  <input type="text" formControlName="apellidoPaterno" placeholder="Apellido paterno">
+                </label>
+                <label class="field">
+                  <span>Apellido materno</span>
+                  <input type="text" formControlName="apellidoMaterno" placeholder="Apellido materno (opcional)">
+                </label>
+                <label class="field">
+                  <span>Género</span>
+                  <select formControlName="genero">
+                    <option value="">No especificar</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                    <option value="O">Prefiero no decir</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Fecha de nacimiento</span>
+                  <input type="date" formControlName="fechaNacimiento">
+                </label>
+              </div>
+            </div>
+
+            <!-- Contacto -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fa-brands fa-whatsapp"></i> Contacto WhatsApp
+              </h2>
+              <label class="field field-full">
+                <span>Número de celular</span>
+                <div class="tel-input-wrap">
+                  <span class="tel-prefix"><i class="fa-brands fa-whatsapp"></i> +51</span>
+                  <input type="tel" formControlName="telefono" placeholder="999 999 999">
+                </div>
+                <small>Este número recibirá las alertas de precio por WhatsApp</small>
+              </label>
+            </div>
+
+            <!-- Cambio de contraseña -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="fa-solid fa-lock"></i> Cambiar contraseña
+                <button type="button" class="toggle-pass" (click)="mostrarPass.set(!mostrarPass())">
+                  {{ mostrarPass() ? 'Ocultar' : 'Cambiar' }}
+                </button>
+              </h2>
+              @if (mostrarPass()) {
+                <div class="form-grid">
+                  <label class="field">
+                    <span>Contraseña actual</span>
+                    <input type="password" formControlName="passwordActual" placeholder="••••••••">
+                  </label>
+                  <label class="field">
+                    <span>Nueva contraseña</span>
+                    <input type="password" formControlName="passwordNuevo" placeholder="Mín. 8 caracteres">
+                  </label>
+                </div>
+                @if (form.hasError('passIncompleto')) {
+                  <p class="field-error">Debes completar ambos campos para cambiar la contraseña.</p>
+                }
+              }
+            </div>
+
+            <!-- Mensajes -->
+            @if (mensaje()) {
+              <div class="ok-msg">
+                <i class="fa-solid fa-circle-check"></i> {{ mensaje() }}
+              </div>
+            }
+            @if (error()) {
+              <div class="err-msg">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ error() }}
+              </div>
+            }
+
+            <div class="form-footer">
+              <small class="footer-note">
+                <i class="fa-solid fa-shield-halved"></i>
+                El email no se puede cambiar por seguridad.
+              </small>
+              <button type="submit" class="btn-guardar" [disabled]="form.invalid || guardando()">
+                @if (guardando()) {
+                  <i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...
+                } @else {
+                  <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+                }
+              </button>
+            </div>
+
+          </form>
+        </section>
+
+      </div>
+    }
+  </main>
+
+  <app-footer />
+</div>

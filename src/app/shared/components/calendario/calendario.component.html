@@ -1,4 +1,10 @@
-<div class="cal-panel" [class.rango]="modo === 'rango'" (mousedown)="$event.preventDefault()">
+<div class="cal-panel"
+     [class.rango]="modo === 'rango'"
+     [class.arriba]="abrirArriba()"
+     [style.top.px]="posTop()"
+     [style.left.px]="posLeft()"
+     [style.opacity]="listo() ? 1 : 0"
+     (mousedown)="$event.preventDefault()">
 
   <p class="cal-hint">{{ labelFase() }}</p>
 

@@ -72,10 +72,11 @@
                 <span class="eyebrow">Historico + prediccion</span>
                 <h2>Evolucion del precio</h2>
               </div>
-              <span class="model-pill">
-                <i class="fa-solid fa-brain"></i>
-                Regresion lineal · 7 dias
-              </span>
+              <div class="chart-filters">
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 7"  (click)="rango.set(7)">7D</button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 15" (click)="rango.set(15)">15D</button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 30" (click)="rango.set(30)">30D</button>
+              </div>
             </div>
 
             <div class="chart-wrap">
@@ -86,14 +87,26 @@
               </div>
               <div class="svg-box">
                 <svg viewBox="0 0 680 230" preserveAspectRatio="none">
-                  <!-- Grid lines -->
-                  <line x1="0" y1="38" x2="680" y2="38"></line>
+                  <!-- Grid horizontal -->
+                  <line x1="0" y1="38"  x2="680" y2="38"></line>
                   <line x1="0" y1="115" x2="680" y2="115"></line>
                   <line x1="0" y1="192" x2="680" y2="192"></line>
+                  <!-- Grid vertical por día -->
+                  @for (gl of xGridLines(d); track gl.x) {
+                    <line class="grid-v" [attr.x1]="gl.x" y1="0" [attr.x2]="gl.x" y2="230"></line>
+                  }
                   <!-- Data lines -->
                   <polyline class="line-real" [attr.points]="actualPoints(d)"></polyline>
                   <polyline class="line-pred" [attr.points]="prediccionPoints(d)"></polyline>
                 </svg>
+                <!-- Etiquetas eje X debajo del SVG -->
+                <div class="x-labels">
+                  <span class="x-lbl x-lbl-start">{{ chartXRange(d).start }}</span>
+                  @for (gl of xGridLines(d); track gl.x) {
+                    <span class="x-lbl x-lbl-mid" [style.left.%]="(gl.x / 680) * 100">{{ gl.label }}</span>
+                  }
+                  <span class="x-lbl x-lbl-end">{{ chartXRange(d).end }}</span>
+                </div>
               </div>
             </div>
 
@@ -101,10 +114,6 @@
               <div class="legend">
                 <span><i class="dot real"></i> Historico</span>
                 <span><i class="dot pred"></i> Prediccion IA</span>
-              </div>
-              <div class="x-range">
-                <span>{{ chartXRange(d).start }}</span>
-                <span>{{ chartXRange(d).end }}</span>
               </div>
             </div>
 
@@ -170,10 +179,32 @@
               Precio objetivo (S/)
               <input type="number" min="1" formControlName="precioObjetivo">
             </label>
-            <label>
-              Celular WhatsApp
-              <input type="tel" placeholder="999999999" formControlName="telefono">
-            </label>
+
+            <!-- Teléfono: obfuscado si tiene guardado, editable si no -->
+            @if (telefonoObfuscado()) {
+              <div class="tel-display">
+                <span class="tel-label">Celular WhatsApp</span>
+                <div class="tel-value">
+                  <i class="fa-brands fa-whatsapp"></i>
+                  <span>{{ telefonoObfuscado() }}</span>
+                  <a routerLink="/perfil" class="tel-edit">
+                    <i class="fa-solid fa-pen-to-square"></i> Cambiar
+                  </a>
+                </div>
+              </div>
+            } @else {
+              <div class="tel-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                  <strong>Sin celular registrado</strong>
+                  <span>Agrega tu número en tu <a routerLink="/perfil">perfil</a> para recibir alertas por WhatsApp.</span>
+                </div>
+              </div>
+              <label>
+                Celular WhatsApp
+                <input type="tel" placeholder="999999999" formControlName="telefono">
+              </label>
+            }
 
             @if (!auth.estaAutenticado()) {
               <a class="auth-link" routerLink="/auth">

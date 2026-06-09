@@ -14,8 +14,14 @@
 
       @if (auth.estaAutenticado()) {
 
-        <!-- Usuario autenticado -->
-        <div class="user-pill">
+        <!-- Alertas -->
+        <a routerLink="/alertas" routerLinkActive="active" class="nav-icon-btn" title="Alertas">
+          <i class="fa-solid fa-bell"></i>
+          <span>Alertas</span>
+        </a>
+
+        <!-- Usuario → perfil -->
+        <a routerLink="/perfil" routerLinkActive="active" class="user-pill" title="Ver perfil">
           <div class="avatar" [class]="rolInfo().avatar">
             {{ inicial() }}
           </div>
@@ -23,21 +29,24 @@
             <span class="user-name">{{ auth.nombre() }}</span>
             @if (rolInfo().badge) {
               <span class="role-badge" [class]="rolInfo().css">{{ rolInfo().label }}</span>
+            } @else {
+              <span class="role-badge badge-free">Free</span>
             }
           </div>
-        </div>
-
-        <a routerLink="/alertas" routerLinkActive="active" class="nav-link">
-          <i class="fa-solid fa-bell"></i>
-          Alertas
+          <i class="fa-solid fa-chevron-right user-arrow"></i>
         </a>
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">Mi cuenta</a>
-        <button class="btn-logout" (click)="auth.cerrarSesion()">Salir</button>
+
+        <!-- Salir -->
+        <button class="btn-logout" (click)="auth.cerrarSesion()" title="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
 
       } @else {
 
         <a routerLink="/auth" class="btn-login">Iniciar sesión</a>
-        <a routerLink="/auth" class="btn-registro">Registrarse →</a>
+        <a routerLink="/auth" class="btn-registro">
+          <i class="fa-solid fa-user-plus"></i> Registrarse
+        </a>
 
       }
 

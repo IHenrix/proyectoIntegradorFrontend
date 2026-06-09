@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, signal, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, AfterViewInit, OnDestroy, ElementRef, HostListener, signal, computed, inject } from '@angular/core';
 
 const MESES    = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -10,13 +10,48 @@ const DIAS_SEM = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
   templateUrl: './calendario.component.html',
   styleUrl: './calendario.component.scss'
 })
-export class CalendarioComponent implements OnInit {
+export class CalendarioComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() modo: 'simple' | 'rango' = 'simple';
   @Input() fechaIda    = '';
   @Input() fechaVuelta = '';
   @Output() seleccionIda    = new EventEmitter<string>();
   @Output() seleccionVuelta = new EventEmitter<string>();
   @Output() cerrar          = new EventEmitter<void>();
+
+  posTop      = signal(0);
+  posLeft     = signal(0);
+  abrirArriba = signal(false);
+  listo       = signal(false);
+
+  private el      = inject(ElementRef);
+  private trigger!: HTMLElement;
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  recalcPos(): void { this._calcPos(); }
+
+  private _calcPos(): void {
+    const host = this.el.nativeElement as HTMLElement;
+    if (!this.trigger) return;
+
+    const trigger = this.trigger.getBoundingClientRect();
+    const panelW  = this.modo === 'rango' ? Math.min(660, window.innerWidth - 16) : 300;
+    const panelH  = host.offsetHeight;
+
+    // Solo ir arriba si hay altura real Y no cabe abajo Y cabe arriba
+    const spaceBelow = window.innerHeight - trigger.bottom;
+    const goUp = panelH > 0 && spaceBelow < panelH + 8 && trigger.top >= panelH + 8;
+    this.abrirArriba.set(goUp);
+
+    const top = goUp ? trigger.top - panelH - 8 : trigger.bottom + 6;
+
+    let left = trigger.left;
+    if (left + panelW > window.innerWidth - 8) left = window.innerWidth - panelW - 8;
+    if (left < 8) left = 8;
+
+    this.posTop.set(top);
+    this.posLeft.set(left);
+  }
 
   readonly DIAS  = DIAS_SEM;
   readonly MESES = MESES;
@@ -43,6 +78,28 @@ export class CalendarioComponent implements OnInit {
     }
     const d = this.parse(this.fechaIda);
     if (d) { this.anio.set(d.getFullYear()); this.mes.set(d.getMonth()); }
+  }
+
+  ngAfterViewInit(): void {
+    const panel = this.el.nativeElement as HTMLElement;
+    // Guardar referencia al trigger ANTES de mover el panel
+    this.trigger = panel.parentElement as HTMLElement;
+    // Mover el panel al body para escapar cualquier stacking context
+    document.body.appendChild(panel);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this._calcPos();
+        this.listo.set(true);
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    const panel = this.el.nativeElement as HTMLElement;
+    if (panel.parentElement === document.body) {
+      document.body.removeChild(panel);
+    }
   }
 
   navPrev(): void {

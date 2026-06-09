@@ -25,20 +25,38 @@ export class DetalleComponent implements OnInit {
   private alertaService = inject(AlertaService);
   auth = inject(AuthService);
 
-  detalle = signal<VueloDetalle | null>(null);
+  detalle  = signal<VueloDetalle | null>(null);
   cargando = signal(true);
-  error = signal<string | null>(null);
-  mensaje = signal<string | null>(null);
+  error    = signal<string | null>(null);
+  mensaje  = signal<string | null>(null);
+
+  rango = signal<7 | 15 | 30>(30);
+
+  telefonoGuardado = signal<string | null>(localStorage.getItem('telefono'));
+
+  telefonoObfuscado = computed(() => {
+    const t = this.telefonoGuardado();
+    if (!t || t.length < 6) return null;
+    const digits = t.replace(/\D/g, '');
+    return digits.slice(0, 3) + ' *** ' + digits.slice(-3);
+  });
 
   form = this.fb.group({
     precioObjetivo: [0, [Validators.required, Validators.min(1)]],
     telefono: ['', [Validators.required, Validators.pattern(/^(\+?51)?9[0-9]{8}$/)]]
   });
 
+  historicoFiltrado = computed(() => {
+    const d = this.detalle();
+    if (!d) return [];
+    return d.historico.slice(-this.rango());
+  });
+
   chartMeta = computed(() => {
     const d = this.detalle();
+    const hist = this.historicoFiltrado();
     const prices = [
-      ...(d?.historico.map(p => p.precio) ?? []),
+      ...hist.map(p => p.precio),
       d?.precioActual ?? 0,
       ...(d?.prediccion.map(p => p.precioEstimado) ?? [])
     ].filter(v => v > 0);
@@ -57,7 +75,11 @@ export class DetalleComponent implements OnInit {
     this.vueloService.detalle(id).subscribe({
       next: detalle => {
         this.detalle.set(detalle);
-        this.form.patchValue({ precioObjetivo: Math.round(detalle.precioActual * 0.9) });
+        const tel = this.telefonoGuardado();
+        this.form.patchValue({
+          precioObjetivo: Math.round(detalle.precioActual * 0.9),
+          ...(tel ? { telefono: tel } : {})
+        });
         this.cargando.set(false);
       },
       error: () => {
@@ -94,16 +116,20 @@ export class DetalleComponent implements OnInit {
   }
 
   actualPoints(d: VueloDetalle): string {
-    return this.points(d.historico.map(p => p.precio), 0, this.totalPoints(d));
+    const hist = this.historicoFiltrado();
+    return this.points(hist.map(p => p.precio), 0, this.totalPoints());
   }
 
   prediccionPoints(d: VueloDetalle): string {
+    const hist = this.historicoFiltrado();
     const values = [d.precioActual, ...d.prediccion.map(p => p.precioEstimado)];
-    return this.points(values, Math.max(d.historico.length - 1, 0), this.totalPoints(d));
+    return this.points(values, Math.max(hist.length - 1, 0), this.totalPoints());
   }
 
-  private totalPoints(d: VueloDetalle): number {
-    return Math.max(d.historico.length + d.prediccion.length, 2);
+  private totalPoints(): number {
+    const d = this.detalle();
+    const hist = this.historicoFiltrado();
+    return Math.max(hist.length + (d?.prediccion.length ?? 0), 2);
   }
 
   private points(values: number[], offset: number, total: number): string {
@@ -150,13 +176,39 @@ export class DetalleComponent implements OnInit {
 
   /** Rango de fechas para el eje X del gráfico */
   chartXRange(d: VueloDetalle): { start: string; end: string } {
-    const start = d.historico.length > 0 ? this.fmtFecha(d.historico[0].fecha) : '';
+    const hist  = this.historicoFiltrado();
+    const start = hist.length > 0 ? this.fmtFecha(hist[0].fecha) : '';
     const end   = d.prediccion.length > 0
       ? this.fmtFecha(d.prediccion[d.prediccion.length - 1].fecha)
-      : d.historico.length > 0
-        ? this.fmtFecha(d.historico[d.historico.length - 1].fecha)
+      : hist.length > 0
+        ? this.fmtFecha(hist[hist.length - 1].fecha)
         : '';
     return { start, end };
+  }
+
+  /** Posiciones X (0-680) donde dibujar líneas verticales de grilla + su etiqueta de fecha */
+  xGridLines(d: VueloDetalle): { x: number; label: string }[] {
+    const hist  = this.historicoFiltrado();
+    const total = this.totalPoints();
+    if (total < 2) return [];
+
+    // Elige ~4 divisiones internas (no los extremos)
+    const steps = 4;
+    const result: { x: number; label: string }[] = [];
+    for (let s = 1; s < steps; s++) {
+      const idx = Math.round((s / steps) * (hist.length - 1));
+      const x   = (idx / Math.max(total - 1, 1)) * 680;
+      const label = hist[idx] ? this.fmtFechaCorta(hist[idx].fecha) : '';
+      result.push({ x: +x.toFixed(1), label });
+    }
+    return result;
+  }
+
+  private fmtFechaCorta(iso: string): string {
+    if (!iso) return '';
+    const [y, m, day] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, day);
+    return dt.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' });
   }
 
   recomIcono(rec: string): string {
