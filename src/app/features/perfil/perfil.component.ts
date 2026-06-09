@@ -1,9 +1,10 @@
 import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { NgTemplateOutlet } from '@angular/common';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
-import { PerfilService, PerfilData } from '../../core/services/perfil.service';
+import { PerfilService, PerfilData, SuscripcionData } from '../../core/services/perfil.service';
 import { AuthService } from '../../core/services/auth.service';
 
 export interface Pais {
@@ -29,10 +30,22 @@ const PAISES: Pais[] = [
   { code: 'es', name: 'España',         dial: '+34',  flag: 'es' },
 ];
 
+export interface Suscripcion {
+  refNum:        string;
+  plan:          'mensual' | 'anual';
+  monto:         number;
+  inicio:        string;
+  fin:           string;
+  estado:        'activa' | 'cancelada';
+  titular:       string;
+  ultimosCuatro: string;
+  metodo:        string;
+}
+
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, NavbarComponent, FooterComponent],
+  imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet, NavbarComponent, FooterComponent],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.scss'
 })
@@ -41,12 +54,47 @@ export class PerfilComponent implements OnInit {
   private perfilService = inject(PerfilService);
   private auth          = inject(AuthService);
   private router        = inject(Router);
+  private route         = inject(ActivatedRoute);
 
   perfil    = signal<PerfilData | null>(null);
   cargando  = signal(true);
   guardando = signal(false);
   mensaje   = signal<string | null>(null);
   error     = signal<string | null>(null);
+
+  // ── Tabs ─────────────────────────────────────────────────────
+  tabActivo = signal<'info' | 'pagos'>('info');
+
+  // ── Historial de suscripciones ───────────────────────────────
+  historialSubs = signal<SuscripcionData[]>([]);
+
+  // ── Pago simulado ────────────────────────────────────────────
+  planPago       = signal<'mensual' | 'anual'>('mensual');
+  metodoPago     = signal<'culqi' | 'yape' | 'plin'>('culqi');
+  stepPago       = signal<'form' | 'procesando' | 'exito'>('form');
+  suscripcion    = signal<Suscripcion | null>(null);
+  errorPago      = signal<string | null>(null);
+  mostrarCvv     = signal(false);
+  cardDisplayNum = signal('');
+  qrAnimado      = signal(false);   // pulso en el QR al "confirmar"
+
+  cardBrand = computed<'visa' | 'mastercard' | 'amex' | null>(() => {
+    const n = this.cardDisplayNum().replace(/\s/g, '');
+    if (/^4/.test(n)) return 'visa';
+    if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n)) return 'mastercard';
+    if (/^3[47]/.test(n)) return 'amex';
+    return null;
+  });
+
+  montoActual = computed(() => this.planPago() === 'anual' ? 120 : 19);
+
+  pagoForm = this.fb.group({
+    titular:  ['', [Validators.required, Validators.minLength(3)]],
+    numero:   ['', [Validators.required]],
+    expira:   ['', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}$/)]],
+    cvv:      ['', [Validators.required, Validators.pattern(/^\d{3,4}$/)]],
+    email:    ['', [Validators.required, Validators.email]],
+  });
 
   // ── Selector de país ──────────────────────────────────────────
   mostrarPaises    = signal(false);
@@ -104,6 +152,49 @@ export class PerfilComponent implements OnInit {
       this.router.navigate(['/auth']);
       return;
     }
+
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'pagos') this.tabActivo.set('pagos');
+
+    // Cargar historial de suscripciones
+    this.perfilService.obtenerHistorialSuscripciones().subscribe({
+      next: lista => this.historialSubs.set(lista),
+      error: () => {}
+    });
+
+    // Cargar suscripción vigente desde backend; localStorage como fallback
+    this.perfilService.obtenerSuscripcion().subscribe({
+      next: data => {
+        if (data) {
+          const sub: Suscripcion = {
+            refNum:        data.refInterna ?? '—',
+            plan:          data.tipoPlan,
+            monto:         Number(data.monto),
+            inicio:        data.fechaInicio,
+            fin:           data.fechaFin,
+            estado:        data.estado as 'activa' | 'cancelada',
+            titular:       '—',
+            ultimosCuatro: '—',
+            metodo:        data.metodoPago ?? 'culqi',
+          };
+          this.suscripcion.set(sub);
+          localStorage.setItem('py_suscripcion', JSON.stringify(sub));
+        } else {
+          // Sin suscripción en backend → revisar localStorage (pago local simulado)
+          const stored = localStorage.getItem('py_suscripcion');
+          if (stored) {
+            try { this.suscripcion.set(JSON.parse(stored)); } catch {}
+          }
+        }
+      },
+      error: () => {
+        // Backend no disponible → usar localStorage
+        const stored = localStorage.getItem('py_suscripcion');
+        if (stored) {
+          try { this.suscripcion.set(JSON.parse(stored)); } catch {}
+        }
+      }
+    });
 
     // Actualiza validadores del nroDocumento al cambiar tipo
     this.form.get('tipoDocumento')!.valueChanges.subscribe(tipo => {
@@ -232,5 +323,118 @@ export class PerfilComponent implements OnInit {
     if (rol === 'admin') return 'badge-admin';
     if (rol === 'usuario_premium') return 'badge-premium';
     return 'badge-free';
+  }
+
+  // ── Pago simulado ────────────────────────────────────────────
+  formatCardNum(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 16);
+    const groups = digits.match(/.{1,4}/g) ?? [];
+    const fmt    = groups.join(' ');
+    input.value  = fmt;
+    this.cardDisplayNum.set(fmt);
+    this.pagoForm.get('numero')!.setValue(digits, { emitEvent: false });
+  }
+
+  formatExpiry(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let raw = input.value.replace(/\D/g, '').slice(0, 4);
+    if (raw.length >= 3) raw = raw.slice(0, 2) + '/' + raw.slice(2);
+    input.value = raw;
+    this.pagoForm.get('expira')!.setValue(raw, { emitEvent: false });
+  }
+
+  tienePagoError(campo: string): boolean {
+    const ctrl = this.pagoForm.get(campo);
+    return !!(ctrl?.invalid && ctrl?.touched);
+  }
+
+  pagar(): void {
+    this.pagoForm.markAllAsTouched();
+    if (this.pagoForm.invalid) return;
+    if (!this.luhn(this.pagoForm.value.numero ?? '')) {
+      this.errorPago.set('El número de tarjeta no es válido.');
+      return;
+    }
+    this.errorPago.set(null);
+    this.stepPago.set('procesando');
+    this.finalizarPago(
+      this.pagoForm.value.titular ?? '',
+      (this.pagoForm.value.numero ?? '').slice(-4),
+      'culqi'
+    );
+  }
+
+  confirmarQr(): void {
+    this.qrAnimado.set(true);
+    this.stepPago.set('procesando');
+    const metodo = this.metodoPago() as 'yape' | 'plin';
+    this.finalizarPago('—', '—', metodo);
+  }
+
+  private finalizarPago(titular: string, ultimos: string, metodo: string): void {
+    setTimeout(() => {
+      const hoy = new Date();
+      const fin = new Date(hoy);
+      if (this.planPago() === 'anual') fin.setFullYear(fin.getFullYear() + 1);
+      else fin.setMonth(fin.getMonth() + 1);
+
+      const sub: Suscripcion = {
+        refNum:        Math.floor(100000 + Math.random() * 900000).toString(),
+        plan:          this.planPago(),
+        monto:         this.montoActual(),
+        inicio:        hoy.toISOString().split('T')[0],
+        fin:           fin.toISOString().split('T')[0],
+        estado:        'activa',
+        titular,
+        ultimosCuatro: ultimos,
+        metodo,
+      };
+
+      localStorage.setItem('py_suscripcion', JSON.stringify(sub));
+      this.suscripcion.set(sub);
+      this.stepPago.set('exito');
+      this.qrAnimado.set(false);
+    }, 2200);
+  }
+
+  cancelarSuscripcion(): void {
+    const sub = this.suscripcion();
+    if (!sub) return;
+    const updated: Suscripcion = { ...sub, estado: 'cancelada' };
+    localStorage.setItem('py_suscripcion', JSON.stringify(updated));
+    this.suscripcion.set(updated);
+  }
+
+  nuevoPago(): void {
+    this.stepPago.set('form');
+    this.pagoForm.reset();
+    this.cardDisplayNum.set('');
+    this.errorPago.set(null);
+    this.qrAnimado.set(false);
+  }
+
+  labelMetodo(m: string): string {
+    if (m === 'yape') return 'Yape';
+    if (m === 'plin') return 'Plin';
+    return 'Tarjeta';
+  }
+
+  private luhn(num: string): boolean {
+    let sum = 0;
+    let alt = false;
+    for (let i = num.length - 1; i >= 0; i--) {
+      let n = parseInt(num[i], 10);
+      if (alt) { n *= 2; if (n > 9) n -= 9; }
+      sum += n;
+      alt = !alt;
+    }
+    return sum % 10 === 0;
+  }
+
+  formatDate(d: string): string {
+    if (!d) return '';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
   }
 }

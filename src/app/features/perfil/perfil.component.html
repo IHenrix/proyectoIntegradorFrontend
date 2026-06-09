@@ -74,169 +74,749 @@
                 </div>
               </div>
             }
+
+            <!-- Estado suscripción en panel lateral -->
+            @if (suscripcion()) {
+              <div class="dato-row" [class.sub-activa]="suscripcion()!.estado === 'activa'">
+                <i class="fa-solid fa-crown" [style.color]="suscripcion()!.estado === 'activa' ? '#f59e0b' : '#94a3b8'"></i>
+                <div class="dato-content">
+                  <span class="dato-label">Suscripción</span>
+                  <span class="dato-val">
+                    PRO {{ suscripcion()!.plan === 'anual' ? 'Anual' : 'Mensual' }}
+                    · {{ suscripcion()!.estado === 'activa' ? 'Activa' : 'Cancelada' }}
+                  </span>
+                </div>
+              </div>
+            }
           </div>
+
           <a routerLink="/alertas" class="ver-alertas-btn">
             <i class="fa-solid fa-bell"></i> Ver mis alertas
           </a>
         </aside>
 
-        <!-- Panel derecho -->
+        <!-- Panel derecho con tabs -->
         <section class="panel form-panel">
-          <form [formGroup]="form" (ngSubmit)="guardar()">
 
-            <!-- Datos personales -->
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fa-solid fa-id-card"></i> Datos personales
-              </h2>
-              <div class="form-grid">
-                <label class="field field-full">
-                  <span>Correo electrónico</span>
-                  <div class="email-wrap">
-                    <i class="fa-solid fa-lock email-lock"></i>
-                    <input type="email" [value]="perfil()?.email ?? ''" disabled>
-                    <span class="email-badge">No modificable</span>
-                  </div>
-                  <small>El email está vinculado a tu cuenta y no puede cambiarse por seguridad.</small>
-                </label>
-                <label class="field">
-                  <span>Nombre <span class="req">*</span></span>
-                  <input type="text" formControlName="nombre" placeholder="Tu nombre"
-                         [class.error]="tieneError('nombre')">
-                  @if (tieneError('nombre')) {
-                    <span class="hint">Obligatorio · mín. 2 caracteres</span>
-                  }
-                </label>
-                <label class="field">
-                  <span>Apellido paterno <span class="req">*</span></span>
-                  <input type="text" formControlName="apellidoPaterno" placeholder="Apellido paterno"
-                         [class.error]="tieneError('apellidoPaterno')">
-                  @if (tieneError('apellidoPaterno')) {
-                    <span class="hint">Obligatorio · mín. 2 caracteres</span>
-                  }
-                </label>
-                <label class="field">
-                  <span>Apellido materno</span>
-                  <input type="text" formControlName="apellidoMaterno" placeholder="Opcional">
-                </label>
-                <label class="field">
-                  <span>Género</span>
-                  <select formControlName="genero">
-                    <option value="">No especificar</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Femenino</option>
-                    <option value="O">Prefiero no decir</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Fecha de nacimiento</span>
-                  <input type="date" formControlName="fechaNacimiento">
-                </label>
-                <label class="field">
-                  <span>Tipo de documento</span>
-                  <select formControlName="tipoDocumento">
-                    <option value="">Seleccionar</option>
-                    @for (t of TIPOS_DOC; track t.codigo) {
-                      <option [value]="t.codigo">{{ t.nombre }}</option>
+          <!-- Tabs -->
+          <div class="perfil-tabs">
+            <button type="button" class="perfil-tab"
+                    [class.active]="tabActivo() === 'info'"
+                    (click)="tabActivo.set('info')">
+              <i class="fa-solid fa-user"></i> Mi información
+            </button>
+            <button type="button" class="perfil-tab"
+                    [class.active]="tabActivo() === 'pagos'"
+                    (click)="tabActivo.set('pagos')">
+              <i class="fa-solid fa-credit-card"></i> Suscripción
+              @if (suscripcion()?.estado === 'activa') {
+                <span class="tab-badge">PRO</span>
+              }
+            </button>
+          </div>
+
+          <!-- ─── TAB: Información ─── -->
+          @if (tabActivo() === 'info') {
+            <form [formGroup]="form" (ngSubmit)="guardar()">
+
+              <!-- Datos personales -->
+              <div class="form-section">
+                <h2 class="section-title">
+                  <i class="fa-solid fa-id-card"></i> Datos personales
+                </h2>
+                <div class="form-grid">
+                  <label class="field field-full">
+                    <span>Correo electrónico</span>
+                    <div class="email-wrap">
+                      <i class="fa-solid fa-lock email-lock"></i>
+                      <input type="email" [value]="perfil()?.email ?? ''" disabled>
+                      <span class="email-badge">No modificable</span>
+                    </div>
+                    <small>El email está vinculado a tu cuenta y no puede cambiarse por seguridad.</small>
+                  </label>
+                  <label class="field">
+                    <span>Nombre <span class="req">*</span></span>
+                    <input type="text" formControlName="nombre" placeholder="Tu nombre"
+                           [class.error]="tieneError('nombre')">
+                    @if (tieneError('nombre')) {
+                      <span class="hint">Obligatorio · mín. 2 caracteres</span>
                     }
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Número de documento</span>
-                  <input type="text" formControlName="nroDocumento"
-                         [placeholder]="placeholderDoc()"
-                         [maxlength]="maxLengthDoc()"
-                         [class.error]="tieneError('nroDocumento')">
-                  @if (tieneError('nroDocumento')) {
-                    <span class="hint">{{ mensajeErrorDoc() }}</span>
-                  }
-                </label>
-              </div>
-            </div>
-
-            <!-- Contacto WhatsApp -->
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fa-brands fa-whatsapp"></i> Contacto WhatsApp
-              </h2>
-
-              <!-- Banner informativo -->
-              <div class="wa-banner">
-                <div class="wa-banner-icon">
-                  <i class="fa-brands fa-whatsapp"></i>
+                  </label>
+                  <label class="field">
+                    <span>Apellido paterno <span class="req">*</span></span>
+                    <input type="text" formControlName="apellidoPaterno" placeholder="Apellido paterno"
+                           [class.error]="tieneError('apellidoPaterno')">
+                    @if (tieneError('apellidoPaterno')) {
+                      <span class="hint">Obligatorio · mín. 2 caracteres</span>
+                    }
+                  </label>
+                  <label class="field">
+                    <span>Apellido materno</span>
+                    <input type="text" formControlName="apellidoMaterno" placeholder="Opcional">
+                  </label>
+                  <label class="field">
+                    <span>Género</span>
+                    <select formControlName="genero">
+                      <option value="">No especificar</option>
+                      <option value="M">Masculino</option>
+                      <option value="F">Femenino</option>
+                      <option value="O">Prefiero no decir</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Fecha de nacimiento</span>
+                    <input type="date" formControlName="fechaNacimiento">
+                  </label>
+                  <label class="field">
+                    <span>Tipo de documento</span>
+                    <select formControlName="tipoDocumento">
+                      <option value="">Seleccionar</option>
+                      @for (t of TIPOS_DOC; track t.codigo) {
+                        <option [value]="t.codigo">{{ t.nombre }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Número de documento</span>
+                    <input type="text" formControlName="nroDocumento"
+                           [placeholder]="placeholderDoc()"
+                           [maxlength]="maxLengthDoc()"
+                           [class.error]="tieneError('nroDocumento')">
+                    @if (tieneError('nroDocumento')) {
+                      <span class="hint">{{ mensajeErrorDoc() }}</span>
+                    }
+                  </label>
                 </div>
-                <div class="wa-banner-text">
-                  <strong>¡Este número es clave para tus alertas!</strong>
-                  <span>Te notificaremos aquí cuando el precio de un vuelo baje de tu objetivo. Asegúrate de que sea un número activo en WhatsApp.</span>
-                </div>
               </div>
 
-              <label class="field field-full">
-                <span>Número de celular</span>
-                <div class="tel-wrap-outer">
-                  <div class="tel-input-wrap">
-                    <div class="country-select-wrap" (click)="$event.stopPropagation(); togglePaises()">
-                      <img class="country-flag-img" [src]="'https://flagcdn.com/20x15/' + paisSeleccionado().flag + '.png'" [alt]="paisSeleccionado().code">
-                      <span class="country-dial">{{ paisSeleccionado().dial }}</span>
-                      <i class="fa-solid fa-chevron-down country-chevron" [class.open]="mostrarPaises()"></i>
-                    </div>
-                    <input type="tel" formControlName="telefono" placeholder="999 999 999">
+              <!-- Contacto WhatsApp -->
+              <div class="form-section">
+                <h2 class="section-title">
+                  <i class="fa-brands fa-whatsapp"></i> Contacto WhatsApp
+                </h2>
+
+                <div class="wa-banner">
+                  <div class="wa-banner-icon">
+                    <i class="fa-brands fa-whatsapp"></i>
                   </div>
-                  @if (mostrarPaises()) {
-                    <div class="country-dropdown" (click)="$event.stopPropagation()">
-                      <div class="country-search-wrap">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" class="country-search" placeholder="Buscar país..."
-                               [value]="filtroPaises()"
-                               (input)="filtroPaises.set($any($event.target).value)">
-                      </div>
-                      <div class="country-list">
-                        @for (p of paisesFiltrados(); track p.code) {
-                          <div class="country-option" (click)="seleccionarPais(p)">
-                            <img class="co-flag-img" [src]="'https://flagcdn.com/20x15/' + p.flag + '.png'" [alt]="p.code">
-                            <span class="co-name">{{ p.name }}</span>
-                            <span class="co-dial">{{ p.dial }}</span>
-                          </div>
-                        }
-                        @if (paisesFiltrados().length === 0) {
-                          <div class="country-empty">Sin resultados</div>
-                        }
-                      </div>
-                    </div>
-                  }
+                  <div class="wa-banner-text">
+                    <strong>¡Este número es clave para tus alertas!</strong>
+                    <span>Te notificaremos aquí cuando el precio de un vuelo baje de tu objetivo. Asegúrate de que sea un número activo en WhatsApp.</span>
+                  </div>
                 </div>
-                <small>Este número recibirá las alertas de precio por WhatsApp</small>
-              </label>
-            </div>
 
-            <!-- Mensajes -->
-            @if (mensaje()) {
-              <div class="ok-msg">
-                <i class="fa-solid fa-circle-check"></i> {{ mensaje() }}
+                <label class="field field-full">
+                  <span>Número de celular</span>
+                  <div class="tel-wrap-outer">
+                    <div class="tel-input-wrap">
+                      <div class="country-select-wrap" (click)="$event.stopPropagation(); togglePaises()">
+                        <img class="country-flag-img" [src]="'https://flagcdn.com/20x15/' + paisSeleccionado().flag + '.png'" [alt]="paisSeleccionado().code">
+                        <span class="country-dial">{{ paisSeleccionado().dial }}</span>
+                        <i class="fa-solid fa-chevron-down country-chevron" [class.open]="mostrarPaises()"></i>
+                      </div>
+                      <input type="tel" formControlName="telefono" placeholder="999 999 999">
+                    </div>
+                    @if (mostrarPaises()) {
+                      <div class="country-dropdown" (click)="$event.stopPropagation()">
+                        <div class="country-search-wrap">
+                          <i class="fa-solid fa-magnifying-glass"></i>
+                          <input type="text" class="country-search" placeholder="Buscar país..."
+                                 [value]="filtroPaises()"
+                                 (input)="filtroPaises.set($any($event.target).value)">
+                        </div>
+                        <div class="country-list">
+                          @for (p of paisesFiltrados(); track p.code) {
+                            <div class="country-option" (click)="seleccionarPais(p)">
+                              <img class="co-flag-img" [src]="'https://flagcdn.com/20x15/' + p.flag + '.png'" [alt]="p.code">
+                              <span class="co-name">{{ p.name }}</span>
+                              <span class="co-dial">{{ p.dial }}</span>
+                            </div>
+                          }
+                          @if (paisesFiltrados().length === 0) {
+                            <div class="country-empty">Sin resultados</div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  <small>Este número recibirá las alertas de precio por WhatsApp</small>
+                </label>
               </div>
-            }
-            @if (error()) {
-              <div class="err-msg">
-                <i class="fa-solid fa-triangle-exclamation"></i> {{ error() }}
-              </div>
-            }
 
-            <div class="form-footer">
-              <button type="submit" class="btn-guardar" [disabled]="form.invalid || guardando()">
-                @if (guardando()) {
-                  <i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...
+              <!-- Mensajes -->
+              @if (mensaje()) {
+                <div class="ok-msg">
+                  <i class="fa-solid fa-circle-check"></i> {{ mensaje() }}
+                </div>
+              }
+              @if (error()) {
+                <div class="err-msg">
+                  <i class="fa-solid fa-triangle-exclamation"></i> {{ error() }}
+                </div>
+              }
+
+              <div class="form-footer">
+                <button type="submit" class="btn-guardar" [disabled]="form.invalid || guardando()">
+                  @if (guardando()) {
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...
+                  } @else {
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+                  }
+                </button>
+              </div>
+
+            </form>
+          }
+
+          <!-- ─── TAB: Suscripción ─── -->
+          @if (tabActivo() === 'pagos') {
+            <div class="pagos-tab">
+
+              <!-- Plan activo -->
+              @if (suscripcion()?.estado === 'activa') {
+                <div class="sub-card">
+                  <div class="sub-card-header">
+                    <div class="sub-plan-badge">
+                      <i class="fa-solid fa-crown"></i>
+                      PRO {{ suscripcion()!.plan === 'anual' ? 'Anual' : 'Mensual' }}
+                    </div>
+                    <span class="sub-status-badge">
+                      <i class="fa-solid fa-circle"></i> Activa
+                    </span>
+                  </div>
+                  <div class="sub-activa-info">
+                    <div class="sai-item">
+                      <span class="sai-label">Vence</span>
+                      <span class="sai-val">{{ formatDate(suscripcion()!.fin) }}</span>
+                    </div>
+                    <div class="sai-item">
+                      <span class="sai-label">Monto</span>
+                      <span class="sai-val">S/ {{ suscripcion()!.monto }}.00</span>
+                    </div>
+                    <div class="sai-item">
+                      <span class="sai-label">Método</span>
+                      <span class="sai-val">{{ labelMetodo(suscripcion()!.metodo) }}</span>
+                    </div>
+                    <div class="sai-item">
+                      <span class="sai-label">Ref.</span>
+                      <span class="sai-val ref-num">#{{ suscripcion()!.refNum }}</span>
+                    </div>
+                  </div>
+                  <div class="sub-card-footer">
+                    <p class="sub-note">
+                      <i class="fa-solid fa-shield-halved"></i>
+                      Renueva el {{ formatDate(suscripcion()!.fin) }}.
+                    </p>
+                    <button type="button" class="btn-cancelar-sub" (click)="cancelarSuscripcion()">
+                      Cancelar suscripción
+                    </button>
+                  </div>
+                </div>
+
+              <!-- Sin plan activo: banner + formulario de pago -->
+              } @else {
+                @if (suscripcion()?.estado === 'cancelada') {
+                  <div class="sub-cancelled-banner">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <div>
+                      <strong>Suscripción cancelada</strong>
+                      <span>Tu plan PRO fue cancelado. Puedes contratar uno nuevo cuando quieras.</span>
+                    </div>
+                  </div>
                 } @else {
-                  <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+                  <div class="pago-intro">
+                    <div class="pago-intro-icon"><i class="fa-solid fa-rocket"></i></div>
+                    <div>
+                      <h3>Obtén PasajeYa <span class="pro-text">PRO</span></h3>
+                      <p>Alertas ilimitadas, predicción IA, reportes Excel y PDF, y mucho más.</p>
+                    </div>
+                  </div>
                 }
-              </button>
+                <div class="pago-form-wrap">
+                  <ng-container [ngTemplateOutlet]="tplPagoForm"></ng-container>
+                </div>
+              }
+
+              <!-- Historial de suscripciones -->
+              @if (historialSubs().length > 0) {
+                <div class="historial-section">
+                  <h3 class="historial-title">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial de suscripciones
+                  </h3>
+                  <div class="historial-table-wrap">
+                    <table class="historial-table">
+                      <thead>
+                        <tr>
+                          <th>Plan</th>
+                          <th>Inicio</th>
+                          <th>Vencimiento</th>
+                          <th>Monto</th>
+                          <th>Método</th>
+                          <th>Ref.</th>
+                          <th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (s of historialSubs(); track s.id) {
+                          <tr [class.row-activa]="s.estado === 'activa'"
+                              [class.row-vencida]="s.estado === 'vencida'"
+                              [class.row-cancelada]="s.estado === 'cancelada'">
+                            <td>
+                              <span class="ht-plan">
+                                PRO {{ s.tipoPlan === 'anual' ? 'Anual' : 'Mensual' }}
+                              </span>
+                            </td>
+                            <td>{{ formatDate(s.fechaInicio) }}</td>
+                            <td>{{ formatDate(s.fechaFin) }}</td>
+                            <td class="ht-monto">S/ {{ s.monto }}.00</td>
+                            <td>{{ labelMetodo(s.metodoPago) }}</td>
+                            <td class="ht-ref">#{{ s.refInterna }}</td>
+                            <td>
+                              <span class="ht-estado" [class]="'estado-' + s.estado">
+                                @if (s.estado === 'activa') { <i class="fa-solid fa-circle"></i> Activa }
+                                @else if (s.estado === 'vencida') { <i class="fa-solid fa-clock"></i> Vencida }
+                                @else { <i class="fa-solid fa-xmark"></i> Cancelada }
+                              </span>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+
             </div>
+          }
 
-          </form>
         </section>
-
       </div>
     }
   </main>
 
   <app-footer />
 </div>
+
+<!-- Template del formulario de pago -->
+<ng-template #tplPagoForm>
+
+  <!-- ── Plan selector ── -->
+  <div class="plan-selector">
+    <button type="button" class="plan-opt"
+            [class.active]="planPago() === 'mensual'"
+            (click)="planPago.set('mensual')">
+      <span class="plan-opt-label">Mensual</span>
+      <span class="plan-opt-price">S/ 19 <small>/mes</small></span>
+    </button>
+    <button type="button" class="plan-opt"
+            [class.active]="planPago() === 'anual'"
+            (click)="planPago.set('anual')">
+      <span class="plan-opt-label">Anual</span>
+      <span class="plan-opt-price">S/ 120 <small>/año</small></span>
+      <span class="plan-save-badge">Ahorra 47%</span>
+    </button>
+  </div>
+
+  <!-- ── Step: Formulario ── -->
+  @if (stepPago() === 'form') {
+
+    <!-- Tabs de método -->
+    <div class="metodo-tabs">
+      <button type="button" class="metodo-tab" [class.active]="metodoPago() === 'culqi'"
+              (click)="metodoPago.set('culqi')">
+        <i class="fa-solid fa-credit-card"></i> Tarjeta
+      </button>
+      <button type="button" class="metodo-tab yape-tab" [class.active]="metodoPago() === 'yape'"
+              (click)="metodoPago.set('yape')">
+        <img src="assets/logos/yape.svg" alt="Yape" class="metodo-tab-logo">
+        Yape
+      </button>
+      <button type="button" class="metodo-tab plin-tab" [class.active]="metodoPago() === 'plin'"
+              (click)="metodoPago.set('plin')">
+        <img src="assets/logos/plin.svg" alt="Plin" class="metodo-tab-logo">
+        Plin
+      </button>
+    </div>
+
+    <!-- ── Panel Tarjeta (Culqi) ── -->
+    @if (metodoPago() === 'culqi') {
+      <form [formGroup]="pagoForm" (ngSubmit)="pagar()" class="culqi-form">
+
+        <div class="culqi-header">
+          <i class="fa-solid fa-lock"></i>
+          Pago seguro con Culqi
+          <div class="card-logos-row">
+            <span class="card-logo-pill" [class.active]="cardBrand() === 'visa'">
+              <svg viewBox="0 0 780 500" xmlns="http://www.w3.org/2000/svg" height="12">
+                <path d="M293.2 348.7l33.4-195.4h53.4l-33.4 195.4zM539.7 157.4c-10.6-4-27.2-8.2-48-8.2-52.9 0-90.2 26.8-90.5 65.2-.3 28.4 26.6 44.2 46.9 53.6 20.8 9.6 27.8 15.8 27.7 24.4-.1 13.2-16.6 19.2-32 19.2-21.4 0-32.8-3-50.4-10.4l-6.9-3.2-7.5 44c12.5 5.5 35.6 10.3 59.6 10.5 56.2 0 92.7-26.5 93.1-67.6.2-22.5-14.1-39.6-45-53.7-18.8-9.1-30.3-15.2-30.2-24.5 0-8.2 9.8-17 30.8-17 17.6-.3 30.4 3.6 40.3 7.6l4.8 2.3 7.3-42.2zM661.9 153.3h-41.4c-12.8 0-22.4 3.5-28 16.4l-79.4 180.7h56.1l11.2-29.5 68.5.1c1.6 6.9 6.5 29.4 6.5 29.4h49.6l-43.1-197.1zm-65.7 126.8l21.1-54.7c-.3.4 4.3-11.2 7-18.4l3.6 16.6 12.1 56.5h-43.8zM230.4 153.3l-52.4 133.4-5.6-27.2c-9.8-31.7-40.3-66.1-74.5-83.3l47.9 171.5 56.6-.1 84.2-194.4-56.2.1z" fill="currentColor"/>
+                <path d="M131.6 153.3H45.5l-.7 4c66.8 16.3 111 55.7 129.4 103.1l-18.7-90.4c-3.2-12.4-12.7-16.3-24-16.7z" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="card-logo-pill mc-pill" [class.active]="cardBrand() === 'mastercard'">
+              <svg viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg" height="14">
+                <circle cx="13" cy="12" r="10" [attr.fill]="cardBrand() === 'mastercard' ? '#EB001B' : '#6b7280'"/>
+                <circle cx="25" cy="12" r="10" [attr.fill]="cardBrand() === 'mastercard' ? '#F79E1B' : '#9ca3af'"/>
+                <path d="M19 4.4a10 10 0 0 1 0 15.2A10 10 0 0 1 19 4.4z" [attr.fill]="cardBrand() === 'mastercard' ? '#FF5F00' : '#4b5563'"/>
+              </svg>
+            </span>
+            <span class="card-logo-pill amex-pill" [class.active]="cardBrand() === 'amex'">
+              <svg viewBox="0 0 42 16" xmlns="http://www.w3.org/2000/svg" height="12">
+                <rect width="42" height="16" rx="2" [attr.fill]="cardBrand() === 'amex' ? '#016FD0' : '#374151'"/>
+                <text x="21" y="11.5" font-family="Arial,sans-serif" font-size="7" font-weight="800" fill="white" text-anchor="middle" letter-spacing="1">AMEX</text>
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        @if (errorPago()) {
+          <div class="pago-error">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ errorPago() }}
+          </div>
+        }
+
+        <div class="culqi-field">
+          <label>Titular de la tarjeta</label>
+          <input type="text" formControlName="titular" placeholder="NOMBRE APELLIDO"
+                 autocomplete="cc-name" [class.error]="tienePagoError('titular')">
+          @if (tienePagoError('titular')) { <span class="hint">Ingresa el nombre del titular</span> }
+        </div>
+
+        <div class="culqi-field">
+          <label>Número de tarjeta</label>
+          <div class="card-input-wrap" [class.error]="tienePagoError('numero')">
+            <input type="text" inputmode="numeric" placeholder="1234 5678 9012 3456"
+                   autocomplete="cc-number" maxlength="19"
+                   [value]="cardDisplayNum()" (input)="formatCardNum($event)">
+            @if (cardBrand() === 'visa') {
+              <span class="card-brand-badge visa">
+                <svg viewBox="0 0 780 500" xmlns="http://www.w3.org/2000/svg" height="18">
+                  <path d="M293.2 348.7l33.4-195.4h53.4l-33.4 195.4zM539.7 157.4c-10.6-4-27.2-8.2-48-8.2-52.9 0-90.2 26.8-90.5 65.2-.3 28.4 26.6 44.2 46.9 53.6 20.8 9.6 27.8 15.8 27.7 24.4-.1 13.2-16.6 19.2-32 19.2-21.4 0-32.8-3-50.4-10.4l-6.9-3.2-7.5 44c12.5 5.5 35.6 10.3 59.6 10.5 56.2 0 92.7-26.5 93.1-67.6.2-22.5-14.1-39.6-45-53.7-18.8-9.1-30.3-15.2-30.2-24.5 0-8.2 9.8-17 30.8-17 17.6-.3 30.4 3.6 40.3 7.6l4.8 2.3 7.3-42.2zM661.9 153.3h-41.4c-12.8 0-22.4 3.5-28 16.4l-79.4 180.7h56.1l11.2-29.5 68.5.1c1.6 6.9 6.5 29.4 6.5 29.4h49.6l-43.1-197.1zm-65.7 126.8l21.1-54.7c-.3.4 4.3-11.2 7-18.4l3.6 16.6 12.1 56.5h-43.8zM230.4 153.3l-52.4 133.4-5.6-27.2c-9.8-31.7-40.3-66.1-74.5-83.3l47.9 171.5 56.6-.1 84.2-194.4-56.2.1z" fill="white"/>
+                  <path d="M131.6 153.3H45.5l-.7 4c66.8 16.3 111 55.7 129.4 103.1l-18.7-90.4c-3.2-12.4-12.7-16.3-24-16.7z" fill="#F9A533"/>
+                </svg>
+              </span>
+            } @else if (cardBrand() === 'mastercard') {
+              <span class="card-brand-badge mc">
+                <svg viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg" height="22">
+                  <circle cx="13" cy="12" r="10" fill="#EB001B"/>
+                  <circle cx="25" cy="12" r="10" fill="#F79E1B"/>
+                  <path d="M19 4.4a10 10 0 0 1 0 15.2A10 10 0 0 1 19 4.4z" fill="#FF5F00"/>
+                </svg>
+              </span>
+            } @else if (cardBrand() === 'amex') {
+              <span class="card-brand-badge amex">
+                <svg viewBox="0 0 52 22" xmlns="http://www.w3.org/2000/svg" height="18">
+                  <rect width="52" height="22" rx="3" fill="#016FD0"/>
+                  <text x="26" y="15.5" font-family="Arial,sans-serif" font-size="8.5" font-weight="800" fill="white" text-anchor="middle" letter-spacing="1.5">AMEX</text>
+                </svg>
+              </span>
+            }
+          </div>
+          @if (tienePagoError('numero')) { <span class="hint">Número de tarjeta inválido</span> }
+        </div>
+
+        <div class="culqi-row">
+          <div class="culqi-field">
+            <label>Vencimiento</label>
+            <input type="text" formControlName="expira" placeholder="MM/AA"
+                   inputmode="numeric" maxlength="5" autocomplete="cc-exp"
+                   (input)="formatExpiry($event)" [class.error]="tienePagoError('expira')">
+            @if (tienePagoError('expira')) { <span class="hint">Formato MM/AA</span> }
+          </div>
+          <div class="culqi-field">
+            <label>CVV</label>
+            <div class="cvv-wrap">
+              <input [type]="mostrarCvv() ? 'text' : 'password'" formControlName="cvv"
+                     placeholder="•••" inputmode="numeric" maxlength="4"
+                     autocomplete="cc-csc" [class.error]="tienePagoError('cvv')">
+              <button type="button" class="cvv-toggle" (click)="mostrarCvv.set(!mostrarCvv())">
+                <i [class]="mostrarCvv() ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+              </button>
+            </div>
+            @if (tienePagoError('cvv')) { <span class="hint">CVV inválido</span> }
+          </div>
+        </div>
+
+        <div class="culqi-field">
+          <label>Correo (recibo)</label>
+          <input type="email" formControlName="email" placeholder="tucorreo@ejemplo.com"
+                 autocomplete="email" [class.error]="tienePagoError('email')">
+          @if (tienePagoError('email')) { <span class="hint">Correo inválido</span> }
+        </div>
+
+        <button type="submit" class="btn-pagar">
+          <i class="fa-solid fa-lock"></i>
+          Pagar S/ {{ montoActual() }}.00
+        </button>
+
+        <p class="culqi-disclaimer">
+          <i class="fa-solid fa-shield-halved"></i>
+          Simulación académica — no se realiza ningún cargo real.
+        </p>
+
+      </form>
+    }
+
+    <!-- ── Panel Yape ── -->
+    @if (metodoPago() === 'yape') {
+      <div class="qr-panel yape-panel">
+        <div class="qr-brand">
+          <img src="assets/logos/yape.svg" alt="Yape" class="qr-brand-logo">
+          <span class="qr-monto">S/ {{ montoActual() }}.00</span>
+        </div>
+
+        <div class="qr-box" [class.pulsing]="qrAnimado()">
+          <!-- QR simulado: patrón de cuadrícula que parece QR real -->
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
+            <rect width="200" height="200" fill="white"/>
+            <!-- Esquina superior izquierda -->
+            <rect x="10" y="10" width="60" height="60" rx="4" fill="#6b21a8"/>
+            <rect x="20" y="20" width="40" height="40" rx="2" fill="white"/>
+            <rect x="28" y="28" width="24" height="24" rx="1" fill="#6b21a8"/>
+            <!-- Esquina superior derecha -->
+            <rect x="130" y="10" width="60" height="60" rx="4" fill="#6b21a8"/>
+            <rect x="140" y="20" width="40" height="40" rx="2" fill="white"/>
+            <rect x="148" y="28" width="24" height="24" rx="1" fill="#6b21a8"/>
+            <!-- Esquina inferior izquierda -->
+            <rect x="10" y="130" width="60" height="60" rx="4" fill="#6b21a8"/>
+            <rect x="20" y="140" width="40" height="40" rx="2" fill="white"/>
+            <rect x="28" y="148" width="24" height="24" rx="1" fill="#6b21a8"/>
+            <!-- Datos del QR (patrón simulado) -->
+            <rect x="80"  y="10"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="96"  y="10"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="112" y="10"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="88"  y="26"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="104" y="26"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="42"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="96"  y="42"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="112" y="42"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="58"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="104" y="58"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="74"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="88"  y="74"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="104" y="74"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="112" y="74"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="10"  y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="26"  y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="42"  y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="58"  y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="88"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="96"  y="88"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="120" y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="136" y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="152" y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="168" y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="184" y="80"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="112" y="88"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="128" y="88"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="144" y="88"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="168" y="88"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="10"  y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="34"  y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="50"  y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="104" width="8" height="8" fill="#6b21a8"/>
+            <rect x="96"  y="104" width="8" height="8" fill="#6b21a8"/>
+            <rect x="120" y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="144" y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="160" y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="176" y="96"  width="8" height="8" fill="#6b21a8"/>
+            <rect x="10"  y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="26"  y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="42"  y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="58"  y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="96"  y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="112" y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="136" y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="160" y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="184" y="112" width="8" height="8" fill="#6b21a8"/>
+            <rect x="128" y="120" width="8" height="8" fill="#6b21a8"/>
+            <rect x="144" y="120" width="8" height="8" fill="#6b21a8"/>
+            <rect x="168" y="120" width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="128" width="8" height="8" fill="#6b21a8"/>
+            <rect x="104" y="128" width="8" height="8" fill="#6b21a8"/>
+            <rect x="120" y="128" width="8" height="8" fill="#6b21a8"/>
+            <rect x="152" y="128" width="8" height="8" fill="#6b21a8"/>
+            <rect x="176" y="128" width="8" height="8" fill="#6b21a8"/>
+            <rect x="88"  y="144" width="8" height="8" fill="#6b21a8"/>
+            <rect x="112" y="144" width="8" height="8" fill="#6b21a8"/>
+            <rect x="136" y="144" width="8" height="8" fill="#6b21a8"/>
+            <rect x="160" y="144" width="8" height="8" fill="#6b21a8"/>
+            <rect x="184" y="144" width="8" height="8" fill="#6b21a8"/>
+            <rect x="80"  y="160" width="8" height="8" fill="#6b21a8"/>
+            <rect x="96"  y="160" width="8" height="8" fill="#6b21a8"/>
+            <rect x="120" y="160" width="8" height="8" fill="#6b21a8"/>
+            <rect x="144" y="160" width="8" height="8" fill="#6b21a8"/>
+            <rect x="168" y="160" width="8" height="8" fill="#6b21a8"/>
+            <rect x="88"  y="176" width="8" height="8" fill="#6b21a8"/>
+            <rect x="104" y="176" width="8" height="8" fill="#6b21a8"/>
+            <rect x="128" y="176" width="8" height="8" fill="#6b21a8"/>
+            <rect x="152" y="176" width="8" height="8" fill="#6b21a8"/>
+            <rect x="176" y="176" width="8" height="8" fill="#6b21a8"/>
+          </svg>
+        </div>
+
+        <div class="qr-instrucciones">
+          <p><strong>Escanea con tu app Yape</strong></p>
+          <p>o transfiere al número <strong>+51 935 430 273</strong></p>
+        </div>
+
+        <button type="button" class="btn-confirmar-qr yape-btn" (click)="confirmarQr()">
+          <i class="fa-solid fa-check-circle"></i> Ya realicé el pago con Yape
+        </button>
+
+        <p class="culqi-disclaimer">
+          <i class="fa-solid fa-shield-halved"></i>
+          Simulación académica — no se realiza ningún cargo real.
+        </p>
+      </div>
+    }
+
+    <!-- ── Panel Plin ── -->
+    @if (metodoPago() === 'plin') {
+      <div class="qr-panel plin-panel">
+        <div class="qr-brand">
+          <img src="assets/logos/plin.svg" alt="Plin" class="qr-brand-logo">
+          <span class="qr-monto">S/ {{ montoActual() }}.00</span>
+        </div>
+
+        <div class="qr-box plin-qr" [class.pulsing]="qrAnimado()">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
+            <rect width="200" height="200" fill="white"/>
+            <rect x="10" y="10" width="60" height="60" rx="4" fill="#0077b6"/>
+            <rect x="20" y="20" width="40" height="40" rx="2" fill="white"/>
+            <rect x="28" y="28" width="24" height="24" rx="1" fill="#0077b6"/>
+            <rect x="130" y="10" width="60" height="60" rx="4" fill="#0077b6"/>
+            <rect x="140" y="20" width="40" height="40" rx="2" fill="white"/>
+            <rect x="148" y="28" width="24" height="24" rx="1" fill="#0077b6"/>
+            <rect x="10" y="130" width="60" height="60" rx="4" fill="#0077b6"/>
+            <rect x="20" y="140" width="40" height="40" rx="2" fill="white"/>
+            <rect x="28" y="148" width="24" height="24" rx="1" fill="#0077b6"/>
+            <rect x="80"  y="10"  width="8" height="8" fill="#0077b6"/>
+            <rect x="104" y="10"  width="8" height="8" fill="#0077b6"/>
+            <rect x="88"  y="26"  width="8" height="8" fill="#0077b6"/>
+            <rect x="112" y="26"  width="8" height="8" fill="#0077b6"/>
+            <rect x="96"  y="42"  width="8" height="8" fill="#0077b6"/>
+            <rect x="80"  y="58"  width="8" height="8" fill="#0077b6"/>
+            <rect x="112" y="58"  width="8" height="8" fill="#0077b6"/>
+            <rect x="88"  y="74"  width="8" height="8" fill="#0077b6"/>
+            <rect x="104" y="74"  width="8" height="8" fill="#0077b6"/>
+            <rect x="10"  y="80"  width="8" height="8" fill="#0077b6"/>
+            <rect x="34"  y="80"  width="8" height="8" fill="#0077b6"/>
+            <rect x="58"  y="80"  width="8" height="8" fill="#0077b6"/>
+            <rect x="80"  y="88"  width="8" height="8" fill="#0077b6"/>
+            <rect x="104" y="88"  width="8" height="8" fill="#0077b6"/>
+            <rect x="128" y="80"  width="8" height="8" fill="#0077b6"/>
+            <rect x="152" y="80"  width="8" height="8" fill="#0077b6"/>
+            <rect x="176" y="80"  width="8" height="8" fill="#0077b6"/>
+            <rect x="120" y="88"  width="8" height="8" fill="#0077b6"/>
+            <rect x="144" y="88"  width="8" height="8" fill="#0077b6"/>
+            <rect x="168" y="88"  width="8" height="8" fill="#0077b6"/>
+            <rect x="184" y="88"  width="8" height="8" fill="#0077b6"/>
+            <rect x="26"  y="96"  width="8" height="8" fill="#0077b6"/>
+            <rect x="50"  y="96"  width="8" height="8" fill="#0077b6"/>
+            <rect x="88"  y="96"  width="8" height="8" fill="#0077b6"/>
+            <rect x="112" y="96"  width="8" height="8" fill="#0077b6"/>
+            <rect x="136" y="96"  width="8" height="8" fill="#0077b6"/>
+            <rect x="160" y="96"  width="8" height="8" fill="#0077b6"/>
+            <rect x="18"  y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="42"  y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="80"  y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="104" y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="128" y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="152" y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="176" y="112" width="8" height="8" fill="#0077b6"/>
+            <rect x="96"  y="128" width="8" height="8" fill="#0077b6"/>
+            <rect x="120" y="128" width="8" height="8" fill="#0077b6"/>
+            <rect x="144" y="128" width="8" height="8" fill="#0077b6"/>
+            <rect x="168" y="128" width="8" height="8" fill="#0077b6"/>
+            <rect x="80"  y="144" width="8" height="8" fill="#0077b6"/>
+            <rect x="112" y="144" width="8" height="8" fill="#0077b6"/>
+            <rect x="136" y="144" width="8" height="8" fill="#0077b6"/>
+            <rect x="160" y="144" width="8" height="8" fill="#0077b6"/>
+            <rect x="88"  y="160" width="8" height="8" fill="#0077b6"/>
+            <rect x="104" y="160" width="8" height="8" fill="#0077b6"/>
+            <rect x="128" y="160" width="8" height="8" fill="#0077b6"/>
+            <rect x="152" y="160" width="8" height="8" fill="#0077b6"/>
+            <rect x="176" y="160" width="8" height="8" fill="#0077b6"/>
+            <rect x="80"  y="176" width="8" height="8" fill="#0077b6"/>
+            <rect x="104" y="176" width="8" height="8" fill="#0077b6"/>
+            <rect x="128" y="176" width="8" height="8" fill="#0077b6"/>
+            <rect x="160" y="176" width="8" height="8" fill="#0077b6"/>
+            <rect x="184" y="176" width="8" height="8" fill="#0077b6"/>
+          </svg>
+        </div>
+
+        <div class="qr-instrucciones">
+          <p><strong>Escanea con tu app Plin</strong></p>
+          <p>o transfiere al número <strong>+51 935 430 273</strong></p>
+        </div>
+
+        <button type="button" class="btn-confirmar-qr plin-btn" (click)="confirmarQr()">
+          <i class="fa-solid fa-check-circle"></i> Ya realicé el pago con Plin
+        </button>
+
+        <p class="culqi-disclaimer">
+          <i class="fa-solid fa-shield-halved"></i>
+          Simulación académica — no se realiza ningún cargo real.
+        </p>
+      </div>
+    }
+
+  }
+
+  <!-- ── Step: Procesando ── -->
+  @if (stepPago() === 'procesando') {
+    <div class="pago-procesando">
+      <svg class="spinner-svg" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="18" fill="none" stroke="#e0e7ff" stroke-width="4"/>
+        <circle cx="22" cy="22" r="18" fill="none" stroke="#4f46e5" stroke-width="4"
+                stroke-dasharray="40 80" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate"
+                            from="0 22 22" to="360 22 22" dur="0.8s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+      <p class="proc-title">Verificando tu pago...</p>
+      <div class="proc-steps">
+        <div class="proc-step done"><i class="fa-solid fa-check"></i> Pago recibido</div>
+        <div class="proc-step active"><i class="fa-solid fa-circle-notch fa-spin"></i> Confirmando transacción</div>
+        <div class="proc-step"><i class="fa-regular fa-circle"></i> Activando plan PRO</div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Step: Éxito ── -->
+  @if (stepPago() === 'exito') {
+    <div class="pago-exito">
+      <div class="exito-icon">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h3>¡Pago exitoso!</h3>
+      <p>Tu plan PRO está activo. Empieza a disfrutar de todas las funciones premium.</p>
+
+      @if (suscripcion()) {
+        <div class="recibo">
+          <div class="recibo-row">
+            <span>Plan</span>
+            <strong>PRO {{ suscripcion()!.plan === 'anual' ? 'Anual' : 'Mensual' }}</strong>
+          </div>
+          <div class="recibo-row">
+            <span>Método</span>
+            <strong>{{ labelMetodo(suscripcion()!.metodo) }}</strong>
+          </div>
+          <div class="recibo-row">
+            <span>Monto</span>
+            <strong>S/ {{ suscripcion()!.monto }}.00</strong>
+          </div>
+          <div class="recibo-row">
+            <span>Referencia</span>
+            <strong>#{{ suscripcion()!.refNum }}</strong>
+          </div>
+          <div class="recibo-row">
+            <span>Válido hasta</span>
+            <strong>{{ formatDate(suscripcion()!.fin) }}</strong>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</ng-template>

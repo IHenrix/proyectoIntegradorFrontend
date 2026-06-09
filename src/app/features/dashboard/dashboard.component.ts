@@ -54,7 +54,7 @@ export class DashboardComponent implements OnInit {
     destino:     ['', Validators.required],
     fecha:       ['',   Validators.required],
     fechaVuelta: ['',   Validators.required],
-    pasajeros:   [1,   [Validators.required, Validators.min(1)]]
+    pasajeros:   [1,   [Validators.required, Validators.min(1), Validators.max(4)]]
   });
 
   ngOnInit(): void {
@@ -126,7 +126,10 @@ export class DashboardComponent implements OnInit {
   }
 
   // ── Pasajeros ─────────────────────────────────────────────────
-  incrementar(): void { this.form.patchValue({ pasajeros: (this.form.value.pasajeros ?? 1) + 1 }); }
+  incrementar(): void {
+    const v = this.form.value.pasajeros ?? 1;
+    if (v < 4) this.form.patchValue({ pasajeros: v + 1 });
+  }
   decrementar(): void {
     const v = this.form.value.pasajeros ?? 1;
     if (v > 1) this.form.patchValue({ pasajeros: v - 1 });

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
+  <defs>
+    <linearGradient id="plinGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0052CC"/>
+      <stop offset="50%" stop-color="#0099E6"/>
+      <stop offset="100%" stop-color="#00D4C8"/>
+    </linearGradient>
+    <linearGradient id="plinGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00BFFF"/>
+      <stop offset="100%" stop-color="#0055DD"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Burbuja de diálogo redondeada -->
+  <path d="
+    M110,12
+    C62,12 22,48 22,92
+    C22,122 40,148 67,163
+    L50,198
+    L92,172
+    C98,173 104,174 110,174
+    C158,174 198,138 198,94
+    C198,50 158,12 110,12 Z"
+    fill="url(#plinGrad)"/>
+
+  <!-- Texto "plin" en blanco -->
+  <text x="110" y="126"
+    font-family="'Arial Rounded MT Bold','Nunito','Varela Round',Arial,sans-serif"
+    font-size="58"
+    font-weight="900"
+    fill="white"
+    text-anchor="middle"
+    letter-spacing="-2">plin</text>
+
+  <!-- Punto magenta sobre la "i" -->
+  <circle cx="141" cy="78" r="8" fill="#FF3399"/>
+</svg>

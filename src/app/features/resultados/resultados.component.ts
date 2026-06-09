@@ -90,7 +90,7 @@ export class ResultadosComponent implements OnInit {
     destino:     ['', Validators.required],
     fecha:       ['', Validators.required],
     fechaVuelta: [''],
-    pasajeros:   [1, [Validators.required, Validators.min(1)]],
+    pasajeros:   [1, [Validators.required, Validators.min(1), Validators.max(4)]],
   });
 
   filtradosO = computed(() => {
@@ -260,7 +260,7 @@ export class ResultadosComponent implements OnInit {
 
   incrementar(): void {
     const v = this.form.value.pasajeros ?? 1;
-    if (v < 9) this.form.patchValue({ pasajeros: v + 1 });
+    if (v < 4) this.form.patchValue({ pasajeros: v + 1 });
   }
 
   decrementar(): void {

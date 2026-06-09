@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { UpgradeModalService, UPGRADE_COPY } from '../../../core/services/upgrade-modal.service';
-import { PaymentModalService } from '../../../core/services/payment-modal.service';
 
 @Component({
   selector: 'app-upgrade-modal',
@@ -10,15 +10,15 @@ import { PaymentModalService } from '../../../core/services/payment-modal.servic
   styleUrl: './upgrade-modal.component.scss'
 })
 export class UpgradeModalComponent {
-  svc     = inject(UpgradeModalService);
-  payment = inject(PaymentModalService);
-  copy    = UPGRADE_COPY;
+  svc    = inject(UpgradeModalService);
+  router = inject(Router);
+  copy   = UPGRADE_COPY;
 
   featureCopy() { return this.copy[this.svc.feature()]; }
 
   irAPagar(): void {
     this.svc.cerrar();
-    this.payment.abrir('mensual');
+    this.router.navigate(['/perfil'], { queryParams: { tab: 'pagos' } });
   }
 
   readonly FREE_FEATURES = [

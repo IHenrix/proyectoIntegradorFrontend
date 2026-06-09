@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface PerfilData {
@@ -14,6 +15,18 @@ export interface PerfilData {
   rol:              string;
   tipoDocumento?:   string;
   nroDocumento?:    string;
+}
+
+export interface SuscripcionData {
+  id:          number;
+  planNombre:  string;
+  tipoPlan:    'mensual' | 'anual';
+  monto:       number;
+  fechaInicio: string;
+  fechaFin:    string;
+  estado:      string;
+  metodoPago:  string;
+  refInterna:  string;
 }
 
 export interface ActualizarPerfilRequest {
@@ -36,6 +49,16 @@ export class PerfilService {
 
   obtener(): Observable<PerfilData> {
     return this.http.get<PerfilData>(this.API);
+  }
+
+  obtenerHistorialSuscripciones(): Observable<SuscripcionData[]> {
+    return this.http.get<SuscripcionData[]>(`${this.API}/suscripciones`);
+  }
+
+  obtenerSuscripcion(): Observable<SuscripcionData | null> {
+    return this.http.get<SuscripcionData>(`${this.API}/suscripcion`, { observe: 'response' }).pipe(
+      map(res => res.status === 204 ? null : res.body)
+    );
   }
 
   actualizar(data: ActualizarPerfilRequest): Observable<PerfilData> {

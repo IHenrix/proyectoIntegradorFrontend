@@ -54,6 +54,13 @@ export class DetalleComponent implements OnInit {
   telefonoObfuscado = computed(() => {
     const t = this.telefonoGuardado();
     if (!t || t.length < 6) return null;
+    // Separar prefijo internacional del número local
+    const match = t.match(/^(\+\d{1,3})\s*(.+)$/);
+    if (match) {
+      const prefix = match[1];
+      const local  = match[2].replace(/\D/g, '');
+      return `${prefix} ${local.slice(0, 3)} *** ${local.slice(-3)}`;
+    }
     const digits = t.replace(/\D/g, '');
     return digits.slice(0, 3) + ' *** ' + digits.slice(-3);
   });
