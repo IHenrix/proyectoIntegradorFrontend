@@ -1,0 +1,122 @@
+.lm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: lmFadeIn .15s ease;
+}
+
+.lm-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  width: min(400px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .22);
+  animation: lmSlideUp .2s ease;
+  position: relative;
+}
+
+.lm-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: #f1f5f9;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+
+  &:hover { background: #e2e8f0; color: #0f172a; }
+}
+
+.lm-icon-wrap {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b2b, #ff9500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #fff;
+  margin-bottom: 4px;
+  box-shadow: 0 8px 24px rgba(255, 107, 43, .3);
+}
+
+.lm-titulo {
+  font-size: 20px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  text-align: center;
+}
+
+.lm-msg {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  text-align: center;
+  line-height: 1.55;
+}
+
+.lm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.lm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: opacity .12s, transform .1s;
+
+  &:hover  { opacity: .88; }
+  &:active { transform: scale(.97); }
+}
+
+.lm-btn-primary {
+  background: linear-gradient(135deg, #ff6b2b, #ff9500);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(255, 107, 43, .3);
+}
+
+.lm-btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1.5px solid #e2e8f0;
+
+  &:hover { background: #e2e8f0; opacity: 1; }
+}
+
+.lm-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+@keyframes lmFadeIn  { from { opacity: 0; }                           to { opacity: 1; } }
+@keyframes lmSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

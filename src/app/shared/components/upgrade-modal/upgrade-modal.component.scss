@@ -1,0 +1,277 @@
+// ── Backdrop ─────────────────────────────────────────────────────
+.um-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 13, 26, 0.72);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn .18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────
+.um-modal {
+  background: #fff;
+  border-radius: 24px;
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(8,13,26,.35);
+  animation: slideUp .22s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.um-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 34px; height: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #64748b;
+  transition: background .14s, color .14s;
+  z-index: 1;
+  &:hover { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+}
+
+// ── Header ────────────────────────────────────────────────────────
+.um-header {
+  padding: 36px 36px 24px;
+  text-align: center;
+  background: linear-gradient(160deg, #fdf4ff 0%, #eff6ff 100%);
+  border-radius: 24px 24px 0 0;
+}
+
+.um-feature-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(124,58,237,.1);
+  color: #7c3aed;
+  border: 1px solid rgba(124,58,237,.2);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 14px;
+}
+
+.um-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.um-pro {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.um-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  max-width: 480px;
+  margin-inline: auto;
+  line-height: 1.6;
+}
+
+// ── Plans grid ────────────────────────────────────────────────────
+.um-plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 28px;
+  gap: 16px;
+}
+
+.um-plan {
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+}
+
+.um-plan-free {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+}
+
+.um-plan-premium {
+  background: linear-gradient(160deg, #1e1b4b 0%, #312e81 100%);
+  border: 2px solid #4f46e5;
+  box-shadow: 0 8px 32px rgba(79,70,229,.3);
+}
+
+.um-popular-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  padding: 4px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+// ── Plan top ──────────────────────────────────────────────────────
+.um-plan-top { display: flex; flex-direction: column; gap: 6px; }
+
+.um-plan-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .05em;
+
+  &.badge-free    { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+  &.badge-premium { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+}
+
+.um-plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.um-price-val {
+  font-size: 32px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1;
+
+  .um-plan-premium & { color: #fff; }
+}
+
+.um-price-period {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  .um-plan-premium & { color: rgba(255,255,255,.6); }
+}
+
+.um-plan-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  .um-plan-premium & { color: rgba(255,255,255,.55); }
+}
+
+// ── Feature list ──────────────────────────────────────────────────
+.um-features {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex: 1;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 600;
+
+    i {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px;
+      flex-shrink: 0;
+    }
+
+    &.ok {
+      color: #334155;
+      i { background: #dcfce7; color: #16a34a; }
+      .um-plan-premium & { color: rgba(255,255,255,.9); }
+      .um-plan-premium & i { background: rgba(34,197,94,.2); color: #4ade80; }
+    }
+
+    &.no {
+      color: #94a3b8;
+      i { background: #fee2e2; color: #f87171; }
+    }
+  }
+}
+
+// ── Buttons ───────────────────────────────────────────────────────
+.um-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .14s, box-shadow .14s;
+  border: none;
+}
+
+.um-btn-free {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.um-btn-premium {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(234,88,12,.4);
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(234,88,12,.5); }
+}
+
+.um-guarantee {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 0;
+  i { font-size: 10px; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 580px) {
+  .um-plans { grid-template-columns: 1fr; }
+  .um-header { padding: 28px 20px 20px; }
+  .um-title  { font-size: 20px; }
+}

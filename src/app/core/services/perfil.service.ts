@@ -12,6 +12,8 @@ export interface PerfilData {
   fechaNacimiento?: string;
   email:            string;
   rol:              string;
+  tipoDocumento?:   string;
+  nroDocumento?:    string;
 }
 
 export interface ActualizarPerfilRequest {
@@ -21,6 +23,8 @@ export interface ActualizarPerfilRequest {
   genero?:          string;
   telefono?:        string;
   fechaNacimiento?: string;
+  tipoDocumento?:   string;
+  nroDocumento?:    string;
   passwordActual?:  string;
   passwordNuevo?:   string;
 }

@@ -9,7 +9,7 @@
       </button>
       <div>
         <h1><i class="fa-solid fa-user-circle"></i> Mi perfil</h1>
-        <p class="perfil-sub">Gestiona tu información personal y contraseña</p>
+        <p class="perfil-sub">Tu información personal y datos de contacto</p>
       </div>
     </div>
 
@@ -22,31 +22,56 @@
 
       <div class="perfil-grid">
 
-        <!-- Panel izquierdo: resumen cuenta -->
+        <!-- Panel izquierdo -->
         <aside class="panel cuenta-panel">
-          <div class="avatar-wrap">
-            <div class="avatar-circle">
-              {{ perfil()?.nombre?.charAt(0)?.toUpperCase() }}{{ perfil()?.apellidoPaterno?.charAt(0)?.toUpperCase() }}
-            </div>
+          <div class="avatar-circle">
+            {{ (form.value.nombre || perfil()?.nombre)?.charAt(0)?.toUpperCase() }}{{ (form.value.apellidoPaterno || perfil()?.apellidoPaterno)?.charAt(0)?.toUpperCase() }}
           </div>
           <div class="cuenta-info">
-            <strong class="cuenta-nombre">{{ perfil()?.nombre }} {{ perfil()?.apellidoPaterno }}</strong>
-            <span class="cuenta-email">{{ perfil()?.email }}</span>
+            <strong class="cuenta-nombre">
+              {{ form.value.nombre || perfil()?.nombre }}
+              {{ form.value.apellidoPaterno || perfil()?.apellidoPaterno }}
+            </strong>
             <span class="cuenta-rol" [class]="rolCss(perfil()?.rol ?? '')">
               {{ rolLabel(perfil()?.rol ?? '') }}
             </span>
           </div>
+
           <div class="cuenta-datos">
-            @if (perfil()?.telefono) {
+            @if ((form.value.tipoDocumento || perfil()?.tipoDocumento) || (form.value.nroDocumento || perfil()?.nroDocumento)) {
               <div class="dato-row">
-                <i class="fa-brands fa-whatsapp"></i>
-                <span>{{ perfil()!.telefono }}</span>
+                <i class="fa-solid fa-id-card"></i>
+                <div class="dato-content">
+                  <span class="dato-label">Documento</span>
+                  <span class="dato-val">
+                    {{ form.value.tipoDocumento || perfil()?.tipoDocumento || '' }}
+                    @if ((form.value.tipoDocumento || perfil()?.tipoDocumento) && (form.value.nroDocumento || perfil()?.nroDocumento)) {
+                      &nbsp;·&nbsp;
+                    }
+                    {{ form.value.nroDocumento || perfil()?.nroDocumento || '—' }}
+                  </span>
+                </div>
+                <span class="dato-lock"><i class="fa-solid fa-lock"></i></span>
               </div>
             }
-            @if (perfil()?.fechaNacimiento) {
+
+            @if (form.value.telefono || perfil()?.telefono) {
+              <div class="dato-row">
+                <i class="fa-brands fa-whatsapp"></i>
+                <div class="dato-content">
+                  <span class="dato-label">WhatsApp</span>
+                  <span class="dato-val">{{ form.value.telefono || perfil()?.telefono }}</span>
+                </div>
+              </div>
+            }
+
+            @if (form.value.fechaNacimiento || perfil()?.fechaNacimiento) {
               <div class="dato-row">
                 <i class="fa-regular fa-calendar"></i>
-                <span>{{ perfil()!.fechaNacimiento }}</span>
+                <div class="dato-content">
+                  <span class="dato-label">Nacimiento</span>
+                  <span class="dato-val">{{ form.value.fechaNacimiento || perfil()?.fechaNacimiento }}</span>
+                </div>
               </div>
             }
           </div>
@@ -55,7 +80,7 @@
           </a>
         </aside>
 
-        <!-- Panel derecho: formulario -->
+        <!-- Panel derecho -->
         <section class="panel form-panel">
           <form [formGroup]="form" (ngSubmit)="guardar()">
 
@@ -65,17 +90,34 @@
                 <i class="fa-solid fa-id-card"></i> Datos personales
               </h2>
               <div class="form-grid">
+                <label class="field field-full">
+                  <span>Correo electrónico</span>
+                  <div class="email-wrap">
+                    <i class="fa-solid fa-lock email-lock"></i>
+                    <input type="email" [value]="perfil()?.email ?? ''" disabled>
+                    <span class="email-badge">No modificable</span>
+                  </div>
+                  <small>El email está vinculado a tu cuenta y no puede cambiarse por seguridad.</small>
+                </label>
                 <label class="field">
                   <span>Nombre <span class="req">*</span></span>
-                  <input type="text" formControlName="nombre" placeholder="Tu nombre">
+                  <input type="text" formControlName="nombre" placeholder="Tu nombre"
+                         [class.error]="tieneError('nombre')">
+                  @if (tieneError('nombre')) {
+                    <span class="hint">Obligatorio · mín. 2 caracteres</span>
+                  }
                 </label>
                 <label class="field">
                   <span>Apellido paterno <span class="req">*</span></span>
-                  <input type="text" formControlName="apellidoPaterno" placeholder="Apellido paterno">
+                  <input type="text" formControlName="apellidoPaterno" placeholder="Apellido paterno"
+                         [class.error]="tieneError('apellidoPaterno')">
+                  @if (tieneError('apellidoPaterno')) {
+                    <span class="hint">Obligatorio · mín. 2 caracteres</span>
+                  }
                 </label>
                 <label class="field">
                   <span>Apellido materno</span>
-                  <input type="text" formControlName="apellidoMaterno" placeholder="Apellido materno (opcional)">
+                  <input type="text" formControlName="apellidoMaterno" placeholder="Opcional">
                 </label>
                 <label class="field">
                   <span>Género</span>
@@ -90,47 +132,81 @@
                   <span>Fecha de nacimiento</span>
                   <input type="date" formControlName="fechaNacimiento">
                 </label>
+                <label class="field">
+                  <span>Tipo de documento</span>
+                  <select formControlName="tipoDocumento">
+                    <option value="">Seleccionar</option>
+                    @for (t of TIPOS_DOC; track t.codigo) {
+                      <option [value]="t.codigo">{{ t.nombre }}</option>
+                    }
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Número de documento</span>
+                  <input type="text" formControlName="nroDocumento"
+                         [placeholder]="placeholderDoc()"
+                         [maxlength]="maxLengthDoc()"
+                         [class.error]="tieneError('nroDocumento')">
+                  @if (tieneError('nroDocumento')) {
+                    <span class="hint">{{ mensajeErrorDoc() }}</span>
+                  }
+                </label>
               </div>
             </div>
 
-            <!-- Contacto -->
+            <!-- Contacto WhatsApp -->
             <div class="form-section">
               <h2 class="section-title">
                 <i class="fa-brands fa-whatsapp"></i> Contacto WhatsApp
               </h2>
+
+              <!-- Banner informativo -->
+              <div class="wa-banner">
+                <div class="wa-banner-icon">
+                  <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div class="wa-banner-text">
+                  <strong>¡Este número es clave para tus alertas!</strong>
+                  <span>Te notificaremos aquí cuando el precio de un vuelo baje de tu objetivo. Asegúrate de que sea un número activo en WhatsApp.</span>
+                </div>
+              </div>
+
               <label class="field field-full">
                 <span>Número de celular</span>
-                <div class="tel-input-wrap">
-                  <span class="tel-prefix"><i class="fa-brands fa-whatsapp"></i> +51</span>
-                  <input type="tel" formControlName="telefono" placeholder="999 999 999">
+                <div class="tel-wrap-outer">
+                  <div class="tel-input-wrap">
+                    <div class="country-select-wrap" (click)="$event.stopPropagation(); togglePaises()">
+                      <img class="country-flag-img" [src]="'https://flagcdn.com/20x15/' + paisSeleccionado().flag + '.png'" [alt]="paisSeleccionado().code">
+                      <span class="country-dial">{{ paisSeleccionado().dial }}</span>
+                      <i class="fa-solid fa-chevron-down country-chevron" [class.open]="mostrarPaises()"></i>
+                    </div>
+                    <input type="tel" formControlName="telefono" placeholder="999 999 999">
+                  </div>
+                  @if (mostrarPaises()) {
+                    <div class="country-dropdown" (click)="$event.stopPropagation()">
+                      <div class="country-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" class="country-search" placeholder="Buscar país..."
+                               [value]="filtroPaises()"
+                               (input)="filtroPaises.set($any($event.target).value)">
+                      </div>
+                      <div class="country-list">
+                        @for (p of paisesFiltrados(); track p.code) {
+                          <div class="country-option" (click)="seleccionarPais(p)">
+                            <img class="co-flag-img" [src]="'https://flagcdn.com/20x15/' + p.flag + '.png'" [alt]="p.code">
+                            <span class="co-name">{{ p.name }}</span>
+                            <span class="co-dial">{{ p.dial }}</span>
+                          </div>
+                        }
+                        @if (paisesFiltrados().length === 0) {
+                          <div class="country-empty">Sin resultados</div>
+                        }
+                      </div>
+                    </div>
+                  }
                 </div>
                 <small>Este número recibirá las alertas de precio por WhatsApp</small>
               </label>
-            </div>
-
-            <!-- Cambio de contraseña -->
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="fa-solid fa-lock"></i> Cambiar contraseña
-                <button type="button" class="toggle-pass" (click)="mostrarPass.set(!mostrarPass())">
-                  {{ mostrarPass() ? 'Ocultar' : 'Cambiar' }}
-                </button>
-              </h2>
-              @if (mostrarPass()) {
-                <div class="form-grid">
-                  <label class="field">
-                    <span>Contraseña actual</span>
-                    <input type="password" formControlName="passwordActual" placeholder="••••••••">
-                  </label>
-                  <label class="field">
-                    <span>Nueva contraseña</span>
-                    <input type="password" formControlName="passwordNuevo" placeholder="Mín. 8 caracteres">
-                  </label>
-                </div>
-                @if (form.hasError('passIncompleto')) {
-                  <p class="field-error">Debes completar ambos campos para cambiar la contraseña.</p>
-                }
-              }
             </div>
 
             <!-- Mensajes -->
@@ -146,10 +222,6 @@
             }
 
             <div class="form-footer">
-              <small class="footer-note">
-                <i class="fa-solid fa-shield-halved"></i>
-                El email no se puede cambiar por seguridad.
-              </small>
               <button type="submit" class="btn-guardar" [disabled]="form.invalid || guardando()">
                 @if (guardando()) {
                   <i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...

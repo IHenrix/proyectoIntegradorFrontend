@@ -1,0 +1,29 @@
+@if (svc.abierto()) {
+  <div class="cm-backdrop" (click)="svc.responder(false)">
+    <div class="cm-modal" [class]="'cm-modal cm-' + svc.config().tipo" (click)="$event.stopPropagation()">
+
+      <div class="cm-icon-wrap">
+        @if (svc.config().tipo === 'danger') {
+          <i class="fa-solid fa-trash-can"></i>
+        } @else if (svc.config().tipo === 'warning') {
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        } @else {
+          <i class="fa-solid fa-circle-info"></i>
+        }
+      </div>
+
+      <h3 class="cm-titulo">{{ svc.config().titulo }}</h3>
+      <p class="cm-mensaje">{{ svc.config().mensaje }}</p>
+
+      <div class="cm-actions">
+        <button type="button" class="cm-btn cm-btn-cancel" (click)="svc.responder(false)">
+          {{ svc.config().labelCancel }}
+        </button>
+        <button type="button" class="cm-btn cm-btn-ok" (click)="svc.responder(true)">
+          {{ svc.config().labelOk }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

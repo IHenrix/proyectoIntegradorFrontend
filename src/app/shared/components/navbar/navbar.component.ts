@@ -16,7 +16,7 @@ export class NavbarComponent {
     const r = this.auth.rol();
     if (r === 'admin')           return { label: 'ADMIN',     css: 'badge-admin',   avatar: 'avatar-admin',   badge: true };
     if (r === 'usuario_premium') return { label: '★ PREMIUM', css: 'badge-premium', avatar: 'avatar-premium', badge: true };
-    return { label: '', css: '', avatar: 'avatar-free', badge: false };
+    return { label: 'BÁSICO', css: 'badge-free', avatar: 'avatar-free', badge: true };
   });
 
   readonly inicial = computed(() =>

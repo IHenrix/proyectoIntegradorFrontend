@@ -1,0 +1,30 @@
+@if (svc.abierto()) {
+  <div class="lm-backdrop" (click)="svc.cerrar()">
+    <div class="lm-modal" (click)="$event.stopPropagation()">
+
+      <button class="lm-close" (click)="svc.cerrar()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="lm-icon-wrap">
+        <i class="fa-solid fa-plane-departure"></i>
+      </div>
+
+      <h3 class="lm-titulo">Inicia sesión para continuar</h3>
+      <p class="lm-msg">Accede a los detalles del vuelo, historial de precios y crea alertas WhatsApp.</p>
+
+      <div class="lm-actions">
+        <a routerLink="/auth" class="lm-btn lm-btn-primary" (click)="svc.cerrar()">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Iniciar sesión
+        </a>
+        <a routerLink="/auth" [queryParams]="{ modo: 'registro' }" class="lm-btn lm-btn-secondary" (click)="svc.cerrar()">
+          Crear cuenta gratis
+        </a>
+      </div>
+
+      <p class="lm-hint">Sin tarjeta. Sin compromisos. 100% gratis.</p>
+
+    </div>
+  </div>
+}

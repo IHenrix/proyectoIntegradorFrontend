@@ -24,7 +24,7 @@
         <div class="route-main">
           <div class="airline">
             @if (airlineLogo(d.aerolinea)) {
-              <span class="logo-circle">
+              <span class="logo-circle" [class]="'logo-circle ' + airlineCls(d.aerolinea)">
                 <img [src]="airlineLogo(d.aerolinea)" [alt]="d.aerolinea">
               </span>
             } @else {
@@ -73,9 +73,13 @@
                 <h2>Evolucion del precio</h2>
               </div>
               <div class="chart-filters">
-                <button type="button" class="cf-btn" [class.cf-active]="rango() === 7"  (click)="rango.set(7)">7D</button>
-                <button type="button" class="cf-btn" [class.cf-active]="rango() === 15" (click)="rango.set(15)">15D</button>
-                <button type="button" class="cf-btn" [class.cf-active]="rango() === 30" (click)="rango.set(30)">30D</button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 7"  (click)="tryRango(7)">7D</button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 15" [class.cf-locked]="!esPremium()" (click)="tryRango(15)">
+                  @if (!esPremium()) { <i class="fa-solid fa-lock cf-lock-icon"></i> } 15D
+                </button>
+                <button type="button" class="cf-btn" [class.cf-active]="rango() === 30" [class.cf-locked]="!esPremium()" (click)="tryRango(30)">
+                  @if (!esPremium()) { <i class="fa-solid fa-lock cf-lock-icon"></i> } 30D
+                </button>
               </div>
             </div>
 
@@ -97,7 +101,11 @@
                   }
                   <!-- Data lines -->
                   <polyline class="line-real" [attr.points]="actualPoints(d)"></polyline>
-                  <polyline class="line-pred" [attr.points]="prediccionPoints(d)"></polyline>
+                  @if (esPremium()) {
+                    <polyline class="line-pred" [attr.points]="prediccionPoints(d)"></polyline>
+                  } @else {
+                    <polyline class="line-pred line-pred-blur" [attr.points]="prediccionPoints(d)"></polyline>
+                  }
                 </svg>
                 <!-- Etiquetas eje X debajo del SVG -->
                 <div class="x-labels">
@@ -112,15 +120,31 @@
 
             <div class="chart-footer">
               <div class="legend">
-                <span><i class="dot real"></i> Historico</span>
-                <span><i class="dot pred"></i> Prediccion IA</span>
+                <span><i class="dot real"></i> Histórico</span>
+                @if (esPremium()) {
+                  <span><i class="dot pred"></i> Predicción IA</span>
+                } @else {
+                  <button type="button" class="legend-lock-btn" (click)="upgrade.abrir('prediccion')">
+                    <i class="fa-solid fa-lock"></i>
+                    <i class="dot pred"></i> Predicción IA
+                    <span class="legend-pro-tag">PRO</span>
+                  </button>
+                }
               </div>
             </div>
 
-            <div [class]="'recommendation ' + recomClase(d.recomendacion)">
-              <i [class]="recomIcono(d.recomendacion)"></i>
-              <span>{{ d.recomendacion }}</span>
-            </div>
+            @if (esPremium()) {
+              <div [class]="'recommendation ' + recomClase(d.recomendacion)">
+                <i [class]="recomIcono(d.recomendacion)"></i>
+                <span>{{ d.recomendacion }}</span>
+              </div>
+            } @else {
+              <div class="recommendation rec-locked" (click)="upgrade.abrir('prediccion')">
+                <i class="fa-solid fa-lock"></i>
+                <span>Recomendación IA — desbloquea con PRO</span>
+                <span class="rec-pro-cta">Ver planes →</span>
+              </div>
+            }
           </article>
 
           <!-- Policies panel -->
@@ -128,33 +152,48 @@
             <span class="eyebrow">Condiciones de la tarifa</span>
             <h2 class="policies-title">{{ d.tipoTarifa | titlecase }}</h2>
             <div class="policies-grid">
-              <div class="policy-item" [class.ok]="d.incluyeEquipaje">
-                <i [class]="d.incluyeEquipaje ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
-                <div>
-                  <strong>Equipaje de mano</strong>
-                  <span>{{ d.equipajeManoKg }} kg</span>
+              <div class="policy-item" [class.ok]="d.incluyeEquipaje" [class.no]="!d.incluyeEquipaje">
+                <div class="policy-icon">
+                  <i class="fa-solid fa-briefcase"></i>
                 </div>
+                <div class="policy-text">
+                  <strong>Equipaje de mano</strong>
+                  <span>{{ d.equipajeManoKg }} kg incluidos</span>
+                </div>
+                <i class="policy-status" [class]="d.incluyeEquipaje ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
               </div>
-              <div class="policy-item" [class.ok]="d.equipajeBodegaKg > 0">
-                <i [class]="d.equipajeBodegaKg > 0 ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
-                <div>
+
+              <div class="policy-item" [class.ok]="d.equipajeBodegaKg > 0" [class.no]="d.equipajeBodegaKg === 0">
+                <div class="policy-icon">
+                  <i class="fa-solid fa-suitcase-rolling"></i>
+                </div>
+                <div class="policy-text">
                   <strong>Equipaje de bodega</strong>
                   <span>{{ d.equipajeBodegaKg > 0 ? (d.equipajeBodegaKg + ' kg incluidos') : 'No incluido' }}</span>
                 </div>
+                <i class="policy-status" [class]="d.equipajeBodegaKg > 0 ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
               </div>
-              <div class="policy-item" [class.ok]="d.permiteReembolso">
-                <i [class]="d.permiteReembolso ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
-                <div>
+
+              <div class="policy-item" [class.ok]="d.permiteReembolso" [class.no]="!d.permiteReembolso">
+                <div class="policy-icon">
+                  <i class="fa-solid fa-rotate-left"></i>
+                </div>
+                <div class="policy-text">
                   <strong>Reembolso</strong>
                   <span>{{ d.permiteReembolso ? 'Permitido' : 'No permitido' }}</span>
                 </div>
+                <i class="policy-status" [class]="d.permiteReembolso ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
               </div>
-              <div class="policy-item" [class.ok]="d.asientoSeleccionable">
-                <i [class]="d.asientoSeleccionable ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
-                <div>
-                  <strong>Seleccion de asiento</strong>
+
+              <div class="policy-item" [class.ok]="d.asientoSeleccionable" [class.no]="!d.asientoSeleccionable">
+                <div class="policy-icon">
+                  <i class="fa-solid fa-couch"></i>
+                </div>
+                <div class="policy-text">
+                  <strong>Selección de asiento</strong>
                   <span>{{ d.asientoSeleccionable ? 'Incluida' : 'No incluida' }}</span>
                 </div>
+                <i class="policy-status" [class]="d.asientoSeleccionable ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
               </div>
             </div>
           </article>
@@ -174,68 +213,105 @@
             <strong>S/ {{ d.precioActual | number:'1.0-0' }}</strong>
           </div>
 
-          <form [formGroup]="form" (ngSubmit)="crearAlerta()">
-            <label>
-              Precio objetivo (S/)
-              <input type="number" min="1" formControlName="precioObjetivo">
-            </label>
+          <!-- ── Ya tiene alerta para este vuelo ── -->
+          @if (alertaExistente()) {
+            <div class="alerta-activa-card">
+              <div class="aac-icon">
+                <i class="fa-brands fa-whatsapp"></i>
+              </div>
+              <div class="aac-info">
+                <strong>Ya tienes una alerta activa</strong>
+                <span>Objetivo: <b>S/ {{ alertaExistente()!.precioObjetivo | number:'1.0-0' }}</b> · {{ alertaExistente()!.activa ? 'Activa' : 'Pausada' }}</span>
+              </div>
+            </div>
+            <a routerLink="/alertas" class="manage-link manage-link-primary">
+              <i class="fa-solid fa-list-check"></i>
+              Ver mis alertas
+            </a>
+          } @else {
 
-            <!-- Teléfono: obfuscado si tiene guardado, editable si no -->
-            @if (telefonoObfuscado()) {
-              <div class="tel-display">
-                <span class="tel-label">Celular WhatsApp</span>
-                <div class="tel-value">
-                  <i class="fa-brands fa-whatsapp"></i>
-                  <span>{{ telefonoObfuscado() }}</span>
-                  <a routerLink="/perfil" class="tel-edit">
-                    <i class="fa-solid fa-pen-to-square"></i> Cambiar
-                  </a>
-                </div>
-              </div>
-            } @else {
-              <div class="tel-warning">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <div>
-                  <strong>Sin celular registrado</strong>
-                  <span>Agrega tu número en tu <a routerLink="/perfil">perfil</a> para recibir alertas por WhatsApp.</span>
-                </div>
-              </div>
+            <form [formGroup]="form" (ngSubmit)="crearAlerta()">
               <label>
-                Celular WhatsApp
-                <input type="tel" placeholder="999999999" formControlName="telefono">
+                Precio objetivo (S/)
+                <input type="number" min="1" formControlName="precioObjetivo">
               </label>
+
+              <!-- Teléfono: obfuscado si tiene guardado, editable si no -->
+              @if (telefonoObfuscado()) {
+                <div class="tel-display">
+                  <span class="tel-label">Celular WhatsApp</span>
+                  <div class="tel-value">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>{{ telefonoObfuscado() }}</span>
+                    <a routerLink="/perfil" class="tel-edit">
+                      <i class="fa-solid fa-pen-to-square"></i> Cambiar
+                    </a>
+                  </div>
+                </div>
+              } @else {
+                @if (auth.estaAutenticado()) {
+                  <div class="tel-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                      <strong>Sin celular registrado</strong>
+                      <span>Agrega tu número en tu <a routerLink="/perfil">perfil</a> para recibir alertas por WhatsApp.</span>
+                    </div>
+                  </div>
+                }
+                <label>
+                  Celular WhatsApp
+                  <div class="tel-input-wrap">
+                    <span class="tel-prefix"><i class="fa-brands fa-whatsapp"></i> +51</span>
+                    <input type="tel" placeholder="912 345 678" formControlName="telefono">
+                  </div>
+                </label>
+              }
+
+              @if (!auth.estaAutenticado()) {
+                <a class="auth-link" routerLink="/auth">
+                  <i class="fa-solid fa-lock"></i>
+                  Inicia sesion para crear alertas
+                </a>
+              }
+
+              @if (limiteSuperado()) {
+                <div class="limite-banner-detalle">
+                  <div class="lbd-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                  <div class="lbd-text">
+                    <strong>Límite alcanzado</strong>
+                    <span>Ya tienes 3 alertas activas. Pasa a PRO para alertas ilimitadas.</span>
+                  </div>
+                </div>
+                <button type="button" class="btn-upgrade-alerta" (click)="upgrade.abrir('pausar')">
+                  <i class="fa-solid fa-bolt"></i>
+                  Obtener PRO — alertas ilimitadas
+                </button>
+              } @else {
+                <button type="submit" [disabled]="form.invalid">
+                  <i class="fa-brands fa-whatsapp"></i>
+                  Crear alerta
+                </button>
+              }
+            </form>
+
+            @if (mensaje()) {
+              <div class="ok-msg">
+                <i class="fa-solid fa-circle-check"></i>
+                {{ mensaje() }}
+              </div>
+            }
+            @if (error()) {
+              <div class="err-msg">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                {{ error() }}
+              </div>
             }
 
-            @if (!auth.estaAutenticado()) {
-              <a class="auth-link" routerLink="/auth">
-                <i class="fa-solid fa-lock"></i>
-                Inicia sesion para crear alertas
-              </a>
-            }
-
-            <button type="submit" [disabled]="form.invalid">
-              <i class="fa-brands fa-whatsapp"></i>
-              Crear alerta
-            </button>
-          </form>
-
-          @if (mensaje()) {
-            <div class="ok-msg">
-              <i class="fa-solid fa-circle-check"></i>
-              {{ mensaje() }}
-            </div>
+            <a routerLink="/alertas" class="manage-link">
+              <i class="fa-solid fa-list-check"></i>
+              Ver todas mis alertas
+            </a>
           }
-          @if (error()) {
-            <div class="err-msg">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              {{ error() }}
-            </div>
-          }
-
-          <a routerLink="/alertas" class="manage-link">
-            <i class="fa-solid fa-list-check"></i>
-            Ver todas mis alertas
-          </a>
         </aside>
 
       </section>

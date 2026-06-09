@@ -28,10 +28,23 @@
       </div>
       <span class="preview-edit"><i class="fa-solid fa-pen-to-square"></i></span>
     </button>
-    <button class="btn-excel" (click)="exportar()">
-      <i class="fa-solid fa-download"></i>
-      <span class="excel-txt"> Excel</span>
-    </button>
+
+    <!-- User pill -->
+    @if (auth.estaAutenticado()) {
+      <a routerLink="/alertas" class="top-icon-btn" title="Alertas">
+        <i class="fa-solid fa-bell"></i>
+      </a>
+      <a routerLink="/perfil" class="top-user-pill">
+        <div class="top-avatar" [class]="rolInfo().avatar">{{ inicial() }}</div>
+        <div class="top-user-info">
+          <span class="top-user-name">{{ auth.nombre() }}</span>
+          <span class="top-role-badge" [class]="rolInfo().css">{{ rolInfo().label }}</span>
+        </div>
+      </a>
+    } @else {
+      <a routerLink="/auth" class="top-btn-login">Iniciar sesión</a>
+    }
+
   </header>
 
   <!-- ══ MODAL ═════════════════════════════════════════════════════ -->
@@ -178,21 +191,23 @@
             </p>
           </div>
 
-          <div class="sema-legend">
-            <span class="sema-legend-title">Semáforo de precios:</span>
-            <span class="sema-legend-item legend-verde">
-              <i class="fa-solid fa-circle-check"></i> Buen precio — más barato que el histórico
-            </span>
-            <span class="sema-legend-item legend-amarillo">
-              <i class="fa-solid fa-circle-minus"></i> Precio normal — similar al histórico
-            </span>
-            <span class="sema-legend-item legend-rojo">
-              <i class="fa-solid fa-circle-exclamation"></i> Precio alto — más caro que el histórico
-            </span>
-          </div>
+          @if (auth.estaAutenticado()) {
+            <div class="sema-legend">
+              <span class="sema-legend-title">Semáforo de precios:</span>
+              <span class="sema-legend-item legend-verde">
+                <i class="fa-solid fa-circle-check"></i> Buen precio — más barato que el histórico
+              </span>
+              <span class="sema-legend-item legend-amarillo">
+                <i class="fa-solid fa-circle-minus"></i> Precio normal — similar al histórico
+              </span>
+              <span class="sema-legend-item legend-rojo">
+                <i class="fa-solid fa-circle-exclamation"></i> Precio alto — más caro que el histórico
+              </span>
+            </div>
+          }
 
           <div class="cards">
-            @for (p of paquetes(); track p.ida.id) {
+            @for (p of paquetesVisibles(); track p.ida.id) {
 
               <div class="card"
                    [attr.data-card-id]="p.ida.id"
@@ -250,27 +265,34 @@
                      [class.rotado]="cardAbierto() === p.ida.id"></i>
                 </div>
 
-                <!-- FRANJA SEMÁFORO — siempre visible -->
-                <div class="sema-strip">
-                  @if (p.ida.semaforo === 'verde') {
-                    <i class="fa-solid fa-circle-check sema-ico"></i>
-                    <span class="sema-label">Buen precio</span>
-                    <span class="sema-desc">— por debajo del histórico</span>
-                  } @else if (p.ida.semaforo === 'amarillo') {
-                    <i class="fa-solid fa-circle-minus sema-ico"></i>
-                    <span class="sema-label">Precio normal</span>
-                    <span class="sema-desc">— similar al histórico</span>
-                  } @else {
-                    <i class="fa-solid fa-circle-exclamation sema-ico"></i>
-                    <span class="sema-label">Precio alto</span>
-                    <span class="sema-desc">— por encima del histórico</span>
-                  }
-                  <span class="sema-strip-spacer"></span>
-                  <span class="sema-pct">
-                    <i class="fa-solid fa-tag"></i>
-                    {{ p.ida.tipoTarifa | titlecase }}
-                  </span>
-                </div>
+                <!-- FRANJA SEMÁFORO -->
+                @if (esPremium() && auth.estaAutenticado()) {
+                  <div class="sema-strip">
+                    @if (p.ida.semaforo === 'verde') {
+                      <i class="fa-solid fa-circle-check sema-ico"></i>
+                      <span class="sema-label">Buen precio</span>
+                      <span class="sema-desc">— por debajo del histórico</span>
+                    } @else if (p.ida.semaforo === 'amarillo') {
+                      <i class="fa-solid fa-circle-minus sema-ico"></i>
+                      <span class="sema-label">Precio normal</span>
+                      <span class="sema-desc">— similar al histórico</span>
+                    } @else {
+                      <i class="fa-solid fa-circle-exclamation sema-ico"></i>
+                      <span class="sema-label">Precio alto</span>
+                      <span class="sema-desc">— por encima del histórico</span>
+                    }
+                    <span class="sema-strip-spacer"></span>
+                    <span class="sema-pct"><i class="fa-solid fa-tag"></i> {{ p.ida.tipoTarifa | titlecase }}</span>
+                  </div>
+                } @else if (auth.estaAutenticado()) {
+                  <div class="sema-strip sema-locked" (click)="upgrade.abrir('semaforo'); $event.stopPropagation()">
+                    <i class="fa-solid fa-lock sema-ico"></i>
+                    <span class="sema-label">Semáforo de precios</span>
+                    <span class="sema-desc">— disponible en PRO</span>
+                    <span class="sema-strip-spacer"></span>
+                    <span class="sema-pro-tag">★ PRO</span>
+                  </div>
+                }
 
                 <!-- DETALLE EXPANDIDO (ambos legs) -->
                 @if (cardAbierto() === p.ida.id) {
@@ -369,9 +391,15 @@
                         <i class="fa-solid fa-tag"></i> Tarifa {{ p.ida.tipoTarifa | titlecase }}
                       </span>
                       <div class="det-actions">
-                        <button type="button" class="btn-detalle" (click)="verDetalle(p.ida.id, $event)">
-                          <i class="fa-solid fa-chart-line"></i> Ver detalle
-                        </button>
+                        @if (auth.estaAutenticado()) {
+                          <button type="button" class="btn-detalle" (click)="verDetalle(p.ida.id, $event)">
+                            <i class="fa-solid fa-chart-line"></i> Ver detalle
+                          </button>
+                        } @else {
+                          <button type="button" class="btn-detalle btn-detalle-login" (click)="loginModal.abrir(); $event.stopPropagation()">
+                            <i class="fa-solid fa-user"></i> Ver detalle
+                          </button>
+                        }
                         <a [href]="p.ida.urlAerolinea" target="_blank" rel="noopener noreferrer"
                            class="btn-seleccionar" (click)="$event.stopPropagation()">
                           <i class="fa-solid fa-ticket"></i> Seleccionar
@@ -385,6 +413,34 @@
               </div>
             }
           </div>
+
+          @if (hayMasPaquetesOcultos()) {
+            <div class="paywall">
+              <div class="paywall-blur-cards">
+                @for (i of [1,2,3]; track i) {
+                  <div class="paywall-ghost-card">
+                    <div class="ghost-logo"></div>
+                    <div class="ghost-info">
+                      <div class="ghost-line w60"></div>
+                      <div class="ghost-line w40"></div>
+                    </div>
+                    <div class="ghost-price"></div>
+                  </div>
+                }
+              </div>
+              <div class="paywall-cta">
+                <div class="paywall-icon">✈</div>
+                <h3>Hay <strong>{{ paquetes().length - LIMITE_GUEST }} paquetes más</strong> esperándote</h3>
+                <p>Regístrate gratis para ver todos los resultados,<br>el semáforo de precios y los detalles de cada vuelo.</p>
+                <div class="paywall-actions">
+                  <a routerLink="/auth" class="paywall-btn-primary">Crear cuenta gratis</a>
+                  <a routerLink="/auth" class="paywall-btn-secondary">Ya tengo cuenta — Iniciar sesión</a>
+                </div>
+                <p class="paywall-hint">Sin tarjeta. Sin compromisos. 100% gratis.</p>
+              </div>
+            </div>
+          }
+
         }
 
       <!-- ══ SOLO IDA: cards individuales ══════════════════════════ -->
@@ -395,21 +451,23 @@
           <p class="ordenado">Ordenado por precio</p>
         </div>
 
-        <div class="sema-legend">
-          <span class="sema-legend-title">Semáforo de precios:</span>
-          <span class="sema-legend-item legend-verde">
-            <i class="fa-solid fa-circle-check"></i> Buen precio — más barato que el histórico
-          </span>
-          <span class="sema-legend-item legend-amarillo">
-            <i class="fa-solid fa-circle-minus"></i> Precio normal — similar al histórico
-          </span>
-          <span class="sema-legend-item legend-rojo">
-            <i class="fa-solid fa-circle-exclamation"></i> Precio alto — más caro que el histórico
-          </span>
-        </div>
+        @if (auth.estaAutenticado()) {
+          <div class="sema-legend">
+            <span class="sema-legend-title">Semáforo de precios:</span>
+            <span class="sema-legend-item legend-verde">
+              <i class="fa-solid fa-circle-check"></i> Buen precio — más barato que el histórico
+            </span>
+            <span class="sema-legend-item legend-amarillo">
+              <i class="fa-solid fa-circle-minus"></i> Precio normal — similar al histórico
+            </span>
+            <span class="sema-legend-item legend-rojo">
+              <i class="fa-solid fa-circle-exclamation"></i> Precio alto — más caro que el histórico
+            </span>
+          </div>
+        }
 
         <div class="cards">
-          @for (v of vueloService.vuelos(); track v.id) {
+          @for (v of vuelosVisibles(); track v.id) {
 
             <div class="card"
                  [attr.data-card-id]="v.id"
@@ -446,27 +504,34 @@
                    [class.rotado]="cardAbierto() === v.id"></i>
               </div>
 
-              <!-- FRANJA SEMÁFORO — siempre visible -->
-              <div class="sema-strip">
-                @if (v.semaforo === 'verde') {
-                  <i class="fa-solid fa-circle-check sema-ico"></i>
-                  <span class="sema-label">Buen precio</span>
-                  <span class="sema-desc">— por debajo del histórico</span>
-                } @else if (v.semaforo === 'amarillo') {
-                  <i class="fa-solid fa-circle-minus sema-ico"></i>
-                  <span class="sema-label">Precio normal</span>
-                  <span class="sema-desc">— similar al histórico</span>
-                } @else {
-                  <i class="fa-solid fa-circle-exclamation sema-ico"></i>
-                  <span class="sema-label">Precio alto</span>
-                  <span class="sema-desc">— por encima del histórico</span>
-                }
-                <span class="sema-strip-spacer"></span>
-                <span class="sema-pct">
-                  <i class="fa-solid fa-tag"></i>
-                  {{ v.tipoTarifa | titlecase }}
-                </span>
-              </div>
+              <!-- FRANJA SEMÁFORO -->
+              @if (esPremium() && auth.estaAutenticado()) {
+                <div class="sema-strip">
+                  @if (v.semaforo === 'verde') {
+                    <i class="fa-solid fa-circle-check sema-ico"></i>
+                    <span class="sema-label">Buen precio</span>
+                    <span class="sema-desc">— por debajo del histórico</span>
+                  } @else if (v.semaforo === 'amarillo') {
+                    <i class="fa-solid fa-circle-minus sema-ico"></i>
+                    <span class="sema-label">Precio normal</span>
+                    <span class="sema-desc">— similar al histórico</span>
+                  } @else {
+                    <i class="fa-solid fa-circle-exclamation sema-ico"></i>
+                    <span class="sema-label">Precio alto</span>
+                    <span class="sema-desc">— por encima del histórico</span>
+                  }
+                  <span class="sema-strip-spacer"></span>
+                  <span class="sema-pct"><i class="fa-solid fa-tag"></i> {{ v.tipoTarifa | titlecase }}</span>
+                </div>
+              } @else if (auth.estaAutenticado()) {
+                <div class="sema-strip sema-locked" (click)="upgrade.abrir('semaforo'); $event.stopPropagation()">
+                  <i class="fa-solid fa-lock sema-ico"></i>
+                  <span class="sema-label">Semáforo de precios</span>
+                  <span class="sema-desc">— disponible en PRO</span>
+                  <span class="sema-strip-spacer"></span>
+                  <span class="sema-pro-tag">★ PRO</span>
+                </div>
+              }
 
               <!-- DETALLE EXPANDIDO -->
               @if (cardAbierto() === v.id) {
@@ -519,9 +584,15 @@
                       <i class="fa-solid fa-tag"></i> Tarifa {{ v.tipoTarifa | titlecase }}
                     </span>
                     <div class="det-actions">
-                      <button type="button" class="btn-detalle" (click)="verDetalle(v.id, $event)">
-                        <i class="fa-solid fa-chart-line"></i> Ver detalle
-                      </button>
+                      @if (auth.estaAutenticado()) {
+                        <button type="button" class="btn-detalle" (click)="verDetalle(v.id, $event)">
+                          <i class="fa-solid fa-chart-line"></i> Ver detalle
+                        </button>
+                      } @else {
+                        <button type="button" class="btn-detalle btn-detalle-login" (click)="loginModal.abrir(); $event.stopPropagation()">
+                          <i class="fa-solid fa-user"></i> Ver detalle
+                        </button>
+                      }
                       <a [href]="v.urlAerolinea" target="_blank" rel="noopener noreferrer"
                          class="btn-seleccionar" (click)="$event.stopPropagation()">
                         <i class="fa-solid fa-ticket"></i> Seleccionar
@@ -535,8 +606,43 @@
           }
         </div>
 
+        <!-- ══ PAYWALL: solo para no logueados ═══════════════════════ -->
+        @if (hayMasOcultos()) {
+          <div class="paywall">
+            <div class="paywall-blur-cards">
+              @for (i of [1,2,3]; track i) {
+                <div class="paywall-ghost-card">
+                  <div class="ghost-logo"></div>
+                  <div class="ghost-info">
+                    <div class="ghost-line w60"></div>
+                    <div class="ghost-line w40"></div>
+                  </div>
+                  <div class="ghost-price"></div>
+                </div>
+              }
+            </div>
+            <div class="paywall-cta">
+              <div class="paywall-icon">✈</div>
+              <h3>Hay <strong>{{ vueloService.vuelos().length - LIMITE_GUEST }} vuelos más</strong> esperándote</h3>
+              <p>Regístrate gratis para ver todos los resultados,<br>el semáforo de precios y los detalles de cada vuelo.</p>
+              <div class="paywall-actions">
+                <a routerLink="/auth" class="paywall-btn-primary">
+                  Crear cuenta gratis
+                </a>
+                <a routerLink="/auth" class="paywall-btn-secondary">
+                  Ya tengo cuenta — Iniciar sesión
+                </a>
+              </div>
+              <p class="paywall-hint">Sin tarjeta. Sin compromisos. 100% gratis.</p>
+            </div>
+          </div>
+        }
+
       }
     }
 
   </main>
+
+  <app-footer />
+
 </div>

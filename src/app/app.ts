@@ -1,10 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { UpgradeModalComponent } from './shared/components/upgrade-modal/upgrade-modal.component';
+import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
+import { LoginModalComponent } from './shared/components/login-modal/login-modal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `<router-outlet />`
+  imports: [RouterOutlet, UpgradeModalComponent, ConfirmModalComponent, LoginModalComponent],
+  template: `<router-outlet /><app-upgrade-modal /><app-confirm-modal /><app-login-modal />`
 })
 export class App {}

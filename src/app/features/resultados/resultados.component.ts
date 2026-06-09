@@ -4,13 +4,17 @@ import { Location, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { VueloService } from '../../core/services/vuelo.service';
 import { AeropuertoService, Aeropuerto } from '../../core/services/aeropuerto.service';
+import { AuthService } from '../../core/services/auth.service';
+import { UpgradeModalService } from '../../core/services/upgrade-modal.service';
+import { LoginModalService } from '../../core/services/login-modal.service';
 import { BusquedaParams } from '../../core/models/vuelo.model';
 import { CalendarioComponent } from '../../shared/components/calendario/calendario.component';
+import { FooterComponent } from '../../shared/components/footer/footer.component';
 
 @Component({
   selector: 'app-resultados',
   standalone: true,
-  imports: [DecimalPipe, TitleCasePipe, ReactiveFormsModule, CalendarioComponent, RouterLink],
+  imports: [DecimalPipe, TitleCasePipe, ReactiveFormsModule, CalendarioComponent, RouterLink, FooterComponent],
   templateUrl: './resultados.component.html',
   styleUrl: './resultados.component.scss'
 })
@@ -21,6 +25,49 @@ export class ResultadosComponent implements OnInit {
   private fb        = inject(FormBuilder);
   vueloService      = inject(VueloService);
   aeropuertoService = inject(AeropuertoService);
+  auth              = inject(AuthService);
+  upgrade           = inject(UpgradeModalService);
+  loginModal        = inject(LoginModalService);
+
+  esPremium = computed(() => {
+    const r = this.auth.rol();
+    return r === 'usuario_premium' || r === 'admin';
+  });
+
+  readonly inicial  = computed(() => (this.auth.nombre() ?? 'U').trim().charAt(0).toUpperCase());
+  readonly rolInfo  = computed(() => {
+    const r = this.auth.rol();
+    if (r === 'admin')           return { label: 'ADMIN',   css: 'badge-admin',   avatar: 'avatar-admin' };
+    if (r === 'usuario_premium') return { label: '★ PRO',   css: 'badge-premium', avatar: 'avatar-premium' };
+    return                              { label: 'BÁSICO',  css: 'badge-free',    avatar: 'avatar-free' };
+  });
+
+  readonly LIMITE_GUEST = 3;
+
+  vuelosVisibles = computed(() => {
+    const vs = this.vueloService.vuelos();
+    return this.auth.estaAutenticado() ? vs : vs.slice(0, this.LIMITE_GUEST);
+  });
+
+  hayMasOcultos = computed(() =>
+    !this.auth.estaAutenticado() && this.vueloService.vuelos().length > this.LIMITE_GUEST
+  );
+
+  paquetesVisibles = computed(() => {
+    const ps = this.paquetes();
+    return this.auth.estaAutenticado() ? ps : ps.slice(0, this.LIMITE_GUEST);
+  });
+
+  hayMasPaquetesOcultos = computed(() =>
+    !this.auth.estaAutenticado() && this.paquetes().length > this.LIMITE_GUEST
+  );
+
+  totalOcultos = computed(() => {
+    if (this.auth.estaAutenticado()) return 0;
+    const soloIda = this.vueloService.vuelos().length - this.LIMITE_GUEST;
+    const paq     = this.paquetes().length - this.LIMITE_GUEST;
+    return Math.max(soloIda, paq, 0);
+  });
 
   @ViewChild('inpO') inpO!: ElementRef<HTMLInputElement>;
   @ViewChild('inpD') inpD!: ElementRef<HTMLInputElement>;
@@ -73,17 +120,7 @@ export class ResultadosComponent implements OnInit {
     return Array.from({ length: len }, (_, i) => ({ ida: vs[i], vuelta: vv[i] }));
   });
 
-  private autoOpenDone = false;
-
   constructor() {
-    effect(() => {
-      const ps = this.paquetes();
-      const vs = this.vueloService.vuelos();
-      if (this.autoOpenDone) return;
-      const id = ps.length > 0 ? ps[0].ida.id : vs.length > 0 ? vs[0].id : null;
-      if (id !== null) { this.autoOpenDone = true; this.cardAbierto.set(id); }
-    }, { allowSignalWrites: true });
-
     effect(() => {
       const apts = this.aeropuertoService.aeropuertos();
       if (!apts.length || !this.params) return;
@@ -254,7 +291,6 @@ export class ResultadosComponent implements OnInit {
       replaceUrl: true,
     });
     this.params = newParams;
-    this.autoOpenDone = false;
     this.cardAbierto.set(null);
     window.scrollTo({ top: 0, behavior: 'instant' });
     this.cerrarModal();

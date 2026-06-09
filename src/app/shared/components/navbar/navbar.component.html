@@ -27,11 +27,7 @@
           </div>
           <div class="user-info">
             <span class="user-name">{{ auth.nombre() }}</span>
-            @if (rolInfo().badge) {
-              <span class="role-badge" [class]="rolInfo().css">{{ rolInfo().label }}</span>
-            } @else {
-              <span class="role-badge badge-free">Free</span>
-            }
+            <span class="role-badge" [class]="rolInfo().css">{{ rolInfo().label }}</span>
           </div>
           <i class="fa-solid fa-chevron-right user-arrow"></i>
         </a>

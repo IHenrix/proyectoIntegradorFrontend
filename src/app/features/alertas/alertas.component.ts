@@ -4,6 +4,9 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AlertaService } from '../../core/services/alerta.service';
 import { AeropuertoService } from '../../core/services/aeropuerto.service';
+import { AuthService } from '../../core/services/auth.service';
+import { UpgradeModalService } from '../../core/services/upgrade-modal.service';
+import { ConfirmModalService } from '../../core/services/confirm-modal.service';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 
@@ -18,13 +21,31 @@ export class AlertasComponent implements OnInit {
   private fb = inject(FormBuilder);
   alertaService = inject(AlertaService);
   aeropuertoService = inject(AeropuertoService);
+  auth    = inject(AuthService);
+  upgrade = inject(UpgradeModalService);
+  confirm = inject(ConfirmModalService);
+
+  readonly LIMITE_ALERTAS_FREE = 3;
+
+  esPremium = computed(() => {
+    const r = this.auth.rol();
+    return r === 'usuario_premium' || r === 'admin';
+  });
+
+  limiteSuperado = computed(() =>
+    !this.esPremium() && this.alertaService.alertas().length >= this.LIMITE_ALERTAS_FREE
+  );
 
   fechaMin = new Date().toISOString().split('T')[0];
   mensaje = signal<string | null>(null);
   error = signal<string | null>(null);
   listaError = signal<string | null>(null);
 
-  alertasActivas = computed(() => this.alertaService.alertas().filter(a => a.activa));
+  mostrarFormulario = signal(false);
+
+  alertasActivas          = computed(() => this.alertaService.alertas().filter(a => a.activa));
+  alertasPausadas         = computed(() => this.alertaService.alertas().filter(a => !a.activa));
+  alertasConBajaDePrecios = computed(() => this.alertaService.alertas().filter(a => this.esHit(a)));
 
   form = this.fb.group({
     origen: ['LIM', Validators.required],
@@ -68,19 +89,62 @@ export class AlertasComponent implements OnInit {
     });
   }
 
-  pausar(id: number): void {
+  async pausar(id: number): Promise<void> {
+    if (!this.esPremium()) { this.upgrade.abrir('pausar'); return; }
+    const ok = await this.confirm.abrir({
+      tipo:        'warning',
+      titulo:      '¿Pausar esta alerta?',
+      mensaje:     'La alerta no se eliminará, pero dejarás de recibir notificaciones por WhatsApp mientras esté pausada.',
+      labelOk:     'Sí, pausar',
+      labelCancel: 'Cancelar',
+    });
+    if (!ok) return;
     this.alertaService.pausar(id).subscribe({
       error: () => this.error.set('No se pudo pausar la alerta.')
     });
   }
 
-  eliminar(id: number): void {
+  async reactivar(id: number): Promise<void> {
+    const ok = await this.confirm.abrir({
+      tipo:        'info',
+      titulo:      '¿Reactivar esta alerta?',
+      mensaje:     'Volverás a recibir notificaciones por WhatsApp cuando el precio baje de tu objetivo.',
+      labelOk:     'Sí, reactivar',
+      labelCancel: 'Cancelar',
+    });
+    if (!ok) return;
+    this.alertaService.reactivar(id).subscribe({
+      next: () => this.mensaje.set('Alerta reactivada correctamente.'),
+      error: () => this.error.set('No se pudo reactivar la alerta. Asegúrate de que el backend esté encendido.')
+    });
+  }
+
+  async eliminar(id: number): Promise<void> {
+    const ok = await this.confirm.abrir({
+      tipo:        'danger',
+      titulo:      '¿Eliminar alerta?',
+      mensaje:     'Se eliminará esta alerta de forma permanente. No podrás recuperarla.',
+      labelOk:     'Sí, eliminar',
+      labelCancel: 'Cancelar',
+    });
+    if (!ok) return;
     this.alertaService.eliminar(id).subscribe({
       error: () => this.error.set('No se pudo eliminar la alerta.')
     });
   }
 
+  esHit(a: { precioActual?: number | null; precioObjetivo: number }): boolean {
+    return !!a.precioActual && a.precioActual < a.precioObjetivo;
+  }
+
   ciudad(code: string): string {
     return this.aeropuertoService.ciudad(code);
+  }
+
+  fmtFecha(iso: string): string {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d)
+      .toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 }

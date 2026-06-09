@@ -1,0 +1,95 @@
+.cm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: cmFadeIn .15s ease;
+}
+
+.cm-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 32px 28px;
+  width: min(420px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .22);
+  animation: cmSlideUp .2s ease;
+}
+
+// ── Icono ────────────────────────────────────────────────────────
+.cm-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.cm-danger .cm-icon-wrap  { background: #fff1f2; color: #e11d48; }
+.cm-warning .cm-icon-wrap { background: #fffbeb; color: #d97706; }
+.cm-info .cm-icon-wrap    { background: #eff6ff; color: #2563eb; }
+
+// ── Texto ────────────────────────────────────────────────────────
+.cm-titulo {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  text-align: center;
+}
+
+.cm-mensaje {
+  font-size: 14px;
+  color: #475569;
+  margin: 0;
+  text-align: center;
+  line-height: 1.55;
+}
+
+// ── Botones ──────────────────────────────────────────────────────
+.cm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.cm-btn {
+  flex: 1;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity .12s, transform .1s;
+
+  &:hover  { opacity: .88; }
+  &:active { transform: scale(.97); }
+}
+
+.cm-btn-cancel {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1.5px solid #e2e8f0;
+
+  &:hover { background: #e2e8f0; opacity: 1; }
+}
+
+.cm-danger  .cm-btn-ok { background: linear-gradient(135deg, #e11d48, #be123c); color: #fff; }
+.cm-warning .cm-btn-ok { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.cm-info    .cm-btn-ok { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; }
+
+// ── Animaciones ──────────────────────────────────────────────────
+@keyframes cmFadeIn  { from { opacity: 0; }                      to { opacity: 1; } }
+@keyframes cmSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

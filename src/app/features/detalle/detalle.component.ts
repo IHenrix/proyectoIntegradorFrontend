@@ -5,6 +5,8 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { VueloService } from '../../core/services/vuelo.service';
 import { AlertaService } from '../../core/services/alerta.service';
 import { AuthService } from '../../core/services/auth.service';
+import { UpgradeModalService } from '../../core/services/upgrade-modal.service';
+import { ConfirmModalService } from '../../core/services/confirm-modal.service';
 import { VueloDetalle } from '../../core/models/vuelo.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
@@ -23,14 +25,29 @@ export class DetalleComponent implements OnInit {
   private fb = inject(FormBuilder);
   private vueloService = inject(VueloService);
   private alertaService = inject(AlertaService);
-  auth = inject(AuthService);
+  auth    = inject(AuthService);
+  upgrade = inject(UpgradeModalService);
+  confirm = inject(ConfirmModalService);
+
+  esPremium = computed(() => {
+    const r = this.auth.rol();
+    return r === 'usuario_premium' || r === 'admin';
+  });
+
+  tryRango(dias: 7 | 15 | 30): void {
+    if (dias === 7 || this.esPremium()) {
+      this.rango.set(dias);
+    } else {
+      this.upgrade.abrir(dias === 15 ? 'historial_15d' : 'historial_30d');
+    }
+  }
 
   detalle  = signal<VueloDetalle | null>(null);
   cargando = signal(true);
   error    = signal<string | null>(null);
   mensaje  = signal<string | null>(null);
 
-  rango = signal<7 | 15 | 30>(30);
+  rango = signal<7 | 15 | 30>(7);
 
   telefonoGuardado = signal<string | null>(localStorage.getItem('telefono'));
 
@@ -41,9 +58,23 @@ export class DetalleComponent implements OnInit {
     return digits.slice(0, 3) + ' *** ' + digits.slice(-3);
   });
 
+  alertaExistente = computed(() => {
+    const d = this.detalle();
+    if (!d) return null;
+    return this.alertaService.alertas().find(
+      a => a.idVuelo === d.idVuelo && a.tipoTarifa === d.tipoTarifa
+    ) ?? null;
+  });
+
+  limiteSuperado = computed(() =>
+    !this.esPremium() &&
+    this.auth.estaAutenticado() &&
+    this.alertaService.alertas().length >= 3
+  );
+
   form = this.fb.group({
     precioObjetivo: [0, [Validators.required, Validators.min(1)]],
-    telefono: ['', [Validators.required, Validators.pattern(/^(\+?51)?9[0-9]{8}$/)]]
+    telefono: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
   });
 
   historicoFiltrado = computed(() => {
@@ -72,13 +103,19 @@ export class DetalleComponent implements OnInit {
       this.router.navigate(['/resultados']);
       return;
     }
+    if (this.auth.estaAutenticado()) {
+      this.alertaService.listar().subscribe();
+    }
     this.vueloService.detalle(id).subscribe({
       next: detalle => {
         this.detalle.set(detalle);
         const tel = this.telefonoGuardado();
+        const telSinPrefijo = tel
+          ? tel.replace(/^\+?51/, '').trim()
+          : '';
         this.form.patchValue({
           precioObjetivo: Math.round(detalle.precioActual * 0.9),
-          ...(tel ? { telefono: tel } : {})
+          ...(telSinPrefijo ? { telefono: telSinPrefijo } : {})
         });
         this.cargando.set(false);
       },
@@ -89,21 +126,53 @@ export class DetalleComponent implements OnInit {
     });
   }
 
-  crearAlerta(): void {
+  async crearAlerta(): Promise<void> {
     const d = this.detalle();
     if (!d || this.form.invalid) return;
     if (!this.auth.estaAutenticado()) {
       this.router.navigate(['/auth']);
       return;
     }
+    if (!this.esPremium()) {
+      const total = this.alertaService.alertas().length;
+      if (total >= 3) {
+        this.upgrade.abrir('pausar');
+        return;
+      }
+    }
+
+    const restante = this.esPremium()
+      ? ''
+      : `\nTe quedan ${3 - this.alertaService.alertas().length} de 3 alertas disponibles en tu plan Básico.`;
+
+    const ok = await this.confirm.abrir({
+      tipo:        'info',
+      titulo:      '¿Crear alerta de precio?',
+      mensaje:     `Te avisaremos por WhatsApp cuando el precio baje de S/ ${this.form.value.precioObjetivo} para este vuelo.${restante}`,
+      labelOk:     'Sí, crear alerta',
+      labelCancel: 'Cancelar',
+    });
+    if (!ok) return;
+
     this.mensaje.set(null);
+    const telRaw = this.form.value.telefono ?? '';
+    const telefono = telRaw.startsWith('+') ? telRaw : `+51${telRaw}`;
     this.alertaService.crear({
       tarifaId: d.idTarifa,
       precioObjetivo: Number(this.form.value.precioObjetivo),
-      telefono: this.form.value.telefono!
+      telefono,
     }).subscribe({
-      next: () => this.mensaje.set('Alerta creada. La veras en tu dashboard.'),
-      error: err => this.error.set(err.error?.message ?? 'No se pudo crear la alerta.')
+      next: () => this.mensaje.set('¡Alerta creada! Te avisaremos por WhatsApp cuando baje el precio.'),
+      error: err => {
+        const msg = err.error?.message ?? '';
+        if (msg === 'LIMITE_ALERTAS') {
+          this.upgrade.abrir('pausar');
+        } else if (msg === 'ALERTA_DUPLICADA') {
+          this.error.set('Ya tienes una alerta activa para este vuelo y tarifa.');
+        } else {
+          this.error.set(msg || 'No se pudo crear la alerta.');
+        }
+      }
     });
   }
 
@@ -140,6 +209,14 @@ export class DetalleComponent implements OnInit {
       const y = height - ((price - min) / range) * height;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
+  }
+
+  airlineCls(nombre: string): string {
+    const n = nombre.toLowerCase();
+    if (n.includes('latam')) return 'al-latam';
+    if (n.includes('sky'))   return 'al-sky';
+    if (n.includes('jet'))   return 'al-jet';
+    return '';
   }
 
   airlineLogo(nombre: string): string {

@@ -32,6 +32,12 @@ export class AlertaService {
     );
   }
 
+  reactivar(id: number): Observable<Alerta> {
+    return this.http.patch<Alerta>(`${this.API}/${id}/reactivar`, {}).pipe(
+      tap(alerta => this.alertas.update(items => items.map(x => x.id === id ? alerta : x)))
+    );
+  }
+
   eliminar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/${id}`).pipe(
       tap(() => this.alertas.update(items => items.filter(x => x.id !== id)))
