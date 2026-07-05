@@ -14,6 +14,12 @@
 
       @if (auth.estaAutenticado()) {
 
+        <!-- Ver funcionalidades del plan -->
+        <button type="button" class="nav-icon-btn" title="Ver mi plan" (click)="verMiPlan()">
+          <i class="fa-solid fa-crown"></i>
+          <span>Mi plan</span>
+        </button>
+
         <!-- Alertas -->
         <a routerLink="/alertas" routerLinkActive="active" class="nav-icon-btn" title="Alertas">
           <span class="alerta-badge-wrap">

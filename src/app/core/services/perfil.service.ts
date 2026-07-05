@@ -27,6 +27,16 @@ export interface SuscripcionData {
   estado:      string;
   metodoPago:  string;
   refInterna:  string;
+  autoRenovar: boolean;
+}
+
+export interface PagoRequest {
+  plan:           'mensual' | 'anual';
+  metodo:         'tarjeta_credito' | 'tarjeta_debito' | 'yape' | 'plin';
+  titular?:       string;
+  numeroTarjeta?: string;
+  expira?:        string;
+  emailRecibo?:   string;
 }
 
 export interface ActualizarPerfilRequest {
@@ -63,5 +73,13 @@ export class PerfilService {
 
   actualizar(data: ActualizarPerfilRequest): Observable<PerfilData> {
     return this.http.put<PerfilData>(this.API, data);
+  }
+
+  pagar(data: PagoRequest): Observable<SuscripcionData> {
+    return this.http.post<SuscripcionData>(`${this.API}/suscripcion`, data);
+  }
+
+  cancelarSuscripcion(): Observable<void> {
+    return this.http.patch<void>(`${this.API}/suscripcion/cancelar`, {});
   }
 }

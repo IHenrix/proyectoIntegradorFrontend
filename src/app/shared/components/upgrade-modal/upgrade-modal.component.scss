@@ -140,6 +140,10 @@
   padding: 4px 14px;
   border-radius: 999px;
   white-space: nowrap;
+
+  &.um-popular-badge-actual {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+  }
 }
 
 // ── Plan top ──────────────────────────────────────────────────────
@@ -255,6 +259,13 @@
   color: #fff;
   box-shadow: 0 4px 16px rgba(234,88,12,.4);
   &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(234,88,12,.5); }
+
+  &.um-btn-actual {
+    background: rgba(255,255,255,.12);
+    box-shadow: none;
+    cursor: default;
+    &:hover { transform: none; box-shadow: none; }
+  }
 }
 
 .um-guarantee {

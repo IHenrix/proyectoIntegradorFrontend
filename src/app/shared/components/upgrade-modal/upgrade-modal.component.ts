@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { UpgradeModalService, UPGRADE_COPY } from '../../../core/services/upgrade-modal.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-upgrade-modal',
@@ -12,7 +13,13 @@ import { UpgradeModalService, UPGRADE_COPY } from '../../../core/services/upgrad
 export class UpgradeModalComponent {
   svc    = inject(UpgradeModalService);
   router = inject(Router);
+  auth   = inject(AuthService);
   copy   = UPGRADE_COPY;
+
+  esPremium = computed(() => {
+    const r = this.auth.rol();
+    return r === 'usuario_premium' || r === 'admin';
+  });
 
   featureCopy() { return this.copy[this.svc.feature()]; }
 

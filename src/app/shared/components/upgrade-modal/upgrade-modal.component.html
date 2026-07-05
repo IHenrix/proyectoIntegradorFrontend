@@ -13,7 +13,11 @@
           <i [class]="featureCopy().icono"></i>
           {{ featureCopy().titulo }}
         </div>
-        <h2 class="um-title">Desbloquea todo con <span class="um-pro">★ PRO</span></h2>
+        @if (esPremium()) {
+          <h2 class="um-title">Esto es lo que incluye tu plan <span class="um-pro">★ PRO</span></h2>
+        } @else {
+          <h2 class="um-title">Desbloquea todo con <span class="um-pro">★ PRO</span></h2>
+        }
         <p class="um-subtitle">{{ featureCopy().desc }}</p>
       </div>
 
@@ -37,12 +41,20 @@
               </li>
             }
           </ul>
-          <button class="um-btn um-btn-free" disabled>Plan actual</button>
+          @if (esPremium()) {
+            <button class="um-btn um-btn-free" disabled>No es tu plan</button>
+          } @else {
+            <button class="um-btn um-btn-free" disabled>Plan actual</button>
+          }
         </div>
 
         <!-- Premium -->
         <div class="um-plan um-plan-premium">
-          <div class="um-popular-badge">MÁS POPULAR</div>
+          @if (esPremium()) {
+            <div class="um-popular-badge um-popular-badge-actual">TU PLAN ACTUAL</div>
+          } @else {
+            <div class="um-popular-badge">MÁS POPULAR</div>
+          }
           <div class="um-plan-top">
             <span class="um-plan-badge badge-premium">★ PRO</span>
             <div class="um-plan-price">
@@ -59,10 +71,17 @@
               </li>
             }
           </ul>
-          <button type="button" class="um-btn um-btn-premium" (click)="irAPagar()">
-            <i class="fa-solid fa-bolt"></i>
-            Obtener PRO ahora
-          </button>
+          @if (esPremium()) {
+            <button type="button" class="um-btn um-btn-premium um-btn-actual" disabled>
+              <i class="fa-solid fa-circle-check"></i>
+              Tu plan actual
+            </button>
+          } @else {
+            <button type="button" class="um-btn um-btn-premium" (click)="irAPagar()">
+              <i class="fa-solid fa-bolt"></i>
+              Obtener PRO ahora
+            </button>
+          }
           <p class="um-guarantee">
             <i class="fa-solid fa-shield-halved"></i>
             Cancela cuando quieras

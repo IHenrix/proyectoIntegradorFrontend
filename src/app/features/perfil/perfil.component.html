@@ -83,7 +83,7 @@
                   <span class="dato-label">Suscripción</span>
                   <span class="dato-val">
                     PRO {{ suscripcion()!.plan === 'anual' ? 'Anual' : 'Mensual' }}
-                    · {{ suscripcion()!.estado === 'activa' ? 'Activa' : 'Cancelada' }}
+                    · {{ estadoLabel(suscripcion()!.estado) }}
                   </span>
                 </div>
               </div>
@@ -102,12 +102,12 @@
           <div class="perfil-tabs">
             <button type="button" class="perfil-tab"
                     [class.active]="tabActivo() === 'info'"
-                    (click)="tabActivo.set('info')">
+                    (click)="cambiarTab('info')">
               <i class="fa-solid fa-user"></i> Mi información
             </button>
             <button type="button" class="perfil-tab"
                     [class.active]="tabActivo() === 'pagos'"
-                    (click)="tabActivo.set('pagos')">
+                    (click)="cambiarTab('pagos')">
               <i class="fa-solid fa-credit-card"></i> Suscripción
               @if (suscripcion()?.estado === 'activa') {
                 <span class="tab-badge">PRO</span>
@@ -272,16 +272,48 @@
           @if (tabActivo() === 'pagos') {
             <div class="pagos-tab">
 
-              <!-- Plan activo -->
-              @if (suscripcion()?.estado === 'activa') {
+              <!-- Sub-tabs: Plan actual / Historial -->
+              <div class="sub-tabs">
+                <button type="button" class="sub-tab"
+                        [class.active]="subTabPagos() === 'plan'"
+                        (click)="subTabPagos.set('plan')">
+                  <i class="fa-solid fa-crown"></i> Plan actual
+                </button>
+                <button type="button" class="sub-tab"
+                        [class.active]="subTabPagos() === 'historial'"
+                        (click)="subTabPagos.set('historial')">
+                  <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                  @if (historialSubs().length > 0) {
+                    <span class="sub-tab-count">{{ historialSubs().length }}</span>
+                  }
+                </button>
+              </div>
+
+              <!-- Mensajes de acciones sobre la suscripción (cancelar, etc.) -->
+              @if (mensaje()) {
+                <div class="ok-msg">
+                  <i class="fa-solid fa-circle-check"></i> {{ mensaje() }}
+                </div>
+              }
+              @if (error()) {
+                <div class="err-msg">
+                  <i class="fa-solid fa-triangle-exclamation"></i> {{ error() }}
+                </div>
+              }
+
+            @if (subTabPagos() === 'plan') {
+
+              <!-- Plan activo (salvo que el usuario haya pedido renovar manualmente antes de vencer) -->
+              @if (suscripcion()?.estado === 'activa' && !renovandoManual()) {
                 <div class="sub-card">
                   <div class="sub-card-header">
                     <div class="sub-plan-badge">
                       <i class="fa-solid fa-crown"></i>
                       PRO {{ suscripcion()!.plan === 'anual' ? 'Anual' : 'Mensual' }}
                     </div>
-                    <span class="sub-status-badge">
-                      <i class="fa-solid fa-circle"></i> Activa
+                    <span class="sub-status-badge" [class]="estadoCss(suscripcion()!.estado)">
+                      <i class="fa-solid" [class]="estadoIcono(suscripcion()!.estado)"></i>
+                      {{ estadoLabel(suscripcion()!.estado) }}
                     </span>
                   </div>
                   <div class="sub-activa-info">
@@ -302,47 +334,81 @@
                       <span class="sai-val ref-num">#{{ suscripcion()!.refNum }}</span>
                     </div>
                   </div>
-                  <div class="sub-card-footer">
-                    <p class="sub-note">
-                      <i class="fa-solid fa-shield-halved"></i>
-                      Renueva el {{ formatDate(suscripcion()!.fin) }}.
+                  @if (suscripcion()!.autoRenovar) {
+                    <p class="sub-note sub-note-auto">
+                      <i class="fa-solid fa-rotate"></i>
+                      Se renovará automáticamente el {{ formatDate(suscripcion()!.fin) }} con tu {{ labelMetodo(suscripcion()!.metodo) }}.
                     </p>
+                  } @else if (diasParaVencer(suscripcion()!.fin) <= 7) {
+                    <div class="sub-status-banner banner-vencida">
+                      <i class="fa-solid fa-triangle-exclamation"></i>
+                      <div>
+                        <strong>Renueva manualmente antes del {{ formatDate(suscripcion()!.fin) }}</strong>
+                        <span>Los pagos con {{ labelMetodo(suscripcion()!.metodo) }} no se renuevan solos. Repite el pago para no perder tu acceso PRO.</span>
+                      </div>
+                    </div>
+                  }
+                  <div class="sub-card-footer">
+                    @if (!suscripcion()!.autoRenovar) {
+                      <button type="button" class="btn-pagar-inline" (click)="renovarManualmente()">
+                        <i class="fa-solid fa-rotate-right"></i> Renovar ahora
+                      </button>
+                    }
                     <button type="button" class="btn-cancelar-sub" (click)="cancelarSuscripcion()">
                       Cancelar suscripción
                     </button>
                   </div>
                 </div>
 
-              <!-- Sin plan activo: banner + formulario de pago -->
+              <!-- Sin plan activo (o renovación manual anticipada de Yape/Plin): banner + formulario de pago -->
               } @else {
-                @if (suscripcion()?.estado === 'cancelada') {
-                  <div class="sub-cancelled-banner">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                    <div>
-                      <strong>Suscripción cancelada</strong>
-                      <span>Tu plan PRO fue cancelado. Puedes contratar uno nuevo cuando quieras.</span>
+                <!-- El banner de estado solo aplica antes de iniciar un pago nuevo:
+                     mientras se procesa o ya hubo éxito, el paso de pago manda. -->
+                @if (stepPago() === 'form') {
+                  @if (renovandoManual()) {
+                    <div class="sub-status-banner banner-vencida">
+                      <i class="fa-solid fa-rotate-right"></i>
+                      <div>
+                        <strong>Renovando tu plan PRO por adelantado</strong>
+                        <span>Tu plan actual sigue activo hasta el {{ formatDate(suscripcion()!.fin) }}. Al confirmar, sumaremos un período más desde esa fecha.</span>
+                      </div>
                     </div>
-                  </div>
-                } @else {
-                  <div class="pago-intro">
-                    <div class="pago-intro-icon"><i class="fa-solid fa-rocket"></i></div>
-                    <div>
-                      <h3>Obtén PasajeYa <span class="pro-text">PRO</span></h3>
-                      <p>Alertas ilimitadas, predicción IA, reportes Excel y PDF, y mucho más.</p>
+                  } @else if (suscripcion()?.estado === 'vencida') {
+                    <div class="sub-status-banner banner-vencida">
+                      <i class="fa-solid fa-clock-rotate-left"></i>
+                      <div>
+                        <strong>Tu plan PRO venció</strong>
+                        <span>Venció el {{ formatDate(suscripcion()!.fin) }}. Renueva para recuperar tus alertas ilimitadas y reportes.</span>
+                      </div>
                     </div>
-                  </div>
+                  } @else if (suscripcion()?.estado === 'cancelada') {
+                    <div class="sub-status-banner banner-cancelada">
+                      <i class="fa-solid fa-circle-xmark"></i>
+                      <div>
+                        <strong>Suscripción cancelada</strong>
+                        <span>Tu plan PRO fue cancelado. Puedes contratar uno nuevo cuando quieras.</span>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="pago-intro">
+                      <div class="pago-intro-icon"><i class="fa-solid fa-rocket"></i></div>
+                      <div>
+                        <h3>Obtén PasajeYa <span class="pro-text">PRO</span></h3>
+                        <p>Alertas ilimitadas, predicción IA, reportes Excel y PDF, y mucho más.</p>
+                      </div>
+                    </div>
+                  }
                 }
                 <div class="pago-form-wrap">
                   <ng-container [ngTemplateOutlet]="tplPagoForm"></ng-container>
                 </div>
               }
 
+            } @else {
+
               <!-- Historial de suscripciones -->
               @if (historialSubs().length > 0) {
                 <div class="historial-section">
-                  <h3 class="historial-title">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Historial de suscripciones
-                  </h3>
                   <div class="historial-table-wrap">
                     <table class="historial-table">
                       <thead>
@@ -372,10 +438,9 @@
                             <td>{{ labelMetodo(s.metodoPago) }}</td>
                             <td class="ht-ref">#{{ s.refInterna }}</td>
                             <td>
-                              <span class="ht-estado" [class]="'estado-' + s.estado">
-                                @if (s.estado === 'activa') { <i class="fa-solid fa-circle"></i> Activa }
-                                @else if (s.estado === 'vencida') { <i class="fa-solid fa-clock"></i> Vencida }
-                                @else { <i class="fa-solid fa-xmark"></i> Cancelada }
+                              <span class="ht-estado" [class]="estadoCss(s.estado)">
+                                <i class="fa-solid" [class]="estadoIcono(s.estado)"></i>
+                                {{ estadoLabel(s.estado) }}
                               </span>
                             </td>
                           </tr>
@@ -384,7 +449,14 @@
                     </table>
                   </div>
                 </div>
+              } @else {
+                <div class="historial-vacio">
+                  <i class="fa-regular fa-clock"></i>
+                  <p>Aún no tienes suscripciones registradas.</p>
+                </div>
               }
+
+            }
 
             </div>
           }
@@ -395,30 +467,62 @@
   </main>
 
   <app-footer />
+
+  <!-- ── Modal de confirmación: suscripción premium activada ── -->
+  @if (mostrarModalExito()) {
+    <div class="modal-exito-backdrop" (click)="cerrarModalExito()">
+      <div class="modal-exito" (click)="$event.stopPropagation()">
+        <div class="modal-exito-icon">
+          <i class="fa-solid fa-crown"></i>
+        </div>
+        <h2>¡Ya eres PRO!</h2>
+        <p>Te has suscrito correctamente al plan Premium. Ya puedes disfrutar de todas las funciones sin límites.</p>
+
+        <div class="modal-exito-perks">
+          <div class="perk-item"><i class="fa-solid fa-check"></i> Alertas de precio ilimitadas</div>
+          <div class="perk-item"><i class="fa-solid fa-check"></i> Predicción de precios con IA</div>
+          <div class="perk-item"><i class="fa-solid fa-check"></i> Reportes en Excel y PDF</div>
+        </div>
+
+        <button type="button" class="modal-exito-btn" (click)="cerrarModalExito()">
+          Empezar a disfrutar PRO
+        </button>
+      </div>
+    </div>
+  }
 </div>
 
 <!-- Template del formulario de pago -->
 <ng-template #tplPagoForm>
 
-  <!-- ── Plan selector ── -->
-  <div class="plan-selector">
-    <button type="button" class="plan-opt"
-            [class.active]="planPago() === 'mensual'"
-            (click)="planPago.set('mensual')">
-      <span class="plan-opt-label">Mensual</span>
-      <span class="plan-opt-price">S/ 19 <small>/mes</small></span>
-    </button>
-    <button type="button" class="plan-opt"
-            [class.active]="planPago() === 'anual'"
-            (click)="planPago.set('anual')">
-      <span class="plan-opt-label">Anual</span>
-      <span class="plan-opt-price">S/ 120 <small>/año</small></span>
-      <span class="plan-save-badge">Ahorra 47%</span>
-    </button>
-  </div>
-
-  <!-- ── Step: Formulario ── -->
+  <!-- ── Step: Formulario (selector de plan incluido: no tiene sentido
+       dejar cambiar de plan mientras se procesa o ya se pagó) ── -->
   @if (stepPago() === 'form') {
+
+    <!-- ── Plan selector: oculto al renovar por adelantado porque el backend
+         extiende el MISMO plan que ya tenías, no permite cambiarlo aquí ── -->
+    @if (!renovandoManual()) {
+      <div class="plan-selector">
+        <button type="button" class="plan-opt"
+                [class.active]="planPago() === 'mensual'"
+                (click)="planPago.set('mensual')">
+          <span class="plan-opt-label">Mensual</span>
+          <span class="plan-opt-price">S/ 19 <small>/mes</small></span>
+        </button>
+        <button type="button" class="plan-opt"
+                [class.active]="planPago() === 'anual'"
+                (click)="planPago.set('anual')">
+          <span class="plan-opt-label">Anual</span>
+          <span class="plan-opt-price">S/ 120 <small>/año</small></span>
+          <span class="plan-save-badge">Ahorra 47%</span>
+        </button>
+      </div>
+    } @else {
+      <div class="plan-selector-fijo">
+        <i class="fa-solid fa-crown"></i>
+        Renovando tu plan PRO {{ planPago() === 'anual' ? 'Anual' : 'Mensual' }} · S/ {{ montoActual() }}
+      </div>
+    }
 
     <!-- Tabs de método -->
     <div class="metodo-tabs">
@@ -548,11 +652,6 @@
           Pagar S/ {{ montoActual() }}.00
         </button>
 
-        <p class="culqi-disclaimer">
-          <i class="fa-solid fa-shield-halved"></i>
-          Simulación académica — no se realiza ningún cargo real.
-        </p>
-
       </form>
     }
 
@@ -564,109 +663,37 @@
           <span class="qr-monto">S/ {{ montoActual() }}.00</span>
         </div>
 
-        <div class="qr-box" [class.pulsing]="qrAnimado()">
-          <!-- QR simulado: patrón de cuadrícula que parece QR real -->
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
-            <rect width="200" height="200" fill="white"/>
-            <!-- Esquina superior izquierda -->
-            <rect x="10" y="10" width="60" height="60" rx="4" fill="#6b21a8"/>
-            <rect x="20" y="20" width="40" height="40" rx="2" fill="white"/>
-            <rect x="28" y="28" width="24" height="24" rx="1" fill="#6b21a8"/>
-            <!-- Esquina superior derecha -->
-            <rect x="130" y="10" width="60" height="60" rx="4" fill="#6b21a8"/>
-            <rect x="140" y="20" width="40" height="40" rx="2" fill="white"/>
-            <rect x="148" y="28" width="24" height="24" rx="1" fill="#6b21a8"/>
-            <!-- Esquina inferior izquierda -->
-            <rect x="10" y="130" width="60" height="60" rx="4" fill="#6b21a8"/>
-            <rect x="20" y="140" width="40" height="40" rx="2" fill="white"/>
-            <rect x="28" y="148" width="24" height="24" rx="1" fill="#6b21a8"/>
-            <!-- Datos del QR (patrón simulado) -->
-            <rect x="80"  y="10"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="96"  y="10"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="112" y="10"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="88"  y="26"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="104" y="26"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="42"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="96"  y="42"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="112" y="42"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="58"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="104" y="58"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="74"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="88"  y="74"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="104" y="74"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="112" y="74"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="10"  y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="26"  y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="42"  y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="58"  y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="88"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="96"  y="88"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="120" y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="136" y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="152" y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="168" y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="184" y="80"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="112" y="88"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="128" y="88"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="144" y="88"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="168" y="88"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="10"  y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="34"  y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="50"  y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="104" width="8" height="8" fill="#6b21a8"/>
-            <rect x="96"  y="104" width="8" height="8" fill="#6b21a8"/>
-            <rect x="120" y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="144" y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="160" y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="176" y="96"  width="8" height="8" fill="#6b21a8"/>
-            <rect x="10"  y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="26"  y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="42"  y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="58"  y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="96"  y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="112" y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="136" y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="160" y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="184" y="112" width="8" height="8" fill="#6b21a8"/>
-            <rect x="128" y="120" width="8" height="8" fill="#6b21a8"/>
-            <rect x="144" y="120" width="8" height="8" fill="#6b21a8"/>
-            <rect x="168" y="120" width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="128" width="8" height="8" fill="#6b21a8"/>
-            <rect x="104" y="128" width="8" height="8" fill="#6b21a8"/>
-            <rect x="120" y="128" width="8" height="8" fill="#6b21a8"/>
-            <rect x="152" y="128" width="8" height="8" fill="#6b21a8"/>
-            <rect x="176" y="128" width="8" height="8" fill="#6b21a8"/>
-            <rect x="88"  y="144" width="8" height="8" fill="#6b21a8"/>
-            <rect x="112" y="144" width="8" height="8" fill="#6b21a8"/>
-            <rect x="136" y="144" width="8" height="8" fill="#6b21a8"/>
-            <rect x="160" y="144" width="8" height="8" fill="#6b21a8"/>
-            <rect x="184" y="144" width="8" height="8" fill="#6b21a8"/>
-            <rect x="80"  y="160" width="8" height="8" fill="#6b21a8"/>
-            <rect x="96"  y="160" width="8" height="8" fill="#6b21a8"/>
-            <rect x="120" y="160" width="8" height="8" fill="#6b21a8"/>
-            <rect x="144" y="160" width="8" height="8" fill="#6b21a8"/>
-            <rect x="168" y="160" width="8" height="8" fill="#6b21a8"/>
-            <rect x="88"  y="176" width="8" height="8" fill="#6b21a8"/>
-            <rect x="104" y="176" width="8" height="8" fill="#6b21a8"/>
-            <rect x="128" y="176" width="8" height="8" fill="#6b21a8"/>
-            <rect x="152" y="176" width="8" height="8" fill="#6b21a8"/>
-            <rect x="176" y="176" width="8" height="8" fill="#6b21a8"/>
-          </svg>
+        <div class="codigo-pasos">
+          <div class="codigo-paso">
+            <span class="codigo-paso-num">1</span>
+            <span>Abre tu app <strong>Yape</strong></span>
+          </div>
+          <div class="codigo-paso">
+            <span class="codigo-paso-num">2</span>
+            <span>Ve a <strong>Menú → Código de aprobación</strong></span>
+          </div>
+          <div class="codigo-paso">
+            <span class="codigo-paso-num">3</span>
+            <span>Cópialo aquí (válido por 2 min)</span>
+          </div>
         </div>
 
-        <div class="qr-instrucciones">
-          <p><strong>Escanea con tu app Yape</strong></p>
-          <p>o transfiere al número <strong>+51 935 430 273</strong></p>
+        @if (errorPago()) {
+          <div class="pago-error">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ errorPago() }}
+          </div>
+        }
+
+        <div class="codigo-input-wrap">
+          <label>Código de aprobación</label>
+          <input type="text" inputmode="numeric" placeholder="000000" maxlength="6"
+                 class="codigo-input" [value]="codigoYape()" (input)="formatCodigoYape($event)">
         </div>
 
-        <button type="button" class="btn-confirmar-qr yape-btn" (click)="confirmarQr()">
-          <i class="fa-solid fa-check-circle"></i> Ya realicé el pago con Yape
+        <button type="button" class="btn-confirmar-qr yape-btn"
+                [disabled]="codigoYape().length !== 6" (click)="confirmarYape()">
+          <i class="fa-solid fa-check-circle"></i> Confirmar pago con Yape
         </button>
-
-        <p class="culqi-disclaimer">
-          <i class="fa-solid fa-shield-halved"></i>
-          Simulación académica — no se realiza ningún cargo real.
-        </p>
       </div>
     }
 
@@ -678,92 +705,54 @@
           <span class="qr-monto">S/ {{ montoActual() }}.00</span>
         </div>
 
-        <div class="qr-box plin-qr" [class.pulsing]="qrAnimado()">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
-            <rect width="200" height="200" fill="white"/>
-            <rect x="10" y="10" width="60" height="60" rx="4" fill="#0077b6"/>
-            <rect x="20" y="20" width="40" height="40" rx="2" fill="white"/>
-            <rect x="28" y="28" width="24" height="24" rx="1" fill="#0077b6"/>
-            <rect x="130" y="10" width="60" height="60" rx="4" fill="#0077b6"/>
-            <rect x="140" y="20" width="40" height="40" rx="2" fill="white"/>
-            <rect x="148" y="28" width="24" height="24" rx="1" fill="#0077b6"/>
-            <rect x="10" y="130" width="60" height="60" rx="4" fill="#0077b6"/>
-            <rect x="20" y="140" width="40" height="40" rx="2" fill="white"/>
-            <rect x="28" y="148" width="24" height="24" rx="1" fill="#0077b6"/>
-            <rect x="80"  y="10"  width="8" height="8" fill="#0077b6"/>
-            <rect x="104" y="10"  width="8" height="8" fill="#0077b6"/>
-            <rect x="88"  y="26"  width="8" height="8" fill="#0077b6"/>
-            <rect x="112" y="26"  width="8" height="8" fill="#0077b6"/>
-            <rect x="96"  y="42"  width="8" height="8" fill="#0077b6"/>
-            <rect x="80"  y="58"  width="8" height="8" fill="#0077b6"/>
-            <rect x="112" y="58"  width="8" height="8" fill="#0077b6"/>
-            <rect x="88"  y="74"  width="8" height="8" fill="#0077b6"/>
-            <rect x="104" y="74"  width="8" height="8" fill="#0077b6"/>
-            <rect x="10"  y="80"  width="8" height="8" fill="#0077b6"/>
-            <rect x="34"  y="80"  width="8" height="8" fill="#0077b6"/>
-            <rect x="58"  y="80"  width="8" height="8" fill="#0077b6"/>
-            <rect x="80"  y="88"  width="8" height="8" fill="#0077b6"/>
-            <rect x="104" y="88"  width="8" height="8" fill="#0077b6"/>
-            <rect x="128" y="80"  width="8" height="8" fill="#0077b6"/>
-            <rect x="152" y="80"  width="8" height="8" fill="#0077b6"/>
-            <rect x="176" y="80"  width="8" height="8" fill="#0077b6"/>
-            <rect x="120" y="88"  width="8" height="8" fill="#0077b6"/>
-            <rect x="144" y="88"  width="8" height="8" fill="#0077b6"/>
-            <rect x="168" y="88"  width="8" height="8" fill="#0077b6"/>
-            <rect x="184" y="88"  width="8" height="8" fill="#0077b6"/>
-            <rect x="26"  y="96"  width="8" height="8" fill="#0077b6"/>
-            <rect x="50"  y="96"  width="8" height="8" fill="#0077b6"/>
-            <rect x="88"  y="96"  width="8" height="8" fill="#0077b6"/>
-            <rect x="112" y="96"  width="8" height="8" fill="#0077b6"/>
-            <rect x="136" y="96"  width="8" height="8" fill="#0077b6"/>
-            <rect x="160" y="96"  width="8" height="8" fill="#0077b6"/>
-            <rect x="18"  y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="42"  y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="80"  y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="104" y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="128" y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="152" y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="176" y="112" width="8" height="8" fill="#0077b6"/>
-            <rect x="96"  y="128" width="8" height="8" fill="#0077b6"/>
-            <rect x="120" y="128" width="8" height="8" fill="#0077b6"/>
-            <rect x="144" y="128" width="8" height="8" fill="#0077b6"/>
-            <rect x="168" y="128" width="8" height="8" fill="#0077b6"/>
-            <rect x="80"  y="144" width="8" height="8" fill="#0077b6"/>
-            <rect x="112" y="144" width="8" height="8" fill="#0077b6"/>
-            <rect x="136" y="144" width="8" height="8" fill="#0077b6"/>
-            <rect x="160" y="144" width="8" height="8" fill="#0077b6"/>
-            <rect x="88"  y="160" width="8" height="8" fill="#0077b6"/>
-            <rect x="104" y="160" width="8" height="8" fill="#0077b6"/>
-            <rect x="128" y="160" width="8" height="8" fill="#0077b6"/>
-            <rect x="152" y="160" width="8" height="8" fill="#0077b6"/>
-            <rect x="176" y="160" width="8" height="8" fill="#0077b6"/>
-            <rect x="80"  y="176" width="8" height="8" fill="#0077b6"/>
-            <rect x="104" y="176" width="8" height="8" fill="#0077b6"/>
-            <rect x="128" y="176" width="8" height="8" fill="#0077b6"/>
-            <rect x="160" y="176" width="8" height="8" fill="#0077b6"/>
-            <rect x="184" y="176" width="8" height="8" fill="#0077b6"/>
-          </svg>
-        </div>
+        @if (!plinEsperando()) {
 
-        <div class="qr-instrucciones">
-          <p><strong>Escanea con tu app Plin</strong></p>
-          <p>o transfiere al número <strong>+51 935 430 273</strong></p>
-        </div>
+          @if (errorPago()) {
+            <div class="pago-error">
+              <i class="fa-solid fa-triangle-exclamation"></i> {{ errorPago() }}
+            </div>
+          }
 
-        <button type="button" class="btn-confirmar-qr plin-btn" (click)="confirmarQr()">
-          <i class="fa-solid fa-check-circle"></i> Ya realicé el pago con Plin
-        </button>
+          <div class="codigo-input-wrap">
+            <label>Número de celular Plin</label>
+            <div class="celular-input-row">
+              <span class="celular-prefijo">+51</span>
+              <input type="text" inputmode="numeric" placeholder="987654321" maxlength="9"
+                     class="codigo-input" [value]="celularPlin()" (input)="formatCelularPlin($event)">
+            </div>
+          </div>
 
-        <p class="culqi-disclaimer">
-          <i class="fa-solid fa-shield-halved"></i>
-          Simulación académica — no se realiza ningún cargo real.
-        </p>
+          <button type="button" class="btn-confirmar-qr plin-btn"
+                  [disabled]="celularPlin().length !== 9" (click)="enviarSolicitudPlin()">
+            <i class="fa-solid fa-paper-plane"></i> Enviar solicitud de pago
+          </button>
+
+        } @else {
+
+          <div class="plin-esperando">
+            <svg class="spinner-svg" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="#dbeafe" stroke-width="4"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="#0077b6" stroke-width="4"
+                      stroke-dasharray="40 80" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate"
+                                  from="0 22 22" to="360 22 22" dur="0.9s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+            <p class="plin-esperando-title">Solicitud enviada a +51 {{ celularPlin() }}</p>
+            <p class="plin-esperando-sub">Abre tu app Plin y confirma el pago desde la notificación.</p>
+          </div>
+
+          <button type="button" class="btn-confirmar-qr plin-btn" (click)="confirmarPlin()">
+            <i class="fa-solid fa-check-circle"></i> Ya confirmé en mi app Plin
+          </button>
+
+        }
       </div>
     }
 
   }
 
-  <!-- ── Step: Procesando ── -->
+  <!-- ── Step: Procesando (los 3 pasos avanzan con el tiempo real) ── -->
   @if (stepPago() === 'procesando') {
     <div class="pago-procesando">
       <svg class="spinner-svg" viewBox="0 0 44 44">
@@ -774,11 +763,30 @@
                             from="0 22 22" to="360 22 22" dur="0.8s" repeatCount="indefinite"/>
         </circle>
       </svg>
-      <p class="proc-title">Verificando tu pago...</p>
+      <p class="proc-title">
+        @switch (pasoProcesando()) {
+          @case (0) { Recibiendo tu pago... }
+          @case (1) { Confirmando con la entidad emisora... }
+          @default  { Activando tu plan PRO... }
+        }
+      </p>
       <div class="proc-steps">
-        <div class="proc-step done"><i class="fa-solid fa-check"></i> Pago recibido</div>
-        <div class="proc-step active"><i class="fa-solid fa-circle-notch fa-spin"></i> Confirmando transacción</div>
-        <div class="proc-step"><i class="fa-regular fa-circle"></i> Activando plan PRO</div>
+        <div class="proc-step" [class.done]="pasoProcesando() > 0" [class.active]="pasoProcesando() === 0">
+          @if (pasoProcesando() > 0) { <i class="fa-solid fa-check"></i> }
+          @else { <i class="fa-solid fa-circle-notch fa-spin"></i> }
+          Pago recibido
+        </div>
+        <div class="proc-step" [class.done]="pasoProcesando() > 1" [class.active]="pasoProcesando() === 1">
+          @if (pasoProcesando() > 1) { <i class="fa-solid fa-check"></i> }
+          @else if (pasoProcesando() === 1) { <i class="fa-solid fa-circle-notch fa-spin"></i> }
+          @else { <i class="fa-regular fa-circle"></i> }
+          Confirmando transacción
+        </div>
+        <div class="proc-step" [class.active]="pasoProcesando() === 2">
+          @if (pasoProcesando() === 2) { <i class="fa-solid fa-circle-notch fa-spin"></i> }
+          @else { <i class="fa-regular fa-circle"></i> }
+          Activando plan PRO
+        </div>
       </div>
     </div>
   }

@@ -2,6 +2,7 @@ import { Component, inject, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertaService } from '../../../core/services/alerta.service';
+import { UpgradeModalService } from '../../../core/services/upgrade-modal.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,8 +12,13 @@ import { AlertaService } from '../../../core/services/alerta.service';
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent {
-  readonly auth         = inject(AuthService);
+  readonly auth          = inject(AuthService);
   readonly alertaService = inject(AlertaService);
+  readonly upgradeModal  = inject(UpgradeModalService);
+
+  verMiPlan(): void {
+    this.upgradeModal.abrir('resumen');
+  }
 
   readonly alertaBadge = computed(() => {
     const n = this.alertaService.alertas().length;

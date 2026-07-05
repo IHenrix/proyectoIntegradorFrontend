@@ -672,17 +672,20 @@
   i { font-size: 14px; }
 }
 
+// El badge de estado vive siempre sobre el header dorado de la tarjeta
+// "activa" (el HTML solo la muestra cuando estado==='activa'), así que
+// mantiene el look blanco-sobre-ámbar sin importar qué clase estado-* traiga.
 .sub-status-badge {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 5px;
-  background: rgba(255,255,255,.25);
-  color: #fff;
+  background: rgba(255,255,255,.25) !important;
+  color: #fff !important;
   font-size: 12px;
   font-weight: 800;
   padding: 4px 12px;
   border-radius: 999px;
-  i { font-size: 7px; color: #86efac; }
+  i { font-size: 7px !important; color: #86efac !important; }
 }
 
 .sub-details {
@@ -749,25 +752,63 @@
   &:hover { background: #fef3c7; }
 }
 
-/* Banner cancelada */
-.sub-cancelled-banner {
+/* Auto-renovación (tarjeta): tono neutro informativo, no es una acción */
+.sub-note-auto {
+  color: #1e40af;
+  i { color: #2563eb; }
+}
+
+/* "Renovar ahora" (Yape/Plin sin auto-renovación): tono azul de acción,
+   contraste con .btn-cancelar-sub que es la acción negativa */
+.btn-pagar-inline {
+  background: #2563eb;
+  border: 1.5px solid #2563eb;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .14s;
+  &:hover { background: #1d4ed8; }
+}
+
+/* Banner de estado sin plan activo: mismo layout para "vencida" y
+   "cancelada", cada una con su propia paleta para no confundirse
+   (vencida = gris neutro informativo; cancelada = rojo de alerta). */
+.sub-status-banner {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: #fef2f2;
-  border: 1.5px solid #fca5a5;
   border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 20px;
 
-  > i { font-size: 20px; color: #dc2626; flex-shrink: 0; margin-top: 2px; }
+  > i { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
 
   > div {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    strong { font-size: 13px; color: #991b1b; }
-    span   { font-size: 12px; color: #b91c1c; }
+    strong { font-size: 13px; }
+    span   { font-size: 12px; }
+  }
+
+  &.banner-vencida {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    > i { color: #64748b; }
+    strong { color: #334155; }
+    span   { color: #64748b; }
+  }
+
+  &.banner-cancelada {
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    > i { color: #dc2626; }
+    strong { color: #991b1b; }
+    span   { color: #b91c1c; }
   }
 }
 
@@ -805,6 +846,23 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Reemplaza a .plan-selector cuando se renueva por adelantado: el backend
+   extiende el MISMO plan vigente, así que no tiene sentido dejar elegir otro */
+.plan-selector-fijo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  i { color: #2563eb; }
 }
 
 /* Plan selector */
@@ -949,26 +1007,6 @@
   color: #f1f5f9;
 }
 
-.qr-box {
-  background: white;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 0 0 6px rgba(255,255,255,.06);
-  transition: box-shadow .3s;
-
-  &.pulsing {
-    animation: qrPulse .4s ease;
-  }
-}
-
-@keyframes qrPulse {
-  0%   { box-shadow: 0 0 0 6px rgba(107,33,168,.3); }
-  50%  { box-shadow: 0 0 0 16px rgba(107,33,168,.15); }
-  100% { box-shadow: 0 0 0 6px rgba(107,33,168,.0); }
-}
-
-.plin-qr ~ * { }
-
 .qr-instrucciones {
   text-align: center;
   p { margin: 0 0 4px; font-size: 13px; color: #94a3b8; }
@@ -988,23 +1026,147 @@
   font-size: 15px;
   font-weight: 900;
   cursor: pointer;
-  transition: transform .14s, box-shadow .14s;
+  transition: transform .14s, box-shadow .14s, opacity .14s;
 
-  &:hover { transform: translateY(-1px); }
+  &:hover:not(:disabled) { transform: translateY(-1px); }
+  &:disabled { opacity: .4; cursor: not-allowed; }
 
   &.yape-btn {
     background: linear-gradient(135deg, #6b21a8, #9333ea);
     color: #fff;
     box-shadow: 0 4px 16px rgba(107,33,168,.4);
-    &:hover { box-shadow: 0 6px 22px rgba(107,33,168,.55); }
+    &:hover:not(:disabled) { box-shadow: 0 6px 22px rgba(107,33,168,.55); }
   }
 
   &.plin-btn {
     background: linear-gradient(135deg, #0077b6, #00b4d8);
     color: #fff;
     box-shadow: 0 4px 16px rgba(0,119,182,.4);
-    &:hover { box-shadow: 0 6px 22px rgba(0,119,182,.55); }
+    &:hover:not(:disabled) { box-shadow: 0 6px 22px rgba(0,119,182,.55); }
   }
+}
+
+/* ── Pasos explicativos (Yape: cómo obtener el código) ─────── */
+.codigo-pasos {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.codigo-paso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #cbd5e1;
+
+  strong { color: #f1f5f9; }
+}
+
+.codigo-paso-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  color: #f1f5f9;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Input de código (Yape) / celular (Plin) ───────────────── */
+.codigo-input-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+}
+
+.codigo-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .3em;
+  text-align: center;
+  font-family: inherit;
+  transition: border-color .15s, background .15s;
+
+  &::placeholder { color: rgba(241,245,249,.25); letter-spacing: .3em; }
+
+  &:focus {
+    outline: none;
+    border-color: #9333ea;
+    background: rgba(255,255,255,.09);
+  }
+}
+
+.celular-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.celular-prefijo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.celular-input-row .codigo-input {
+  letter-spacing: .1em;
+  text-align: left;
+  font-size: 16px;
+}
+
+/* ── Plin: esperando confirmación push ─────────────────────── */
+.plin-esperando {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 4px;
+  text-align: center;
+
+  .spinner-svg { width: 44px; height: 44px; }
+}
+
+.plin-esperando-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.plin-esperando-sub {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  max-width: 260px;
 }
 
 /* Formulario Culqi */
@@ -1371,20 +1533,65 @@
   color: #451a03;
 }
 
-/* ── Historial de suscripciones ─────────────────────────── */
-.historial-section {
-  margin-top: 32px;
+/* ── Sub-tabs dentro de "Suscripción": Plan actual / Historial ── */
+.sub-tabs {
+  display: flex;
+  gap: 6px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 22px;
+  width: fit-content;
 }
 
-.historial-title {
-  font-size: 15px;
-  font-weight: 800;
-  color: #1e293b;
+.sub-tab {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 14px;
-  i { color: #6366f1; }
+  gap: 7px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
+
+  &:hover { color: #334155; }
+
+  &.active {
+    background: #fff;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  }
+
+  i { font-size: 12px; }
+}
+
+.sub-tab-count {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  .sub-tab.active & { background: #dbeafe; color: #1d4ed8; }
+}
+
+/* ── Historial de suscripciones ─────────────────────────── */
+.historial-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  color: #94a3b8;
+  text-align: center;
+
+  i { font-size: 28px; }
+  p { margin: 0; font-size: 13px; font-weight: 600; }
 }
 
 .historial-table-wrap {
@@ -1451,6 +1658,13 @@
   font-weight: 700;
 }
 
+/* Colores de estado compartidos: misma paleta en la tabla de historial
+   y en el badge de la tarjeta de suscripción, para que "vencida" y
+   "cancelada" nunca se confundan visualmente entre sí ni con "activa". */
+.estado-activa    { background: #dcfce7; color: #166534; i { color: #22c55e; font-size: 8px; } }
+.estado-vencida   { background: #f1f5f9; color: #64748b; i { color: #94a3b8; font-size: 9px; } }
+.estado-cancelada { background: #fee2e2; color: #991b1b; i { color: #dc2626; font-size: 9px; } }
+
 .ht-estado {
   display: inline-flex;
   align-items: center;
@@ -1459,10 +1673,6 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 800;
-
-  &.estado-activa   { background: #dcfce7; color: #166534; i { color: #22c55e; font-size: 8px; } }
-  &.estado-vencida  { background: #f1f5f9; color: #64748b; }
-  &.estado-cancelada { background: #fee2e2; color: #991b1b; }
 }
 
 /* ── Responsive ────────────────────────────────────────── */
@@ -1479,4 +1689,126 @@
   .btn-guardar { justify-content: center; }
   .culqi-row { grid-template-columns: 1fr; }
   .plan-selector { flex-direction: column; }
+}
+
+/* ── Modal de éxito: suscripción premium activada ─────────── */
+.modal-exito-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 13, 26, .72);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalExitoFadeIn .18s ease;
+}
+
+@keyframes modalExitoFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-exito {
+  background: #fff;
+  border-radius: 24px;
+  width: min(420px, 100%);
+  padding: 36px 32px 28px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(8,13,26,.35);
+  animation: modalExitoSlideUp .26s cubic-bezier(.175,.885,.32,1.275);
+}
+
+@keyframes modalExitoSlideUp {
+  from { opacity: 0; transform: translateY(28px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-exito-icon {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(245,158,11,.4);
+  animation: modalExitoPop .4s cubic-bezier(.175,.885,.32,1.275) .1s both;
+
+  i { font-size: 32px; color: #fff; }
+}
+
+@keyframes modalExitoPop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+.modal-exito h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.modal-exito > p {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.modal-exito-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+.perk-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #78350f;
+
+  i {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.modal-exito-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(245,158,11,.4);
+  transition: transform .14s, box-shadow .14s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(245,158,11,.55);
+  }
 }

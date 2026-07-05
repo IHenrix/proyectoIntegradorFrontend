@@ -2,10 +2,12 @@ import { Component, inject, OnInit, signal, computed, HostListener } from '@angu
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { forkJoin, timer } from 'rxjs';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
-import { PerfilService, PerfilData, SuscripcionData } from '../../core/services/perfil.service';
+import { PerfilService, PerfilData, SuscripcionData, PagoRequest } from '../../core/services/perfil.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmModalService } from '../../core/services/confirm-modal.service';
 
 export interface Pais {
   code: string;
@@ -30,16 +32,19 @@ const PAISES: Pais[] = [
   { code: 'es', name: 'España',         dial: '+34',  flag: 'es' },
 ];
 
+export type EstadoSuscripcion = 'activa' | 'vencida' | 'cancelada';
+
 export interface Suscripcion {
   refNum:        string;
   plan:          'mensual' | 'anual';
   monto:         number;
   inicio:        string;
   fin:           string;
-  estado:        'activa' | 'cancelada';
+  estado:        EstadoSuscripcion;
   titular:       string;
   ultimosCuatro: string;
   metodo:        string;
+  autoRenovar:   boolean;
 }
 
 @Component({
@@ -55,6 +60,7 @@ export class PerfilComponent implements OnInit {
   private auth          = inject(AuthService);
   private router        = inject(Router);
   private route         = inject(ActivatedRoute);
+  private confirm       = inject(ConfirmModalService);
 
   perfil    = signal<PerfilData | null>(null);
   cargando  = signal(true);
@@ -64,6 +70,18 @@ export class PerfilComponent implements OnInit {
 
   // ── Tabs ─────────────────────────────────────────────────────
   tabActivo = signal<'info' | 'pagos'>('info');
+
+  // mensaje()/error() son compartidos entre "Mi información" y "Suscripción";
+  // al cambiar de tab hay que limpiarlos para que un mensaje de una sección
+  // no aparezca fuera de contexto en la otra.
+  cambiarTab(tab: 'info' | 'pagos'): void {
+    this.tabActivo.set(tab);
+    this.mensaje.set(null);
+    this.error.set(null);
+  }
+
+  // Sub-tabs dentro de "Suscripción": plan actual (estado + pasarela) vs historial.
+  subTabPagos = signal<'plan' | 'historial'>('plan');
 
   // ── Historial de suscripciones ───────────────────────────────
   historialSubs = signal<SuscripcionData[]>([]);
@@ -76,7 +94,24 @@ export class PerfilComponent implements OnInit {
   errorPago      = signal<string | null>(null);
   mostrarCvv     = signal(false);
   cardDisplayNum = signal('');
-  qrAnimado      = signal(false);   // pulso en el QR al "confirmar"
+
+  // "Renovar ahora" con un plan Yape/Plin todavía activo: fuerza mostrar el
+  // formulario de pago aunque estado === 'activa' (normalmente el formulario
+  // solo aparece cuando NO hay plan activo).
+  renovandoManual = signal(false);
+
+  // Paso activo de "Verificando tu pago..." (0, 1 o 2). Avanza con el tiempo
+  // real, no es decorativo — sincronizado con los ~10s de la animación.
+  pasoProcesando = signal(0);
+  mostrarModalExito = signal(false);
+  // Yape: código de aprobación de 6 dígitos (así funciona hoy su compra por
+  // internet — no hay QR, el usuario lo copia de su app y lo pega aquí).
+  codigoYape = signal('');
+
+  // Plin: número de celular → "esperando confirmación" simula la notificación
+  // push que Plin envía a la app del comprador para aprobar el pago.
+  celularPlin      = signal('');
+  plinEsperando    = signal(false);
 
   cardBrand = computed<'visa' | 'mastercard' | 'amex' | null>(() => {
     const n = this.cardDisplayNum().replace(/\s/g, '');
@@ -95,6 +130,32 @@ export class PerfilComponent implements OnInit {
     cvv:      ['', [Validators.required, Validators.pattern(/^\d{3,4}$/)]],
     email:    ['', [Validators.required, Validators.email]],
   });
+
+  // ── Solo para pruebas manuales: Alt+R rellena el formulario de pago
+  // activo con datos válidos, sin depender de escribir todo cada vez. ──
+  @HostListener('window:keydown', ['$event'])
+  rellenarDatosPrueba(event: KeyboardEvent): void {
+    if (!event.altKey || event.key.toLowerCase() !== 'r') return;
+    if (this.tabActivo() !== 'pagos' || this.stepPago() !== 'form') return;
+    event.preventDefault();
+
+    if (this.metodoPago() === 'culqi') {
+      const numero = '4532015112830366'; // Visa real, válida por Luhn
+      this.pagoForm.patchValue({
+        titular: 'Enrique Prada',
+        numero,
+        expira: '12/29',
+        cvv: '123',
+        email: 'enrique.pdg@gmail.com',
+      });
+      const fmt = numero.match(/.{1,4}/g)!.join(' ');
+      this.cardDisplayNum.set(fmt);
+    } else if (this.metodoPago() === 'yape') {
+      this.codigoYape.set('482915');
+    } else if (this.metodoPago() === 'plin') {
+      this.celularPlin.set('987654321');
+    }
+  }
 
   // ── Selector de país ──────────────────────────────────────────
   mostrarPaises    = signal(false);
@@ -156,46 +217,6 @@ export class PerfilComponent implements OnInit {
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab === 'pagos') this.tabActivo.set('pagos');
 
-    // Cargar historial de suscripciones
-    this.perfilService.obtenerHistorialSuscripciones().subscribe({
-      next: lista => this.historialSubs.set(lista),
-      error: () => {}
-    });
-
-    // Cargar suscripción vigente desde backend; localStorage como fallback
-    this.perfilService.obtenerSuscripcion().subscribe({
-      next: data => {
-        if (data) {
-          const sub: Suscripcion = {
-            refNum:        data.refInterna ?? '—',
-            plan:          data.tipoPlan,
-            monto:         Number(data.monto),
-            inicio:        data.fechaInicio,
-            fin:           data.fechaFin,
-            estado:        data.estado as 'activa' | 'cancelada',
-            titular:       '—',
-            ultimosCuatro: '—',
-            metodo:        data.metodoPago ?? 'culqi',
-          };
-          this.suscripcion.set(sub);
-          localStorage.setItem('py_suscripcion', JSON.stringify(sub));
-        } else {
-          // Sin suscripción en backend → revisar localStorage (pago local simulado)
-          const stored = localStorage.getItem('py_suscripcion');
-          if (stored) {
-            try { this.suscripcion.set(JSON.parse(stored)); } catch {}
-          }
-        }
-      },
-      error: () => {
-        // Backend no disponible → usar localStorage
-        const stored = localStorage.getItem('py_suscripcion');
-        if (stored) {
-          try { this.suscripcion.set(JSON.parse(stored)); } catch {}
-        }
-      }
-    });
-
     // Actualiza validadores del nroDocumento al cambiar tipo
     this.form.get('tipoDocumento')!.valueChanges.subscribe(tipo => {
       const ctrl = this.form.get('nroDocumento')!;
@@ -216,6 +237,7 @@ export class PerfilComponent implements OnInit {
     this.perfilService.obtener().subscribe({
       next: p => {
         this.perfil.set(p);
+        this.cargarSuscripcion();
         // Si el teléfono guardado ya incluye el código de país, separarlo
         let telNum = p.telefono ?? '';
         if (telNum) {
@@ -313,6 +335,61 @@ export class PerfilComponent implements OnInit {
     return !!(ctrl?.invalid && ctrl?.touched);
   }
 
+  // El backend es la única fuente de verdad: la suscripción vigente (o, si no
+  // hay, la más reciente del historial) decide qué se muestra. Ya no hay
+  // fallback a localStorage — pagar/cancelar persisten directo en BD.
+  private cargarSuscripcion(): void {
+    forkJoin({
+      vigente: this.perfilService.obtenerSuscripcion(),
+      historial: this.perfilService.obtenerHistorialSuscripciones(),
+    }).subscribe({
+      next: ({ vigente, historial }) => {
+        this.historialSubs.set(historial);
+        const origen = vigente ?? historial[0] ?? null;
+        this.suscripcion.set(origen ? this.mapSuscripcion(origen) : null);
+      },
+      error: () => {
+        this.error.set('No se pudo cargar tu suscripción.');
+      }
+    });
+  }
+
+  private mapSuscripcion(data: SuscripcionData): Suscripcion {
+    return {
+      refNum:        data.refInterna ?? '—',
+      plan:          data.tipoPlan,
+      monto:         Number(data.monto),
+      inicio:        data.fechaInicio,
+      fin:           data.fechaFin,
+      estado:        data.estado as EstadoSuscripcion,
+      titular:       '—',
+      ultimosCuatro: '—',
+      metodo:        data.metodoPago ?? 'culqi',
+      autoRenovar:   data.autoRenovar ?? false,
+    };
+  }
+
+  // ── Estado de suscripción: fuente única de verdad para label/color/icono ──
+  // Recibe `string` (no solo EstadoSuscripcion) porque SuscripcionData.estado
+  // llega tal cual del backend sin garantía de tipo estricto.
+  estadoLabel(estado: string): string {
+    if (estado === 'activa')  return 'Activa';
+    if (estado === 'vencida') return 'Vencida';
+    return 'Cancelada';
+  }
+
+  estadoCss(estado: string): string {
+    if (estado === 'activa')  return 'estado-activa';
+    if (estado === 'vencida') return 'estado-vencida';
+    return 'estado-cancelada';
+  }
+
+  estadoIcono(estado: string): string {
+    if (estado === 'activa')  return 'fa-circle';
+    if (estado === 'vencida') return 'fa-clock';
+    return 'fa-xmark';
+  }
+
   rolLabel(rol: string): string {
     if (rol === 'admin') return 'Administrador';
     if (rol === 'usuario_premium') return 'Premium';
@@ -358,60 +435,149 @@ export class PerfilComponent implements OnInit {
     }
     this.errorPago.set(null);
     this.stepPago.set('procesando');
-    this.finalizarPago(
-      this.pagoForm.value.titular ?? '',
-      (this.pagoForm.value.numero ?? '').slice(-4),
-      'culqi'
-    );
+    this.finalizarPago({
+      plan:          this.planPago(),
+      metodo:        'tarjeta_credito',
+      titular:       this.pagoForm.value.titular ?? '',
+      numeroTarjeta: this.pagoForm.value.numero ?? '',
+      expira:        this.pagoForm.value.expira ?? '',
+      emailRecibo:   this.pagoForm.value.email ?? '',
+    });
   }
 
-  confirmarQr(): void {
-    this.qrAnimado.set(true);
+  // ── Yape: código de aprobación de 6 dígitos ──────────────────
+  formatCodigoYape(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 6);
+    input.value = digits;
+    this.codigoYape.set(digits);
+  }
+
+  confirmarYape(): void {
+    if (this.codigoYape().length !== 6) {
+      this.errorPago.set('Ingresa el código de aprobación de 6 dígitos de tu app Yape.');
+      return;
+    }
+    this.errorPago.set(null);
     this.stepPago.set('procesando');
-    const metodo = this.metodoPago() as 'yape' | 'plin';
-    this.finalizarPago('—', '—', metodo);
+    this.finalizarPago({ plan: this.planPago(), metodo: 'yape' });
   }
 
-  private finalizarPago(titular: string, ultimos: string, metodo: string): void {
-    setTimeout(() => {
-      const hoy = new Date();
-      const fin = new Date(hoy);
-      if (this.planPago() === 'anual') fin.setFullYear(fin.getFullYear() + 1);
-      else fin.setMonth(fin.getMonth() + 1);
-
-      const sub: Suscripcion = {
-        refNum:        Math.floor(100000 + Math.random() * 900000).toString(),
-        plan:          this.planPago(),
-        monto:         this.montoActual(),
-        inicio:        hoy.toISOString().split('T')[0],
-        fin:           fin.toISOString().split('T')[0],
-        estado:        'activa',
-        titular,
-        ultimosCuatro: ultimos,
-        metodo,
-      };
-
-      localStorage.setItem('py_suscripcion', JSON.stringify(sub));
-      this.suscripcion.set(sub);
-      this.stepPago.set('exito');
-      this.qrAnimado.set(false);
-    }, 2200);
+  // ── Plin: celular → notificación push → confirmar ────────────
+  formatCelularPlin(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 9);
+    input.value = digits;
+    this.celularPlin.set(digits);
   }
 
-  cancelarSuscripcion(): void {
+  enviarSolicitudPlin(): void {
+    if (!/^9\d{8}$/.test(this.celularPlin())) {
+      this.errorPago.set('Ingresa un celular Plin válido (9 dígitos).');
+      return;
+    }
+    this.errorPago.set(null);
+    this.plinEsperando.set(true);
+  }
+
+  confirmarPlin(): void {
+    this.stepPago.set('procesando');
+    this.finalizarPago({ plan: this.planPago(), metodo: 'plin' });
+  }
+
+  // Duración total de la animación "Verificando tu pago..." — 3 pasos de
+  // ~3.3s cada uno. El HTTP real corre en paralelo; si responde antes, la
+  // transición a "éxito" igual espera a que termine la animación completa.
+  private static readonly DURACION_PASO_MS = 3300;
+
+  private finalizarPago(request: PagoRequest): void {
+    this.pasoProcesando.set(0);
+    const avanzarPaso1 = setTimeout(() => this.pasoProcesando.set(1), PerfilComponent.DURACION_PASO_MS);
+    const avanzarPaso2 = setTimeout(() => this.pasoProcesando.set(2), PerfilComponent.DURACION_PASO_MS * 2);
+
+    forkJoin({
+      resultado: this.perfilService.pagar(request),
+      // Tiempo mínimo antes de mostrar "éxito", para que la animación de
+      // los 3 pasos siempre se vea completa (aunque el servidor responda ya).
+      _delay: timer(PerfilComponent.DURACION_PASO_MS * 3),
+    }).subscribe({
+      next: ({ resultado }) => {
+        const sub = this.mapSuscripcion(resultado);
+        this.suscripcion.set(sub);
+        // El backend ya subió Usuario.rol a premium en BD; reflejamos ese
+        // cambio en el signal local para que navbar/límites reaccionen sin F5.
+        this.auth.rol.set('usuario_premium');
+        localStorage.setItem('rol', 'usuario_premium');
+        this.stepPago.set('exito');
+        this.mostrarModalExito.set(true);
+      },
+      error: err => {
+        clearTimeout(avanzarPaso1);
+        clearTimeout(avanzarPaso2);
+        this.errorPago.set(err.error?.message ?? 'No se pudo procesar el pago.');
+        this.stepPago.set('form');
+        this.plinEsperando.set(false);
+      }
+    });
+  }
+
+  cerrarModalExito(): void {
+    this.mostrarModalExito.set(false);
+    // suscripcion() ya quedó 'activa' tras el pago, así que al volver a
+    // 'form' se muestra la tarjeta dorada normal, no el recibo estático.
+    this.nuevoPago();
+  }
+
+  async cancelarSuscripcion(): Promise<void> {
     const sub = this.suscripcion();
     if (!sub) return;
-    const updated: Suscripcion = { ...sub, estado: 'cancelada' };
-    localStorage.setItem('py_suscripcion', JSON.stringify(updated));
-    this.suscripcion.set(updated);
+
+    const fechaFin = this.formatDate(sub.fin);
+    const ok = await this.confirm.abrir({
+      tipo:    'warning',
+      titulo:  '¿Cancelar tu suscripción PRO?',
+      mensaje: `Dejarás de renovar automáticamente, pero conservarás todas las funciones premium hasta el ${fechaFin}. Después de esa fecha, tu cuenta pasará a plan Básico.`,
+      labelOk:     'Sí, cancelar',
+      labelCancel: 'Mantener mi plan',
+    });
+    if (!ok) return;
+
+    this.perfilService.cancelarSuscripcion().subscribe({
+      next: () => {
+        // Conserva premium hasta fechaFin (igual que Netflix/Spotify) — solo
+        // cambia el estado mostrado, el rol se degrada más adelante en BD.
+        this.suscripcion.update(s => s ? { ...s, estado: 'cancelada' } : s);
+        this.mensaje.set(`Suscripción cancelada. Conservarás el acceso PRO hasta el ${fechaFin}.`);
+      },
+      error: err => {
+        this.error.set(err.error?.message ?? 'No se pudo cancelar la suscripción.');
+      }
+    });
   }
 
   nuevoPago(): void {
     this.stepPago.set('form');
     this.pagoForm.reset();
     this.cardDisplayNum.set('');
+    this.codigoYape.set('');
+    this.celularPlin.set('');
+    this.plinEsperando.set(false);
+    this.pasoProcesando.set(0);
+    this.mostrarModalExito.set(false);
     this.errorPago.set(null);
-    this.qrAnimado.set(false);
+    this.renovandoManual.set(false);
+  }
+
+  // "Renovar ahora" con un plan Yape/Plin todavía activo (aún no vencido):
+  // fuerza mostrar el formulario de pago que normalmente solo aparece cuando
+  // no hay ningún plan activo. El backend extiende el MISMO plan que ya
+  // tenías (no admite cambiarlo aquí), así que se fija planPago() al plan
+  // real para que el monto mostrado sea el que realmente se va a cobrar.
+  renovarManualmente(): void {
+    const sub = this.suscripcion();
+    this.nuevoPago();
+    if (sub) this.planPago.set(sub.plan);
+    this.renovandoManual.set(true);
   }
 
   labelMetodo(m: string): string {
@@ -436,5 +602,13 @@ export class PerfilComponent implements OnInit {
     if (!d) return '';
     const [y, m, day] = d.split('-');
     return `${day}/${m}/${y}`;
+  }
+
+  diasParaVencer(fechaFin: string): number {
+    if (!fechaFin) return Infinity;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fin = new Date(fechaFin + 'T00:00:00');
+    return Math.ceil((fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
   }
 }
