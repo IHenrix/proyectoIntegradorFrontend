@@ -33,6 +33,10 @@ export class NavbarComponent {
     return { label: 'BÁSICO', css: 'badge-free', avatar: 'avatar-free', badge: true };
   });
 
+  // Cosmético: solo oculta/muestra el link. La protección real de /api/admin/**
+  // la da el backend con @PreAuthorize("hasRole('ADMIN')"), no este flag.
+  readonly esAdmin = computed(() => this.auth.rol() === 'admin');
+
   readonly inicial = computed(() =>
     (this.auth.nombre() ?? 'U').trim().charAt(0).toUpperCase()
   );

@@ -20,6 +20,14 @@
           <span>Mi plan</span>
         </button>
 
+        <!-- Panel Admin: solo visible para rol admin (cosmético; el backend protege de verdad) -->
+        @if (esAdmin()) {
+          <a routerLink="/admin" routerLinkActive="active" class="nav-icon-btn" title="Panel Admin">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>Panel Admin</span>
+          </a>
+        }
+
         <!-- Alertas -->
         <a routerLink="/alertas" routerLinkActive="active" class="nav-icon-btn" title="Alertas">
           <span class="alerta-badge-wrap">

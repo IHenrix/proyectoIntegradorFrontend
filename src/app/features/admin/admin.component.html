@@ -1,0 +1,304 @@
+<div class="admin-page">
+  <app-navbar />
+
+  <main class="admin-shell">
+
+    <div class="admin-head">
+      <button class="back-btn" type="button" routerLink="/dashboard">
+        <i class="fa-solid fa-arrow-left"></i> Volver
+      </button>
+      <div>
+        <h1><i class="fa-solid fa-user-shield"></i> Panel de administración</h1>
+        <p class="admin-sub">Métricas, usuarios, historial de precios y suscripciones del sistema</p>
+      </div>
+    </div>
+
+    @if (sinPermiso()) {
+      <div class="state state-error">
+        <i class="fa-solid fa-lock"></i>
+        No tienes permisos de administrador para ver esta sección.
+      </div>
+    } @else {
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'dashboard'"
+                (click)="cambiarTab('dashboard')">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </button>
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'usuarios'"
+                (click)="cambiarTab('usuarios')">
+          <i class="fa-solid fa-users"></i> Usuarios
+        </button>
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'historial'"
+                (click)="cambiarTab('historial')">
+          <i class="fa-solid fa-clock-rotate-left"></i> Historial de precios
+        </button>
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'suscripciones'"
+                (click)="cambiarTab('suscripciones')">
+          <i class="fa-solid fa-crown"></i> Suscripciones y pagos
+        </button>
+      </div>
+
+      @if (mensaje()) {
+        <div class="ok-msg"><i class="fa-solid fa-circle-check"></i> {{ mensaje() }}</div>
+      }
+      @if (error()) {
+        <div class="err-msg"><i class="fa-solid fa-triangle-exclamation"></i> {{ error() }}</div>
+      }
+
+      @if (cargando()) {
+        <div class="state">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          Cargando...
+        </div>
+      } @else {
+
+        <!-- ── TAB: Dashboard ── -->
+        @if (tabActivo() === 'dashboard' && dashboard(); as d) {
+          <div class="metricas-grid">
+            <div class="metrica-card">
+              <div class="metrica-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Usuarios activos</span>
+                <span class="metrica-val">{{ d.usuariosActivos }}</span>
+                <span class="metrica-sub">{{ d.usuariosInactivos }} inactivos</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-green"><i class="fa-solid fa-sack-dollar"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Ingresos totales</span>
+                <span class="metrica-val">S/ {{ d.ingresosTotales }}</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-amber"><i class="fa-solid fa-bell"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Alertas activas</span>
+                <span class="metrica-val">{{ d.alertasActivas }}</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-purple"><i class="fa-solid fa-crown"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Suscripciones activas</span>
+                <span class="metrica-val">{{ d.suscripcionesActivas }}</span>
+                <span class="metrica-sub">{{ d.suscripcionesVencidas }} vencidas · {{ d.suscripcionesCanceladas }} canceladas</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="roles-card">
+            <h3>Usuarios por rol</h3>
+            <div class="roles-list">
+              @for (rol of (d.usuariosPorRol | keyvalue); track rol.key) {
+                <div class="rol-row">
+                  <span class="rol-nombre">{{ rol.key }}</span>
+                  <span class="rol-cantidad">{{ rol.value }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ── TAB: Usuarios ── -->
+        @if (tabActivo() === 'usuarios') {
+          <div class="tabla-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Nombre</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of usuarios(); track u.id) {
+                  <tr>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.nombreCompleto }}</td>
+                    <td>
+                      <select class="rol-select" [value]="u.rol"
+                              (change)="cambiarRolUsuario(u, $any($event.target).value)">
+                        <option value="usuario_free">usuario_free</option>
+                        <option value="usuario_premium">usuario_premium</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    </td>
+                    <td>
+                      <span class="estado-badge" [class.activo]="u.activo" [class.inactivo]="!u.activo">
+                        {{ u.activo ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="btn-toggle-activo" (click)="cambiarActivoUsuario(u)">
+                        {{ u.activo ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (usuarios().length === 0) {
+              <p class="tabla-vacia">No hay usuarios registrados.</p>
+            }
+          </div>
+        }
+
+        <!-- ── TAB: Historial de precios ── -->
+        @if (tabActivo() === 'historial') {
+          <div class="filtros-historial">
+            <label>
+              <span>Origen</span>
+              <input type="text" placeholder="LIM" [value]="filtroOrigen()"
+                     (input)="filtroOrigen.set($any($event.target).value.toUpperCase())">
+            </label>
+            <label>
+              <span>Destino</span>
+              <input type="text" placeholder="CUZ" [value]="filtroDestino()"
+                     (input)="filtroDestino.set($any($event.target).value.toUpperCase())">
+            </label>
+            <label>
+              <span>Desde</span>
+              <input type="date" [value]="filtroDesde()" (input)="filtroDesde.set($any($event.target).value)">
+            </label>
+            <label>
+              <span>Hasta</span>
+              <input type="date" [value]="filtroHasta()" (input)="filtroHasta.set($any($event.target).value)">
+            </label>
+            <button type="button" class="btn-buscar" (click)="buscarHistorial()">
+              <i class="fa-solid fa-magnifying-glass"></i> Buscar
+            </button>
+            <button type="button" class="btn-exportar" (click)="exportarHistorial()">
+              <i class="fa-solid fa-file-excel"></i> Exportar Excel
+            </button>
+          </div>
+
+          @if (historial().length >= 1000) {
+            <p class="aviso-limite">
+              <i class="fa-solid fa-circle-info"></i>
+              Mostrando los 1000 registros más recientes. Afina los filtros (ruta o fechas) para ver un rango más específico.
+            </p>
+          }
+
+          <div class="tabla-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Vuelo</th>
+                  <th>Aerolínea</th>
+                  <th>Ruta</th>
+                  <th>Tarifa</th>
+                  <th>Precio</th>
+                  <th>Fecha captura</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (h of historial(); track h.idVuelo + h.fechaCaptura) {
+                  <tr>
+                    <td>#{{ h.idVuelo }}</td>
+                    <td>{{ h.aerolinea }}</td>
+                    <td>{{ h.origen }} → {{ h.destino }}</td>
+                    <td>{{ h.tipoTarifa }}</td>
+                    <td>S/ {{ h.precio }}</td>
+                    <td>{{ h.fechaCaptura }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (historial().length === 0) {
+              <p class="tabla-vacia">No hay registros de historial de precios con estos filtros.</p>
+            }
+          </div>
+        }
+
+        <!-- ── TAB: Suscripciones y pagos ── -->
+        @if (tabActivo() === 'suscripciones') {
+          <div class="sub-tabs-admin">
+            <button type="button" class="sub-tab-admin" [class.active]="subTabSuscripciones() === 'suscripciones'"
+                    (click)="subTabSuscripciones.set('suscripciones')">
+              Suscripciones
+            </button>
+            <button type="button" class="sub-tab-admin" [class.active]="subTabSuscripciones() === 'pagos'"
+                    (click)="subTabSuscripciones.set('pagos')">
+              Pagos
+            </button>
+          </div>
+
+          @if (subTabSuscripciones() === 'suscripciones') {
+            <div class="tabla-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Plan</th>
+                    <th>Inicio</th>
+                    <th>Vencimiento</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Auto-renovar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (s of suscripciones(); track s.id) {
+                    <tr>
+                      <td>{{ s.nombreUsuario }} <small>{{ s.emailUsuario }}</small></td>
+                      <td>{{ s.planNombre }}</td>
+                      <td>{{ formatFecha(s.fechaInicio) }}</td>
+                      <td>{{ formatFecha(s.fechaFin) }}</td>
+                      <td>S/ {{ s.monto }}</td>
+                      <td>{{ s.metodoPago }}</td>
+                      <td>{{ s.estado }}</td>
+                      <td>{{ s.autoRenovar ? 'Sí' : 'No' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (suscripciones().length === 0) {
+                <p class="tabla-vacia">No hay suscripciones registradas.</p>
+              }
+            </div>
+          } @else {
+            <div class="tabla-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Referencia</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of pagos(); track p.id) {
+                    <tr>
+                      <td>{{ p.nombreUsuario }} <small>{{ p.emailUsuario }}</small></td>
+                      <td>{{ p.moneda }} {{ p.monto }}</td>
+                      <td>{{ p.metodo }}</td>
+                      <td>{{ p.estado }}</td>
+                      <td>#{{ p.refInterna }}</td>
+                      <td>{{ formatFecha(p.fechaPago) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (pagos().length === 0) {
+                <p class="tabla-vacia">No hay pagos registrados.</p>
+              }
+            </div>
+          }
+        }
+
+      }
+    }
+
+  </main>
+
+  <app-footer />
+</div>
