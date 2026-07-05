@@ -1,59 +1,137 @@
-# PasajeYaFrontend
+# PasajeYá — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.12.
+Aplicación web SPA para buscar y comparar precios de vuelos nacionales del Perú, crear
+alertas de precio y gestionar el perfil de usuario. Consume la API REST del
+[backend PasajeYá](../pasaje-ya-backend).
 
-## Development server
+> Proyecto académico — Universidad Tecnológica del Perú (UTP), Ciclo 6, curso **Integrador de Sistemas Software**.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
+## 📋 Tabla de contenidos
+
+- [Cuadro de accesos y rutas](#-cuadro-de-accesos-y-rutas)
+- [Tecnologías utilizadas](#-tecnologías-utilizadas)
+- [Arquitectura](#-arquitectura)
+- [Requisitos previos](#-requisitos-previos)
+- [Puesta en marcha](#-puesta-en-marcha)
+- [Pruebas (Testing)](#-pruebas-testing)
+
+---
+
+## 🔐 Cuadro de accesos y rutas
+
+El acceso se controla con **`authGuard`**, que valida la presencia y vigencia del JWT
+emitido por el backend. Los permisos por rol (`usuario_free`, `usuario_premium`, `admin`)
+provienen del token y se corresponden con los definidos en el
+[`script.sql` del backend](../pasaje-ya-backend/src/main/resources/script.sql).
+
+| Ruta | Componente | ¿Requiere sesión? | Notas por rol |
+|---|---|:---:|---|
+| `/` | Home | ❌ Público | Búsqueda de vuelos |
+| `/auth` | Auth | ❌ Público | Login / registro |
+| `/resultados` | Resultados | ❌ Público | Listado de vuelos encontrados |
+| `/detalle/:id` | Detalle | ❌ Público | Detalle y tarifas de un vuelo |
+| `/dashboard` | Dashboard | ✅ `authGuard` | Requiere sesión iniciada |
+| `/alertas` | Alertas | ✅ `authGuard` | `free`: máx. 3 · `premium`: ilimitadas |
+| `/perfil` | Perfil | ✅ `authGuard` | Datos del usuario y suscripción |
+| `**` | — | — | Redirige a `/` |
+
+> Los **reportes Excel/PDF** de alertas y la **predicción extendida (15 días)** son
+> funciones **premium**: el backend responde con error si un `usuario_free` las solicita, y
+> el frontend muestra el **modal de upgrade** (`upgrade-modal`).
+
+### Usuarios de prueba (semilla del backend)
+
+Los tres comparten la misma contraseña de prueba (definida en el `script.sql`):
+
+| Email | Rol | Plan |
+|---|:---:|---|
+| `admin@pasajeya.com.pe` | `admin` | — |
+| `enrique.pdg@gmail.com` | `usuario_free` | Free |
+| `renrique_prada@hotmail.com` | `usuario_premium` | Premium Anual |
+
+---
+
+## 🛠 Tecnologías utilizadas
+
+| Categoría | Tecnología | Versión |
+|---|---|---|
+| Framework | Angular (standalone components) | 21.2 |
+| Lenguaje | TypeScript | 5.9 |
+| Programación reactiva | RxJS | 7.8 |
+| Autenticación | JWT (token en `localStorage`) + HTTP interceptor | — |
+| Build / CLI | Angular CLI + `@angular/build` | 21.2 |
+| **Pruebas** | **Vitest** + jsdom | 4.0 / 28.0 |
+| Formato de código | Prettier | 3.8 |
+| Gestor de paquetes | npm | 10.9.3 |
+
+---
+
+## 🏗 Arquitectura
+
+Estructura basada en **componentes standalone** y lazy loading de rutas:
+
+```
+src/app/
+├── core/
+│   ├── guards/         → authGuard (protege rutas, valida expiración del JWT)
+│   ├── interceptors/   → auth.interceptor (adjunta el Bearer token a cada petición)
+│   ├── services/       → auth, vuelo, aeropuerto, alerta, perfil, modales
+│   └── models/         → interfaces (vuelo, alerta)
+├── features/           → páginas: home, auth, dashboard, resultados,
+│                          detalle, alertas, perfil
+├── shared/components/  → navbar, footer, calendario, modales (login, upgrade, confirm)
+├── app.routes.ts       → definición de rutas + guards
+└── app.config.ts       → providers globales (router, http, interceptor)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **`auth.interceptor`** adjunta automáticamente el JWT (`Authorization: Bearer <token>`)
+  a las peticiones al backend.
+- **`authGuard`** protege las rutas privadas y **redirige a `/auth`** si no hay token o si
+  el JWT ya expiró (decodifica el claim `exp`).
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## ✅ Requisitos previos
 
-```bash
-ng generate component component-name
-```
+- **Node.js** (compatible con Angular 21)
+- **npm 10.9.3**
+- El [backend PasajeYá](../pasaje-ya-backend) corriendo en `http://localhost:8080`
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## 🚀 Puesta en marcha
 
 ```bash
-ng build
+# 1. Instalar dependencias
+npm install
+
+# 2. Servidor de desarrollo
+npm start          # equivale a: ng serve
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+La aplicación queda disponible en `http://localhost:4200/` y recarga automáticamente al
+guardar cambios.
 
 ```bash
-ng test
+# Compilar para producción
+npm run build      # artefactos en dist/
 ```
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
+## 🧪 Pruebas (Testing)
+
+Las pruebas unitarias se ejecutan con **Vitest** (sobre jsdom):
 
 ```bash
-ng e2e
+npm test           # equivale a: ng test
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Los archivos de prueba usan la extensión `.spec.ts` (por ejemplo,
+[`src/app/app.spec.ts`](src/app/app.spec.ts)) y se ubican junto al código que verifican.
 
-## Additional Resources
+---
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+<p align="center"><sub>PasajeYá · Proyecto académico UTP 2026 · Curso Integrador de Sistemas Software</sub></p>
