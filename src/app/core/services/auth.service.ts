@@ -1,8 +1,9 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AlertaService } from './alerta.service';
 
 export interface RegistroData {
   nombre:            string;
@@ -20,8 +21,9 @@ export interface RegistroData {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http   = inject(HttpClient);
-  private router = inject(Router);
+  private http     = inject(HttpClient);
+  private router   = inject(Router);
+  private injector = inject(Injector);
   private readonly API = `${environment.apiUrl}/auth`;
 
   token  = signal<string | null>(localStorage.getItem('token'));
@@ -45,6 +47,9 @@ export class AuthService {
     this.token.set(res.token);
     this.nombre.set(res.nombre);
     this.rol.set(res.rol);
+    // Cargamos las alertas al iniciar sesión para que el badge del navbar
+    // se muestre de inmediato, sin esperar a entrar a la sección de alertas.
+    this.injector.get(AlertaService).precargar();
   }
 
   cerrarSesion(): void {
@@ -54,6 +59,7 @@ export class AuthService {
     this.token.set(null);
     this.nombre.set(null);
     this.rol.set(null);
+    this.injector.get(AlertaService).limpiar();
     this.router.navigate(['/auth']);
   }
 

@@ -43,13 +43,14 @@ provienen del token y se corresponden con los definidos en el
 
 ### Usuarios de prueba (semilla del backend)
 
-Los tres comparten la misma contraseña de prueba (definida en el `script.sql`):
+Los tres comparten la misma contraseña de prueba: **`Marco1415@`**
+(definida en el `script.sql`):
 
-| Email | Rol | Plan |
-|---|:---:|---|
-| `admin@pasajeya.com.pe` | `admin` | — |
-| `enrique.pdg@gmail.com` | `usuario_free` | Free |
-| `renrique_prada@hotmail.com` | `usuario_premium` | Premium Anual |
+| Email | Contraseña | Rol | Plan |
+|---|---|:---:|---|
+| `admin@pasajeya.com.pe` | `Marco1415@` | `admin` | — |
+| `enrique.pdg@gmail.com` | `Marco1415@` | `usuario_free` | Free |
+| `renrique_prada@hotmail.com` | `Marco1415@` | `usuario_premium` | Premium Anual |
 
 ---
 

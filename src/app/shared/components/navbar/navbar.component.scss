@@ -311,3 +311,44 @@
     box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
   }
 }
+
+// ── Responsive: pantallas angostas (móvil) ─────────────────────────
+// Mismo breakpoint que home.component.scss para que ambos cambien juntos
+// y no quede una franja intermedia de ancho sin adaptar.
+@media (max-width: 640px) {
+  .nav-inner {
+    padding: 0 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .logo-text { font-size: 1rem; }
+
+  .nav-actions { gap: 0.35rem; }
+
+  // El botón de Alertas se reduce a solo ícono + badge, sin el texto.
+  .nav-icon-btn {
+    padding: 0.42rem 0.55rem;
+
+    span:not(.alerta-badge-wrap) { display: none; }
+  }
+
+  // El pill de usuario se reduce al avatar; se ocultan nombre, rol y flecha.
+  .user-pill {
+    padding: 0.3rem;
+    gap: 0;
+  }
+
+  .user-info,
+  .user-arrow { display: none; }
+
+  .btn-logout {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-login,
+  .btn-registro {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.78rem;
+  }
+}

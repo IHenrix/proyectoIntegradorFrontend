@@ -20,6 +20,19 @@ export class AlertaService {
     );
   }
 
+  /**
+   * Precarga las alertas del usuario en segundo plano para alimentar el badge del
+   * navbar apenas hay sesión (login o recarga de la app). No propaga el error: si
+   * falla (sin sesión, red, etc.) simplemente deja el listado como está.
+   */
+  precargar(): void {
+    this.listar().subscribe({ error: () => {} });
+  }
+
+  limpiar(): void {
+    this.alertas.set([]);
+  }
+
   crear(request: CrearAlertaRequest): Observable<Alerta> {
     return this.http.post<Alerta>(this.API, request).pipe(
       tap(alerta => this.alertas.update(items => [alerta, ...items]))

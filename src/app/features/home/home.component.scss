@@ -625,10 +625,11 @@
   .hero-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); }
   .mosaic-tile.tile-1 { grid-row: 1 / 2; }
   .hero-content h1 { letter-spacing: -0.02em; }
+  .container { padding: 0 1rem; }
   .route-row { flex-direction: column; }
   .details-row { grid-template-columns: 1fr; }
   .swap-btn { align-self: center; }
-  .search-card { padding: 1.5rem; border-radius: 18px; }
+  .search-card { padding: 1.25rem; border-radius: 18px; }
   .steps { flex-direction: column; align-items: center; gap: 2.5rem; }
   .step-arrow { display: none; }
   .como-funciona { padding: 4rem 0; }
