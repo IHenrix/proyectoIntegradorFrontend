@@ -1,0 +1,37 @@
+@if (totalPaginas() > 0) {
+  <div class="paginador">
+    <span class="paginador-info">
+      Página {{ paginaActual() + 1 }} de {{ totalPaginas() }}
+      @if (totalElementos() > 0) {
+        · {{ totalElementos() }} registros
+      }
+    </span>
+
+    <div class="paginador-botones">
+      <button type="button" class="pg-btn" [disabled]="paginaActual() === 0"
+              (click)="ir(0)" title="Primera página">
+        «
+      </button>
+      <button type="button" class="pg-btn" [disabled]="paginaActual() === 0"
+              (click)="ir(paginaActual() - 1)" title="Anterior">
+        ‹
+      </button>
+
+      @for (p of paginasVisibles(); track p) {
+        <button type="button" class="pg-btn pg-num" [class.active]="p === paginaActual()"
+                (click)="ir(p)">
+          {{ p + 1 }}
+        </button>
+      }
+
+      <button type="button" class="pg-btn" [disabled]="paginaActual() >= totalPaginas() - 1"
+              (click)="ir(paginaActual() + 1)" title="Siguiente">
+        ›
+      </button>
+      <button type="button" class="pg-btn" [disabled]="paginaActual() >= totalPaginas() - 1"
+              (click)="ir(totalPaginas() - 1)" title="Última página">
+        »
+      </button>
+    </div>
+  </div>
+}

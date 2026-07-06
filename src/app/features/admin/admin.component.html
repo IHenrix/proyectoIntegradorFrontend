@@ -4,9 +4,6 @@
   <main class="admin-shell">
 
     <div class="admin-head">
-      <button class="back-btn" type="button" routerLink="/">
-        <i class="fa-solid fa-arrow-left"></i> Volver
-      </button>
       <div>
         <h1><i class="fa-solid fa-user-shield"></i> Panel de administración</h1>
         <p class="admin-sub">Métricas, usuarios, historial de precios y suscripciones del sistema</p>
@@ -38,13 +35,37 @@
                 (click)="cambiarTab('suscripciones')">
           <i class="fa-solid fa-crown"></i> Suscripciones y pagos
         </button>
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'reportes'"
+                (click)="cambiarTab('reportes')">
+          <i class="fa-solid fa-chart-line"></i> Reportes
+        </button>
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'exportacion'"
+                (click)="cambiarTab('exportacion')">
+          <i class="fa-solid fa-file-export"></i> Exportación
+        </button>
+        <button type="button" class="admin-tab" [class.active]="tabActivo() === 'vuelosJob'"
+                (click)="cambiarTab('vuelosJob')">
+          <i class="fa-solid fa-plane-circle-check"></i> Job de precios
+        </button>
       </div>
 
       @if (mensaje()) {
-        <div class="ok-msg"><i class="fa-solid fa-circle-check"></i> {{ mensaje() }}</div>
+        <div class="ok-msg">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>{{ mensaje() }}</span>
+          <button type="button" class="btn-cerrar-alerta" (click)="mensaje.set(null)" aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       }
       @if (error()) {
-        <div class="err-msg"><i class="fa-solid fa-triangle-exclamation"></i> {{ error() }}</div>
+        <div class="err-msg">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ error() }}</span>
+          <button type="button" class="btn-cerrar-alerta" (click)="error.set(null)" aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       }
 
       @if (cargando()) {
@@ -55,9 +76,33 @@
       } @else {
 
         <!-- ── TAB: Dashboard ── -->
-        @if (tabActivo() === 'dashboard' && dashboard(); as d) {
+        @if (tabActivo() === 'dashboard' && dashboardMostrado(); as d) {
+
+          <div class="dashboard-toolbar">
+            @if (modoSimulacion()) {
+              <button type="button" class="btn-simulacion btn-simulacion-activa" (click)="salirDeSimulacion()">
+                <i class="fa-solid fa-flask"></i> Salir de modo demo
+              </button>
+            } @else {
+              <button type="button" class="btn-simulacion" (click)="activarSimulacion()">
+                <i class="fa-solid fa-flask"></i> Simulación
+                @if (datosInsuficientes()) {
+                  <span class="btn-simulacion-hint">Pocos datos reales — genera una demo</span>
+                }
+              </button>
+            }
+          </div>
+
+          @if (modoSimulacion()) {
+            <div class="banner-demo">
+              <i class="fa-solid fa-flask"></i>
+              Estás viendo datos de demostración — no reflejan información real del sistema.
+            </div>
+          }
+
           <div class="metricas-grid">
             <div class="metrica-card">
+              @if (modoSimulacion()) { <span class="badge-demo">DEMO</span> }
               <div class="metrica-icon icon-blue"><i class="fa-solid fa-users"></i></div>
               <div class="metrica-info">
                 <span class="metrica-label">Usuarios activos</span>
@@ -66,6 +111,7 @@
               </div>
             </div>
             <div class="metrica-card">
+              @if (modoSimulacion()) { <span class="badge-demo">DEMO</span> }
               <div class="metrica-icon icon-green"><i class="fa-solid fa-sack-dollar"></i></div>
               <div class="metrica-info">
                 <span class="metrica-label">Ingresos totales</span>
@@ -73,6 +119,7 @@
               </div>
             </div>
             <div class="metrica-card">
+              @if (modoSimulacion()) { <span class="badge-demo">DEMO</span> }
               <div class="metrica-icon icon-amber"><i class="fa-solid fa-bell"></i></div>
               <div class="metrica-info">
                 <span class="metrica-label">Alertas activas</span>
@@ -80,6 +127,7 @@
               </div>
             </div>
             <div class="metrica-card">
+              @if (modoSimulacion()) { <span class="badge-demo">DEMO</span> }
               <div class="metrica-icon icon-purple"><i class="fa-solid fa-crown"></i></div>
               <div class="metrica-info">
                 <span class="metrica-label">Suscripciones activas</span>
@@ -89,13 +137,65 @@
             </div>
           </div>
 
+          <!-- ── Gráficos ── -->
+          <div class="graficos-grid">
+            <div class="grafico-card">
+              <h3>Usuarios por rol</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'doughnut'" [data]="chartUsuariosPorRol()" [options]="optsBase"></canvas>
+              </div>
+            </div>
+
+            <div class="grafico-card">
+              <h3>Usuarios activos vs inactivos</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'pie'" [data]="chartActivosInactivos()" [options]="optsBase"></canvas>
+              </div>
+            </div>
+
+            <div class="grafico-card">
+              <h3>Suscripciones por estado</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'bar'" [data]="chartSuscripcionesPorEstado()" [options]="optsBase"></canvas>
+              </div>
+            </div>
+
+            <div class="grafico-card">
+              <h3>Ingresos mensuales</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'line'" [data]="chartIngresosMensuales()" [options]="optsBase"></canvas>
+              </div>
+            </div>
+
+            <div class="grafico-card grafico-card-ancho">
+              <h3>Evolución de precio promedio por ruta (90 días)</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'line'" [data]="chartPreciosPorRuta()" [options]="optsBase"></canvas>
+              </div>
+            </div>
+
+            <div class="grafico-card grafico-card-ancho">
+              <h3>Alertas activas por aerolínea</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'bar'" [data]="chartAlertasPorAerolinea()" [options]="optsBarraHorizontal"></canvas>
+              </div>
+            </div>
+          </div>
+
           <div class="roles-card">
             <h3>Usuarios por rol</h3>
             <div class="roles-list">
-              @for (rol of (d.usuariosPorRol | keyvalue); track rol.key) {
+              @for (fila of filasUsuariosPorRol(); track fila.rol) {
                 <div class="rol-row">
-                  <span class="rol-nombre">{{ rol.key }}</span>
-                  <span class="rol-cantidad">{{ rol.value }}</span>
+                  <div class="rol-encabezado">
+                    <span class="rol-punto" [style.background]="fila.color"></span>
+                    <span class="rol-nombre">{{ fila.rol }}</span>
+                    <span class="rol-cantidad">{{ fila.cantidad }}</span>
+                    <span class="rol-porcentaje">{{ fila.porcentaje }}%</span>
+                  </div>
+                  <div class="rol-barra-fondo">
+                    <div class="rol-barra" [style.width.%]="fila.porcentaje" [style.background]="fila.color"></div>
+                  </div>
                 </div>
               }
             </div>
@@ -104,6 +204,17 @@
 
         <!-- ── TAB: Usuarios ── -->
         @if (tabActivo() === 'usuarios') {
+          <div class="tabla-toolbar">
+            <div class="buscador">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" placeholder="Buscar por email o nombre..." [value]="busquedaUsuarios()"
+                     (input)="onBuscarUsuarios($any($event.target).value)">
+            </div>
+            <button type="button" class="btn-nuevo" (click)="abrirModalCrear()">
+              <i class="fa-solid fa-plus"></i> Nuevo usuario
+            </button>
+          </div>
+
           <div class="tabla-wrap">
             <table class="admin-table">
               <thead>
@@ -133,7 +244,10 @@
                         {{ u.activo ? 'Activo' : 'Inactivo' }}
                       </span>
                     </td>
-                    <td>
+                    <td class="acciones-cell">
+                      <button type="button" class="btn-editar" (click)="abrirModalEditar(u)" title="Editar">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
                       <button type="button" class="btn-toggle-activo" (click)="cambiarActivoUsuario(u)">
                         {{ u.activo ? 'Desactivar' : 'Activar' }}
                       </button>
@@ -146,7 +260,21 @@
               <p class="tabla-vacia">No hay usuarios registrados.</p>
             }
           </div>
+
+          <app-paginador
+            [paginaActual]="paginaUsuarios()"
+            [totalPaginas]="totalPaginasUsuarios()"
+            [totalElementos]="totalUsuariosCount()"
+            (cambio)="irAPaginaUsuarios($event)" />
         }
+
+        <app-usuario-modal
+          [abierto]="modalUsuarioAbierto()"
+          [usuario]="usuarioEnEdicion()"
+          [guardando]="guardandoUsuario()"
+          [errorExterno]="errorModalUsuario()"
+          (cerrar)="cerrarModalUsuario()"
+          (guardado)="onGuardarUsuario($event)" />
 
         <!-- ── TAB: Historial de precios ── -->
         @if (tabActivo() === 'historial') {
@@ -169,7 +297,7 @@
               <span>Hasta</span>
               <input type="date" [value]="filtroHasta()" (input)="filtroHasta.set($any($event.target).value)">
             </label>
-            <button type="button" class="btn-buscar" (click)="buscarHistorial()">
+            <button type="button" class="btn-buscar" (click)="buscarHistorialDesdeFiltros()">
               <i class="fa-solid fa-magnifying-glass"></i> Buscar
             </button>
             <button type="button" class="btn-exportar" (click)="exportarHistorial()">
@@ -177,12 +305,13 @@
             </button>
           </div>
 
-          @if (historial().length >= 1000) {
-            <p class="aviso-limite">
-              <i class="fa-solid fa-circle-info"></i>
-              Mostrando los 1000 registros más recientes. Afina los filtros (ruta o fechas) para ver un rango más específico.
-            </p>
-          }
+          <div class="tabla-toolbar">
+            <div class="buscador">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" placeholder="Buscar por aerolínea..." [value]="busquedaHistorial()"
+                     (input)="onBuscarHistorial($any($event.target).value)">
+            </div>
+          </div>
 
           <div class="tabla-wrap">
             <table class="admin-table">
@@ -213,6 +342,12 @@
               <p class="tabla-vacia">No hay registros de historial de precios con estos filtros.</p>
             }
           </div>
+
+          <app-paginador
+            [paginaActual]="paginaHistorial()"
+            [totalPaginas]="totalPaginasHistorial()"
+            [totalElementos]="totalHistorialCount()"
+            (cambio)="irAPaginaHistorial($event)" />
         }
 
         <!-- ── TAB: Suscripciones y pagos ── -->
@@ -229,6 +364,14 @@
           </div>
 
           @if (subTabSuscripciones() === 'suscripciones') {
+            <div class="tabla-toolbar">
+              <div class="buscador">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Buscar por email o nombre..." [value]="busquedaSuscripciones()"
+                       (input)="onBuscarSuscripciones($any($event.target).value)">
+              </div>
+            </div>
+
             <div class="tabla-wrap">
               <table class="admin-table">
                 <thead>
@@ -262,6 +405,12 @@
                 <p class="tabla-vacia">No hay suscripciones registradas.</p>
               }
             </div>
+
+            <app-paginador
+              [paginaActual]="paginaSuscripciones()"
+              [totalPaginas]="totalPaginasSuscripciones()"
+              [totalElementos]="totalSuscripcionesCount()"
+              (cambio)="irAPaginaSuscripciones($event)" />
           } @else {
             <div class="tabla-wrap">
               <table class="admin-table">
@@ -293,6 +442,176 @@
               }
             </div>
           }
+        }
+
+        <!-- ── TAB: Reportes ── -->
+        @if (tabActivo() === 'reportes' && reporteResumen(); as r) {
+          <div class="metricas-grid">
+            <div class="metrica-card">
+              <div class="metrica-icon icon-purple"><i class="fa-solid fa-percent"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Conversión a Premium</span>
+                <span class="metrica-val">{{ r.tasaConversionPremium }}%</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-green"><i class="fa-solid fa-sack-dollar"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Ingreso prom. por suscripción</span>
+                <span class="metrica-val">S/ {{ r.ingresoPromedioPorSuscripcion }}</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-blue"><i class="fa-solid fa-route"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Ruta más consultada</span>
+                <span class="metrica-val">{{ r.rutaMasConsultada }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="roles-card">
+            <h3>Comparativo mes actual vs anterior</h3>
+            <div class="tabla-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Mes anterior</th>
+                    <th>Mes actual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Usuarios nuevos</td>
+                    <td>{{ r.usuariosNuevosMesAnterior }}</td>
+                    <td>{{ r.usuariosNuevosMesActual }}</td>
+                  </tr>
+                  <tr>
+                    <td>Ingresos</td>
+                    <td>S/ {{ r.ingresosMesAnterior }}</td>
+                    <td>S/ {{ r.ingresosMesActual }}</td>
+                  </tr>
+                  <tr>
+                    <td>Suscripciones nuevas</td>
+                    <td>{{ r.suscripcionesNuevasMesAnterior }}</td>
+                    <td>{{ r.suscripcionesNuevasMesActual }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="graficos-grid">
+            <div class="grafico-card grafico-card-ancho">
+              <h3>Usuarios nuevos e ingresos — mes actual vs anterior</h3>
+              <div class="grafico-canvas">
+                <canvas baseChart [type]="'bar'" [data]="chartComparativoMensual()" [options]="optsComparativo"></canvas>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ── TAB: Exportación ── -->
+        @if (tabActivo() === 'exportacion') {
+          <div class="exportacion-grid">
+            <div class="export-card">
+              <div class="export-icon export-icon-excel"><i class="fa-solid fa-file-excel"></i></div>
+              <h3>Usuarios</h3>
+              <p>Descarga el listado completo de usuarios registrados en formato Excel.</p>
+              <button type="button" class="btn-exportar-card" (click)="exportarUsuariosExcel()">
+                <i class="fa-solid fa-download"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="export-card">
+              <div class="export-icon export-icon-excel"><i class="fa-solid fa-file-excel"></i></div>
+              <h3>Suscripciones</h3>
+              <p>Descarga el listado completo de suscripciones del sistema en formato Excel.</p>
+              <button type="button" class="btn-exportar-card" (click)="exportarSuscripcionesExcel()">
+                <i class="fa-solid fa-download"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="export-card">
+              <div class="export-icon export-icon-pdf"><i class="fa-solid fa-file-pdf"></i></div>
+              <h3>Reporte ejecutivo</h3>
+              <p>Descarga un resumen en PDF con las métricas y KPIs principales del sistema.</p>
+              <button type="button" class="btn-exportar-card" (click)="exportarReportePdf()">
+                <i class="fa-solid fa-download"></i> Descargar PDF
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ── TAB: Job de precios ── -->
+        @if (tabActivo() === 'vuelosJob' && jobEstado(); as j) {
+          <div class="metricas-grid">
+            <div class="metrica-card">
+              <div class="metrica-icon icon-blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Última ejecución del job</span>
+                <span class="metrica-val">{{ j.ultimaEjecucion ? formatFechaHora(j.ultimaEjecucion) : 'Aún no ha corrido' }}</span>
+                @if (tasaCapturaHoras(); as horas) {
+                  <span class="metrica-sub">Se ejecuta automáticamente cada {{ horas }} hora(s)</span>
+                }
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-amber"><i class="fa-solid fa-hourglass-half"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Próxima ejecución estimada</span>
+                <span class="metrica-val">{{ j.proximaEjecucionEstimada ? formatFechaHora(j.proximaEjecucionEstimada) : '—' }}</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-purple"><i class="fa-solid fa-stopwatch"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Contador para la próxima ejecución</span>
+                <span class="metrica-val metrica-val-contador">{{ contadorProximaEjecucion() ?? '—' }}</span>
+              </div>
+            </div>
+            <div class="metrica-card">
+              <div class="metrica-icon icon-green"><i class="fa-solid fa-tags"></i></div>
+              <div class="metrica-info">
+                <span class="metrica-label">Total tarifas registradas</span>
+                <span class="metrica-val">{{ j.totalTarifas }}</span>
+                <span class="metrica-sub">{{ j.totalVuelos }} vuelos · {{ j.totalHistorial }} registros de historial</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="roles-card">
+            <h3>Control manual del job de captura</h3>
+            <p>Dispara ahora mismo el mismo job que corre automáticamente cada cierto tiempo: captura el precio actual de todas las tarifas y evalúa las alertas activas.</p>
+            <button type="button" class="btn-nuevo" [disabled]="ejecutandoJob() || !!contadorCooldown()" (click)="ejecutarJobAhora()">
+              @if (ejecutandoJob()) {
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Ejecutando...
+              } @else if (contadorCooldown()) {
+                <i class="fa-solid fa-clock"></i> Disponible en {{ contadorCooldown() }}
+              } @else {
+                <i class="fa-solid fa-play"></i> Ejecutar job ahora
+              }
+            </button>
+
+            @if (ejecutandoJob()) {
+              <div class="barra-progreso-fondo">
+                <div class="barra-progreso" [style.width.%]="progresoJob()"></div>
+              </div>
+            }
+
+            <div class="banner-info-azul">
+              <i class="fa-solid fa-circle-info"></i>
+              <div>
+                <strong>¿De dónde sale esta información?</strong> El job consulta la API de Amadeus
+                para las rutas monitoreadas y obtiene el precio actual que ofrecen LATAM, Sky y JetSmart.
+                Con ese precio recién capturado se actualiza la tarifa vigente (tabla <code>tarifa</code>),
+                se registra en el historial de precios (<code>historial_precio</code>) y se recalcula el
+                semáforo comparando contra el promedio de los últimos 30 días. Con eso también evalúa las
+                alertas de precio activas de los usuarios y dispara las notificaciones que correspondan.
+              </div>
+            </div>
+          </div>
         }
 
       }
