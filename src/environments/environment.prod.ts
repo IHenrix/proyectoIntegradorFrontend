@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.pasajeya.com.pe/api',
-  recaptchaSiteKey: 'TU_SITE_KEY_REAL_AQUI'
+  apiUrl: 'https://pasajeya-production.up.railway.app/api',
+  recaptchaSiteKey: '6LdBahMtAAAAAAVzHU70oZj6JRe0Pq8Scd228RM5'
 };
