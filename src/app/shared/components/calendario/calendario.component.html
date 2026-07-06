@@ -6,6 +6,10 @@
      [style.opacity]="listo() ? 1 : 0"
      (mousedown)="$event.preventDefault()">
 
+  <button type="button" class="cal-close" (click)="cerrar.emit()" aria-label="Cerrar calendario">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+
   <p class="cal-hint">{{ labelFase() }}</p>
 
   <div class="cal-meses">

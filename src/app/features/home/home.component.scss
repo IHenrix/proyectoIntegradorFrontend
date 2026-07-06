@@ -3,16 +3,19 @@
   flex-direction: column;
 }
 
-// ── Hero: ocupa exactamente la pantalla al cargar ─────────────────
+// ── Hero: ocupa al menos la pantalla al cargar, pero crece si el
+// contenido no cabe (zoom del navegador, pantallas bajas, etc.) para
+// no recortar el buscador con overflow:hidden ─────────────────────
 .hero {
   background: #040814;
   min-height: 100vh;
-  height: 100vh;
-  padding-top: 64px; // altura navbar
+  height: auto;
+  padding-top: calc(64px + 1.5rem); // altura navbar + aire
+  padding-bottom: 2rem;
   display: flex;
   align-items: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 
   // bottom fade
   &::after {
@@ -69,22 +72,21 @@
 .hero .container {
   padding-top: 0;
   padding-bottom: 0;
-  max-height: calc(100vh - 64px);
   overflow: visible;
 }
 
 // ── Hero content ─────────────────────────────────────────────────
 .hero-content {
   text-align: left;
-  margin-bottom: 0.65rem;
+  margin-bottom: 1.5rem;
   max-width: 560px;
 }
 
 .hero-airlines {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 
   .hl-logo {
     height: 18px;
@@ -109,7 +111,7 @@
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.03em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 
   .highlight {
     background: linear-gradient(90deg, #fbbf24, #fb923c);
@@ -862,12 +864,15 @@
 
 // ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 640px) {
-  .hero { min-height: 100svh; height: 100svh; }
+  // min-height con svh (altura visible real, sin la barra de direcciones
+  // del navegador móvil) en vez de vh; el resto (crecer, scroll, padding-top)
+  // ya lo resuelve la regla base de .hero.
+  .hero { min-height: 100svh; }
   .hero-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); }
   .mosaic-tile.tile-1 { grid-row: 1 / 2; }
   .hero-content h1 { letter-spacing: -0.02em; }
   .container { padding: 0 1rem; }
-  .route-row { flex-direction: column; }
+  .route-row { flex-direction: column; align-items: stretch; }
   .details-row { grid-template-columns: 1fr; }
   .swap-btn { align-self: center; }
   .search-card { padding: 1.25rem; border-radius: 18px; }

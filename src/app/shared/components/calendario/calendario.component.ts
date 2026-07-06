@@ -49,9 +49,18 @@ export class CalendarioComponent implements OnInit, AfterViewInit, OnDestroy {
       ? triggerRect.bottom - panelH   // borde inferior del panel = borde inferior del trigger
       : triggerRect.bottom + 6;       // borde superior del panel = borde inferior del trigger + gap
 
-    let left = triggerRect.left;
-    if (left + panelW > window.innerWidth - 8) left = window.innerWidth - panelW - 8;
-    if (left < 8) left = 8;
+    // Si el panel ocupa una porción grande del ancho de la ventana (típico del
+    // modo rango en tablets/móviles anchos), alinearlo al trigger lo saca del
+    // centro visual y deja un hueco enorme al otro lado. Se centra en la
+    // ventana en ese caso; si hay espacio de sobra, se alinea al trigger.
+    let left: number;
+    if (panelW > window.innerWidth * 0.7) {
+      left = (window.innerWidth - panelW) / 2;
+    } else {
+      left = triggerRect.left;
+      if (left + panelW > window.innerWidth - 8) left = window.innerWidth - panelW - 8;
+      if (left < 8) left = 8;
+    }
 
     this.posTop.set(top);
     this.posLeft.set(left);

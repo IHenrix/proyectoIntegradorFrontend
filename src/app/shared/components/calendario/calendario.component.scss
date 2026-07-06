@@ -28,6 +28,32 @@
   margin-bottom: 1.25rem;
 }
 
+.cal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  padding: 0;
+  transition: all 0.15s;
+  z-index: 2;
+
+  &:hover {
+    background: #fef2f2;
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+}
+
 // ── Meses ─────────────────────────────────────────────────────────
 .cal-meses {
   display: flex;
@@ -222,8 +248,10 @@
     right: 0 !important;
     width: 100% !important;
     border-radius: 20px 20px 0 0;
+    max-height: 85svh;
+    overflow-y: auto;
   }
 
-  .cal-meses { flex-direction: column; gap: 1.5rem; }
+  .cal-meses { flex-direction: column; align-items: stretch; gap: 1.5rem; }
   .sep-v { display: none; }
 }
