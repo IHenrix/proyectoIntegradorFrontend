@@ -208,6 +208,11 @@ h2 {
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 20px;
   align-items: start;
+
+  /* Admin: sin panel de alerta, el gráfico ocupa todo el ancho */
+  &.no-aside {
+    grid-template-columns: 1fr;
+  }
 }
 
 .left-col {

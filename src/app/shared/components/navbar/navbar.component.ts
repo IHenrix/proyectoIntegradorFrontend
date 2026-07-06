@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertaService } from '../../../core/services/alerta.service';
 import { UpgradeModalService } from '../../../core/services/upgrade-modal.service';
+import { ConfirmModalService } from '../../../core/services/confirm-modal.service';
 
 @Component({
   selector: 'app-navbar',
@@ -15,9 +16,21 @@ export class NavbarComponent {
   readonly auth          = inject(AuthService);
   readonly alertaService = inject(AlertaService);
   readonly upgradeModal  = inject(UpgradeModalService);
+  readonly confirm       = inject(ConfirmModalService);
 
   verMiPlan(): void {
     this.upgradeModal.abrir('resumen');
+  }
+
+  async cerrarSesion(): Promise<void> {
+    const ok = await this.confirm.abrir({
+      tipo:        'warning',
+      titulo:      '¿Cerrar sesión?',
+      mensaje:     'Tendrás que volver a iniciar sesión para acceder a tu cuenta.',
+      labelOk:     'Sí, cerrar sesión',
+      labelCancel: 'Cancelar',
+    });
+    if (ok) this.auth.cerrarSesion();
   }
 
   readonly alertaBadge = computed(() => {

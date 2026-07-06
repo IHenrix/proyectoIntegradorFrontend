@@ -68,6 +68,9 @@ export class PerfilComponent implements OnInit {
   mensaje   = signal<string | null>(null);
   error     = signal<string | null>(null);
 
+  // El admin no es pasajero: no compra plan PRO ni gestiona alertas propias.
+  esAdmin = computed(() => this.auth.rol() === 'admin');
+
   // ── Tabs ─────────────────────────────────────────────────────
   tabActivo = signal<'info' | 'pagos'>('info');
 
@@ -215,7 +218,7 @@ export class PerfilComponent implements OnInit {
     }
 
     const tab = this.route.snapshot.queryParamMap.get('tab');
-    if (tab === 'pagos') this.tabActivo.set('pagos');
+    if (tab === 'pagos' && !this.esAdmin()) this.tabActivo.set('pagos');
 
     // Actualiza validadores del nroDocumento al cambiar tipo
     this.form.get('tipoDocumento')!.valueChanges.subscribe(tipo => {
@@ -237,7 +240,8 @@ export class PerfilComponent implements OnInit {
     this.perfilService.obtener().subscribe({
       next: p => {
         this.perfil.set(p);
-        this.cargarSuscripcion();
+        // El admin no compra plan PRO: no tiene suscripción que cargar.
+        if (!this.esAdmin()) this.cargarSuscripcion();
         // Si el teléfono guardado ya incluye el código de país, separarlo
         let telNum = p.telefono ?? '';
         if (telNum) {

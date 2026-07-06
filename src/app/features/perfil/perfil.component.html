@@ -90,9 +90,11 @@
             }
           </div>
 
-          <a routerLink="/alertas" class="ver-alertas-btn">
-            <i class="fa-solid fa-bell"></i> Ver mis alertas
-          </a>
+          @if (!esAdmin()) {
+            <a routerLink="/alertas" class="ver-alertas-btn">
+              <i class="fa-solid fa-bell"></i> Ver mis alertas
+            </a>
+          }
         </aside>
 
         <!-- Panel derecho con tabs -->
@@ -105,14 +107,16 @@
                     (click)="cambiarTab('info')">
               <i class="fa-solid fa-user"></i> Mi información
             </button>
-            <button type="button" class="perfil-tab"
-                    [class.active]="tabActivo() === 'pagos'"
-                    (click)="cambiarTab('pagos')">
-              <i class="fa-solid fa-credit-card"></i> Suscripción
-              @if (suscripcion()?.estado === 'activa') {
-                <span class="tab-badge">PRO</span>
-              }
-            </button>
+            @if (!esAdmin()) {
+              <button type="button" class="perfil-tab"
+                      [class.active]="tabActivo() === 'pagos'"
+                      (click)="cambiarTab('pagos')">
+                <i class="fa-solid fa-credit-card"></i> Suscripción
+                @if (suscripcion()?.estado === 'activa') {
+                  <span class="tab-badge">PRO</span>
+                }
+              </button>
+            }
           </div>
 
           <!-- ─── TAB: Información ─── -->
@@ -200,8 +204,13 @@
                     <i class="fa-brands fa-whatsapp"></i>
                   </div>
                   <div class="wa-banner-text">
-                    <strong>¡Este número es clave para tus alertas!</strong>
-                    <span>Te notificaremos aquí cuando el precio de un vuelo baje de tu objetivo. Asegúrate de que sea un número activo en WhatsApp.</span>
+                    @if (esAdmin()) {
+                      <strong>Número de contacto</strong>
+                      <span>Guarda tu número de WhatsApp para mantener tu perfil actualizado.</span>
+                    } @else {
+                      <strong>¡Este número es clave para tus alertas!</strong>
+                      <span>Te notificaremos aquí cuando el precio de un vuelo baje de tu objetivo. Asegúrate de que sea un número activo en WhatsApp.</span>
+                    }
                   </div>
                 </div>
 
@@ -239,7 +248,11 @@
                       </div>
                     }
                   </div>
-                  <small>Este número recibirá las alertas de precio por WhatsApp</small>
+                  @if (esAdmin()) {
+                    <small>Número de contacto asociado a tu cuenta</small>
+                  } @else {
+                    <small>Este número recibirá las alertas de precio por WhatsApp</small>
+                  }
                 </label>
               </div>
 

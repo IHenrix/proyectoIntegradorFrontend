@@ -33,8 +33,17 @@
     <div class="footer-section">
       <h4>Mi cuenta</h4>
       <ul>
-        <li><a routerLink="/auth">Iniciar sesión</a></li>
-        <li><a routerLink="/auth">Crear cuenta gratis</a></li>
+        @if (auth.estaAutenticado()) {
+          <li><a routerLink="/perfil">Mi perfil</a></li>
+          @if (auth.rol() === 'admin') {
+            <li><a routerLink="/admin">Panel Admin</a></li>
+          } @else {
+            <li><a routerLink="/alertas">Mis alertas</a></li>
+          }
+        } @else {
+          <li><a routerLink="/auth">Iniciar sesión</a></li>
+          <li><a routerLink="/auth">Crear cuenta gratis</a></li>
+        }
         <li><a routerLink="/">Buscar vuelos</a></li>
       </ul>
     </div>
