@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AeropuertoService } from '../../core/services/aeropuerto.service';
@@ -31,6 +31,27 @@ export class HomeComponent {
   showDropD  = signal(false);
   mismoCodigo = signal(false);
   showCal   = signal(false);
+
+  // Posición calculada del input (position: fixed en vez de absolute), para
+  // que el dropdown de sugerencias nunca quede atrapado por un ancestro con
+  // overflow/scroll propio — flota siempre sobre el viewport, sin afectar
+  // la altura de ningún contenedor padre.
+  dropPosO = signal({ top: 0, left: 0, width: 0 });
+  dropPosD = signal({ top: 0, left: 0, width: 0 });
+
+  private calcularPosicion(input: HTMLInputElement): { top: number; left: number; width: number } {
+    const r = input.getBoundingClientRect();
+    return { top: r.bottom + 4, left: r.left, width: r.width };
+  }
+
+  // Mantiene el dropdown "fixed" pegado al input si el usuario hace scroll
+  // o redimensiona la ventana mientras está abierto.
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  reposicionarDrops(): void {
+    if (this.showDropO()) this.dropPosO.set(this.calcularPosicion(this.inpO.nativeElement));
+    if (this.showDropD()) this.dropPosD.set(this.calcularPosicion(this.inpD.nativeElement));
+  }
 
   private filtrar(q: string) {
     const t    = q.toLowerCase().trim();
@@ -68,7 +89,12 @@ export class HomeComponent {
   }
 
   // ── Aeropuerto autocomplete ────────────────────────────────────
-  focusO(): void { this.filtroO.set(''); this.inpO.nativeElement.value = ''; this.showDropO.set(false); }
+  focusO(): void {
+    this.filtroO.set('');
+    this.inpO.nativeElement.value = '';
+    this.showDropO.set(false);
+    this.dropPosO.set(this.calcularPosicion(this.inpO.nativeElement));
+  }
   blurO():  void {
     setTimeout(() => {
       this.showDropO.set(false);
@@ -85,7 +111,12 @@ export class HomeComponent {
     setTimeout(() => this.inpD.nativeElement.focus(), 50);
   }
 
-  focusD(): void { this.filtroD.set(''); this.inpD.nativeElement.value = ''; this.showDropD.set(false); }
+  focusD(): void {
+    this.filtroD.set('');
+    this.inpD.nativeElement.value = '';
+    this.showDropD.set(false);
+    this.dropPosD.set(this.calcularPosicion(this.inpD.nativeElement));
+  }
   blurD():  void {
     setTimeout(() => {
       this.showDropD.set(false);

@@ -558,9 +558,12 @@
 }
 
 .ac-drop {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0; right: 0;
+  // position: fixed (no absolute) + top/left/width calculados en TypeScript
+  // con getBoundingClientRect (ver dropPosO/dropPosD en home.component.ts):
+  // así el dropdown flota siempre sobre el viewport, sin depender de que
+  // ningún ancestro tenga overflow/scroll "correcto" — nunca puede empujar
+  // la altura de .search-card ni de la página.
+  position: fixed;
   background: #fff;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
@@ -568,7 +571,8 @@
   // Por encima de .cal-backdrop (z-index: 590) para que el dropdown de
   // sugerencias nunca quede oculto detrás del overlay del calendario.
   z-index: 600;
-  overflow: hidden;
+  max-height: 280px;
+  overflow-y: auto;
 }
 
 .ac-opt {

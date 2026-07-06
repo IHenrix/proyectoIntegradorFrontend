@@ -53,7 +53,10 @@
                        (blur)="blurO()"
                        (input)="filtroO.set($any($event.target).value); showDropO.set($any($event.target).value.length > 0)">
                 @if (showDropO()) {
-                  <div class="ac-drop">
+                  <div class="ac-drop"
+                       [style.top.px]="dropPosO().top"
+                       [style.left.px]="dropPosO().left"
+                       [style.width.px]="dropPosO().width">
                     @if (aeropuertoService.cargando()) {
                       <div class="ac-loading">Cargando aeropuertos…</div>
                     } @else if (filtradosO().length === 0) {
@@ -87,7 +90,10 @@
                        (blur)="blurD()"
                        (input)="filtroD.set($any($event.target).value); showDropD.set($any($event.target).value.length > 0)">
                 @if (showDropD()) {
-                  <div class="ac-drop">
+                  <div class="ac-drop"
+                       [style.top.px]="dropPosD().top"
+                       [style.left.px]="dropPosD().left"
+                       [style.width.px]="dropPosD().width">
                     @if (aeropuertoService.cargando()) {
                       <div class="ac-loading">Cargando aeropuertos…</div>
                     } @else if (filtradosD().length === 0) {
