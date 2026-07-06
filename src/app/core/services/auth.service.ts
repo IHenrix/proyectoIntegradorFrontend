@@ -34,16 +34,17 @@ export class AuthService {
     return this.http.post(`${this.API}/registro`, data, { responseType: 'text' });
   }
 
-  login(email: string, password: string, captchaToken: string): Observable<{ token: string; nombre: string; rol: string }> {
-    return this.http.post<{ token: string; nombre: string; rol: string }>(
+  login(email: string, password: string, captchaToken: string): Observable<{ token: string; nombre: string; rol: string; telefono?: string }> {
+    return this.http.post<{ token: string; nombre: string; rol: string; telefono?: string }>(
       `${this.API}/login`, { email, password, captchaToken }
     );
   }
 
-  iniciarSesion(res: { token: string; nombre: string; rol: string }): void {
+  iniciarSesion(res: { token: string; nombre: string; rol: string; telefono?: string }): void {
     localStorage.setItem('token', res.token);
     localStorage.setItem('nombre', res.nombre);
     localStorage.setItem('rol', res.rol);
+    if (res.telefono) localStorage.setItem('telefono', res.telefono);
     this.token.set(res.token);
     this.nombre.set(res.nombre);
     this.rol.set(res.rol);
