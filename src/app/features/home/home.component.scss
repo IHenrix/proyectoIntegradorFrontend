@@ -382,6 +382,11 @@
     color: #64748b;
     font-size: 1.05rem;
   }
+
+  &.light {
+    h2 { color: #f8fafc; }
+    p  { color: rgba(248,250,252,0.65); }
+  }
 }
 
 .steps {
@@ -452,9 +457,10 @@
 
 // ── Airlines ──────────────────────────────────────────────────────
 .airlines-section {
-  background: #f8fafc;
+  background: #eef2f7;
   padding: 3.5rem 0;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .airlines-label {
@@ -619,6 +625,241 @@
   text-align: center;
 }
 
+// ── Beneficios ────────────────────────────────────────────────────
+.beneficios {
+  background: linear-gradient(160deg, #0b1220, #111c33);
+  padding: 6.5rem 0;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 560px) { grid-template-columns: 1fr; }
+}
+
+.benefit-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 1.75rem;
+
+  h4 {
+    color: #f8fafc;
+    font-size: 1.02rem;
+    font-weight: 700;
+    margin: 0.9rem 0 0.4rem;
+  }
+
+  p {
+    color: rgba(248,250,252,0.6);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.benefit-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+
+  &.icon-blue   { background: rgba(59,130,246,0.15); }
+  &.icon-green  { background: rgba(34,197,94,0.15); }
+  &.icon-amber  { background: rgba(251,191,36,0.15); }
+  &.icon-purple { background: rgba(168,85,247,0.15); }
+  &.icon-red    { background: rgba(239,68,68,0.15); }
+  &.icon-teal   { background: rgba(45,212,191,0.15); }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+.stats-strip {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stats-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.75rem 3rem;
+  gap: 0.3rem;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, #1e40af, #fb923c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+  text-align: center;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: #e2e8f0;
+}
+
+// ── Rutas populares ────────────────────────────────────────────────
+.rutas {
+  background: #f8fafc;
+  padding: 5rem 0;
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 500px) { grid-template-columns: 1fr; }
+}
+
+.route-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  transition: all 0.22s;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: #3b82f6;
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(59,130,246,0.15);
+  }
+
+  &.featured {
+    background: linear-gradient(135deg, #1e3a8a, #312e81);
+    border-color: transparent;
+    color: #fff;
+
+    .route-tag {
+      display: inline-block;
+      background: rgba(251,191,36,0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.65rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .route-city, .route-code { color: #f8fafc; }
+    .route-price { color: rgba(248,250,252,0.7); }
+    .route-price strong { color: #fbbf24; }
+    .route-btn {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.2);
+      color: #f8fafc;
+      &:hover { background: rgba(255,255,255,0.2); }
+    }
+
+    &:hover { box-shadow: 0 16px 40px rgba(30,58,138,0.45); }
+  }
+}
+
+.route-tag { display: none; }
+
+.route-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.route-path {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.route-city {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.route-arrow-icon {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.route-code {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.route-price {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+
+  strong {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e40af;
+  }
+}
+
+.route-btn {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: transparent;
+  color: #3b82f6;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s;
+  letter-spacing: 0.02em;
+
+  &:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+  }
+}
+
 // ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 640px) {
   .hero { min-height: 100svh; height: 100svh; }
@@ -634,4 +875,7 @@
   .step-arrow { display: none; }
   .como-funciona { padding: 4rem 0; }
   .step p { max-width: 280px; }
+  .stat { padding: 1.25rem 1.5rem; }
+  .stat-divider { display: none; }
+  .stats-inner { gap: 0; justify-content: space-around; }
 }

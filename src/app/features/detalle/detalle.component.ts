@@ -29,10 +29,11 @@ export class DetalleComponent implements OnInit {
   upgrade = inject(UpgradeModalService);
   confirm = inject(ConfirmModalService);
 
-  esPremium = computed(() => {
-    const r = this.auth.rol();
-    return r === 'usuario_premium' || r === 'admin';
-  });
+  // El admin ve el detalle como si fuera premium (historial extendido, sin banners
+  // de upgrade) para poder revisar cómo luce esa experiencia, pero no gestiona
+  // alertas propias: esAdmin() oculta el panel de "crear alerta" por completo.
+  esAdmin   = computed(() => this.auth.rol() === 'admin');
+  esPremium = computed(() => this.auth.rol() === 'usuario_premium' || this.esAdmin());
 
   tryRango(dias: 7 | 15 | 30 | 60 | 90): void {
     if (dias === 7 || this.esPremium()) {
@@ -111,7 +112,7 @@ export class DetalleComponent implements OnInit {
       this.router.navigate(['/resultados']);
       return;
     }
-    if (this.auth.estaAutenticado()) {
+    if (this.auth.estaAutenticado() && !this.esAdmin()) {
       this.alertaService.listar().subscribe();
     }
     this.vueloService.detalle(id).subscribe({

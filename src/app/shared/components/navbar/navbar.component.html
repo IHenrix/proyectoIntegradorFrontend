@@ -14,30 +14,30 @@
 
       @if (auth.estaAutenticado()) {
 
-        <!-- Ver funcionalidades del plan -->
-        <button type="button" class="nav-icon-btn" title="Ver mi plan" (click)="verMiPlan()">
-          <i class="fa-solid fa-crown"></i>
-          <span>Mi plan</span>
-        </button>
-
-        <!-- Panel Admin: solo visible para rol admin (cosmético; el backend protege de verdad) -->
         @if (esAdmin()) {
+          <!-- Panel Admin: solo visible para rol admin (cosmético; el backend protege de verdad) -->
           <a routerLink="/admin" routerLinkActive="active" class="nav-icon-btn" title="Panel Admin">
             <i class="fa-solid fa-user-shield"></i>
             <span>Panel Admin</span>
           </a>
-        }
+        } @else {
+          <!-- Ver funcionalidades del plan: el admin no es pasajero, no aplica -->
+          <button type="button" class="nav-icon-btn" title="Ver mi plan" (click)="verMiPlan()">
+            <i class="fa-solid fa-crown"></i>
+            <span>Mi plan</span>
+          </button>
 
-        <!-- Alertas -->
-        <a routerLink="/alertas" routerLinkActive="active" class="nav-icon-btn" title="Alertas">
-          <span class="alerta-badge-wrap">
-            <i class="fa-solid fa-bell"></i>
-            @if (alertaBadge()) {
-              <span class="alerta-badge">{{ alertaBadge() }}</span>
-            }
-          </span>
-          <span>Alertas</span>
-        </a>
+          <!-- Alertas: el admin no es pasajero, no aplica -->
+          <a routerLink="/alertas" routerLinkActive="active" class="nav-icon-btn" title="Alertas">
+            <span class="alerta-badge-wrap">
+              <i class="fa-solid fa-bell"></i>
+              @if (alertaBadge()) {
+                <span class="alerta-badge">{{ alertaBadge() }}</span>
+              }
+            </span>
+            <span>Alertas</span>
+          </a>
+        }
 
         <!-- Usuario → perfil -->
         <a routerLink="/perfil" routerLinkActive="active" class="user-pill" title="Ver perfil">

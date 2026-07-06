@@ -13,12 +13,6 @@ export const routes: Routes = [
       import('./features/auth/auth.component').then(m => m.AuthComponent)
   },
   {
-    path: 'dashboard',
-    loadComponent: () =>
-      import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
-    canActivate: [authGuard]
-  },
-  {
     path: 'resultados',
     loadComponent: () =>
       import('./features/resultados/resultados.component').then(m => m.ResultadosComponent)

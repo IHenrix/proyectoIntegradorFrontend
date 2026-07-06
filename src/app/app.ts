@@ -19,7 +19,8 @@ export class App {
   constructor() {
     // El componente raíz se monta primero en cada F5, sin importar la ruta,
     // así el badge de alertas del navbar queda listo antes de que se pinte.
-    if (this.auth.estaAutenticado()) {
+    // El admin no es pasajero: no tiene alertas ni badge que precargar.
+    if (this.auth.estaAutenticado() && this.auth.rol() !== 'admin') {
       this.alertaService.precargar();
     }
   }

@@ -231,6 +231,148 @@
     </div>
   </section>
 
+  <!-- ── Stats ──────────────────────────────────────────────────── -->
+  <section class="stats-strip">
+    <div class="container stats-inner">
+      <div class="stat">
+        <span class="stat-value">3</span>
+        <span class="stat-label">Aerolíneas comparadas</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">+200</span>
+        <span class="stat-label">Vuelos disponibles</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">100%</span>
+        <span class="stat-label">Gratis para el viajero</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">15</span>
+        <span class="stat-label">Destinos nacionales</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Beneficios ─────────────────────────────────────────────── -->
+  <section class="beneficios">
+    <div class="container">
+      <div class="section-header light">
+        <h2>Todo en un solo lugar</h2>
+        <p>PasajeYa fue construido para que el viajero peruano encuentre el mejor precio sin complicaciones.</p>
+      </div>
+
+      <div class="benefits-grid">
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-blue">⚡</div>
+          <h4>Búsqueda instantánea</h4>
+          <p>Resultados en menos de 2 segundos. Compara las 3 aerolíneas principales al mismo tiempo.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-green">🚦</div>
+          <h4>Semáforo de precios</h4>
+          <p>Sabemos si el precio de hoy está barato, normal o caro respecto al historial de esa ruta.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-amber">🔔</div>
+          <h4>Alertas de precio</h4>
+          <p>Activa una alerta y te avisamos por correo cuando el precio de tu ruta baje.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-purple">🛡️</div>
+          <h4>Sin cargos ocultos</h4>
+          <p>Mostramos el precio final con todos los impuestos incluidos. Sin sorpresas al pagar.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-red">✈️</div>
+          <h4>Info completa del vuelo</h4>
+          <p>Equipaje, tipo de tarifa, duración, escala, aeropuerto de salida — todo visible antes de decidir.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon icon-teal">🆓</div>
+          <h4>100% gratis</h4>
+          <p>PasajeYa es completamente gratuito para el viajero. Nunca cobraremos por comparar precios.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Rutas populares ────────────────────────────────────────── -->
+  <section class="rutas">
+    <div class="container">
+      <div class="section-header">
+        <h2>Rutas populares</h2>
+        <p>Las rutas más buscadas en PasajeYa. Haz clic para ver precios en tiempo real.</p>
+      </div>
+
+      <div class="routes-grid">
+
+        <div class="route-card featured" (click)="irRuta('LIM','CUZ')">
+          <div class="route-content">
+            <div class="route-tag">Más popular</div>
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Cusco</span>
+            </div>
+            <div class="route-code">LIM → CUZ</div>
+            <div class="route-price">Desde <strong>S/ 119</strong></div>
+          </div>
+          <button class="route-btn">Ver vuelos →</button>
+        </div>
+
+        <div class="route-card" (click)="irRuta('LIM','AQP')">
+          <div class="route-content">
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Arequipa</span>
+            </div>
+            <div class="route-code">LIM → AQP</div>
+            <div class="route-price">Desde <strong>S/ 99</strong></div>
+          </div>
+          <button class="route-btn">Ver vuelos →</button>
+        </div>
+
+        <div class="route-card" (click)="irRuta('LIM','PIU')">
+          <div class="route-content">
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Piura</span>
+            </div>
+            <div class="route-code">LIM → PIU</div>
+            <div class="route-price">Desde <strong>S/ 89</strong></div>
+          </div>
+          <button class="route-btn">Ver vuelos →</button>
+        </div>
+
+        <div class="route-card" (click)="irRuta('LIM','TRU')">
+          <div class="route-content">
+            <div class="route-path">
+              <span class="route-city">Lima</span>
+              <span class="route-arrow-icon">✈</span>
+              <span class="route-city">Trujillo</span>
+            </div>
+            <div class="route-code">LIM → TRU</div>
+            <div class="route-price">Desde <strong>S/ 79</strong></div>
+          </div>
+          <button class="route-btn">Ver vuelos →</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <app-footer />
 
 </div>

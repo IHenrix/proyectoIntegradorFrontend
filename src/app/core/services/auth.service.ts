@@ -49,7 +49,10 @@ export class AuthService {
     this.rol.set(res.rol);
     // Cargamos las alertas al iniciar sesión para que el badge del navbar
     // se muestre de inmediato, sin esperar a entrar a la sección de alertas.
-    this.injector.get(AlertaService).precargar();
+    // El admin no es pasajero: no tiene alertas ni badge que precargar.
+    if (res.rol !== 'admin') {
+      this.injector.get(AlertaService).precargar();
+    }
   }
 
   cerrarSesion(): void {

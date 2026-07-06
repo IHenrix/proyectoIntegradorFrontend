@@ -31,9 +31,15 @@
 
     <!-- User pill -->
     @if (auth.estaAutenticado()) {
-      <a routerLink="/alertas" class="top-icon-btn" title="Alertas">
-        <i class="fa-solid fa-bell"></i>
-      </a>
+      @if (esAdmin()) {
+        <a routerLink="/admin" class="top-icon-btn" title="Panel Admin">
+          <i class="fa-solid fa-user-shield"></i>
+        </a>
+      } @else {
+        <a routerLink="/alertas" class="top-icon-btn" title="Alertas">
+          <i class="fa-solid fa-bell"></i>
+        </a>
+      }
       <a routerLink="/perfil" class="top-user-pill">
         <div class="top-avatar" [class]="rolInfo().avatar">{{ inicial() }}</div>
         <div class="top-user-info">

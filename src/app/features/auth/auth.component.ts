@@ -282,7 +282,7 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authService.login(email!, password!, captchaToken).subscribe({
       next: res => {
         this.authService.iniciarSesion(res);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/']);
       },
       error: err => {
         const raw = err.error;

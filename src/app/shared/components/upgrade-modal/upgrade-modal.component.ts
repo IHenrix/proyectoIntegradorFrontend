@@ -16,10 +16,7 @@ export class UpgradeModalComponent {
   auth   = inject(AuthService);
   copy   = UPGRADE_COPY;
 
-  esPremium = computed(() => {
-    const r = this.auth.rol();
-    return r === 'usuario_premium' || r === 'admin';
-  });
+  esPremium = computed(() => this.auth.rol() === 'usuario_premium');
 
   featureCopy() { return this.copy[this.svc.feature()]; }
 

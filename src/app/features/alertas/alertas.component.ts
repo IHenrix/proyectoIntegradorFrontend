@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AlertaService } from '../../core/services/alerta.service';
 import { AeropuertoService } from '../../core/services/aeropuerto.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -19,6 +19,7 @@ import { FooterComponent } from '../../shared/components/footer/footer.component
 })
 export class AlertasComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private router = inject(Router);
   alertaService = inject(AlertaService);
   aeropuertoService = inject(AeropuertoService);
   auth    = inject(AuthService);
@@ -27,10 +28,7 @@ export class AlertasComponent implements OnInit {
 
   readonly LIMITE_ALERTAS_FREE = 3;
 
-  esPremium = computed(() => {
-    const r = this.auth.rol();
-    return r === 'usuario_premium' || r === 'admin';
-  });
+  esPremium = computed(() => this.auth.rol() === 'usuario_premium');
 
   limiteSuperado = computed(() =>
     !this.esPremium() && this.alertaService.alertas().length >= this.LIMITE_ALERTAS_FREE
@@ -57,6 +55,11 @@ export class AlertasComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // El admin no es pasajero: no gestiona alertas propias, no aplica esta vista.
+    if (this.auth.rol() === 'admin') {
+      this.router.navigate(['/admin']);
+      return;
+    }
     this.cargar();
   }
 

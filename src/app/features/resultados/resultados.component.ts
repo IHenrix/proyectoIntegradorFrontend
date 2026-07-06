@@ -29,10 +29,11 @@ export class ResultadosComponent implements OnInit {
   upgrade           = inject(UpgradeModalService);
   loginModal        = inject(LoginModalService);
 
-  esPremium = computed(() => {
-    const r = this.auth.rol();
-    return r === 'usuario_premium' || r === 'admin';
-  });
+  // El admin ve el semáforo de precios desbloqueado, igual que un premium,
+  // para poder revisar cómo luce esa vista (no gestiona alertas, pero sí
+  // navega resultados como cualquier visitante).
+  esAdmin   = computed(() => this.auth.rol() === 'admin');
+  esPremium = computed(() => this.auth.rol() === 'usuario_premium' || this.esAdmin());
 
   readonly inicial  = computed(() => (this.auth.nombre() ?? 'U').trim().charAt(0).toUpperCase());
   readonly rolInfo  = computed(() => {

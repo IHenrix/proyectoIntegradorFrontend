@@ -6,6 +6,8 @@ import { CalendarioComponent } from '../../shared/components/calendario/calendar
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 
+const DEMO_FECHA = '2026-06-20';
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -146,5 +148,11 @@ export class HomeComponent {
       }
       this.router.navigate(['/resultados'], { queryParams: qp });
     }
+  }
+
+  irRuta(origen: string, destino: string): void {
+    this.router.navigate(['/resultados'], {
+      queryParams: { origen, destino, fecha: DEMO_FECHA, pasajeros: this.form.value.pasajeros ?? 1 }
+    });
   }
 }

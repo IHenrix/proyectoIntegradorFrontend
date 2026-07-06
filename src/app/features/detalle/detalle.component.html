@@ -207,6 +207,7 @@
         </div>
 
         <!-- Right: alert panel -->
+        @if (!esAdmin()) {
         <aside class="panel alert-panel">
           <div class="alert-panel-head">
             <span class="eyebrow">Alerta WhatsApp</span>
@@ -313,6 +314,7 @@
             </a>
           }
         </aside>
+        }
 
       </section>
     }
