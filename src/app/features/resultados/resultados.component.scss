@@ -1088,6 +1088,27 @@
   .al-logo-wrap  { width: 40px; height: 40px; padding: 5px; }
   .al-logo-wrap.al-logo-sm { width: 28px; height: 28px; padding: 4px; }
   .card-row      { gap: 0.65rem; padding: 0.9rem 1rem; }
+
+  // Card de paquete (ida y vuelta): logos + horas + precio no caben en
+  // una sola fila con texto tan angosto — el precio pasa a ocupar su
+  // propia línea completa debajo, en vez de solaparse con las horas.
+  .pkg-row {
+    flex-wrap: wrap;
+
+    .pkg-logos { gap: 4px; }
+    .pkg-leg   { gap: 0.5rem; }
+    .card-spacer { display: none; }
+    .card-precio {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      width: 100%;
+      order: 3;
+      padding-top: 0.5rem;
+      border-top: 1px solid #f1f5f9;
+    }
+    .card-chevron { order: 4; }
+  }
 }
 
 @media (max-width: 600px) {
