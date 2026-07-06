@@ -565,7 +565,9 @@
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 8px 32px rgba(0,0,0,0.14);
-  z-index: 200;
+  // Por encima de .cal-backdrop (z-index: 590) para que el dropdown de
+  // sugerencias nunca quede oculto detrás del overlay del calendario.
+  z-index: 600;
   overflow: hidden;
 }
 
