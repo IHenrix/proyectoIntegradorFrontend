@@ -56,7 +56,7 @@
   <!-- ══ MODAL ═════════════════════════════════════════════════════ -->
   @if (showModal()) {
     <div class="modal-backdrop" (click)="cerrarModal()"></div>
-    <div class="modal-top">
+    <div class="modal-top" (scroll)="reposicionarDrops()">
       <div class="modal-hdr">
         <span class="modal-logo">
           <span class="modal-logo-icon"><i class="fa-solid fa-plane-departure"></i></span>
@@ -82,9 +82,13 @@
           <div class="inp-wrap">
             <input #inpO type="text" class="mf-input" autocomplete="off" placeholder="Ciudad o aeropuerto"
                    (focus)="focusO()" (blur)="blurO()"
-                   (input)="filtroO.set($any($event.target).value); showDropO.set($any($event.target).value.length > 0)">
+                   (input)="onInputO($any($event.target).value)">
             @if (showDropO() && filtradosO().length > 0) {
-              <div class="ac-drop">
+              <div class="ac-drop"
+                   [style.top.px]="dropPosO().top"
+                   [style.left.px]="dropPosO().left"
+                   [style.width.px]="dropPosO().width"
+                   [style.opacity]="dropListoO() ? 1 : 0">
                 @for (a of filtradosO(); track a.code) {
                   <div class="ac-opt" (mousedown)="pickO(a)">
                     <i class="fa-solid fa-plane ac-ico"></i>
@@ -106,9 +110,13 @@
           <div class="inp-wrap">
             <input #inpD type="text" class="mf-input" autocomplete="off" placeholder="Ciudad o aeropuerto"
                    (focus)="focusD()" (blur)="blurD()"
-                   (input)="filtroD.set($any($event.target).value); showDropD.set($any($event.target).value.length > 0)">
+                   (input)="onInputD($any($event.target).value)">
             @if (showDropD() && filtradosD().length > 0) {
-              <div class="ac-drop">
+              <div class="ac-drop"
+                   [style.top.px]="dropPosD().top"
+                   [style.left.px]="dropPosD().left"
+                   [style.width.px]="dropPosD().width"
+                   [style.opacity]="dropListoD() ? 1 : 0">
                 @for (a of filtradosD(); track a.code) {
                   <div class="ac-opt" (mousedown)="pickD(a)">
                     <i class="fa-solid fa-plane ac-ico"></i>

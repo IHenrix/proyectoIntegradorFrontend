@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild, ElementRef, signal, computed, effect } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, ElementRef, signal, computed, effect, HostListener } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -85,6 +85,33 @@ export class ResultadosComponent implements OnInit {
   filtroD     = signal('');
   showDropO   = signal(false);
   showDropD   = signal(false);
+
+  // .modal-top tiene overflow-y:auto + max-height:100vh (para poder hacer
+  // scroll dentro del modal en pantallas chicas). Si .ac-drop fuera
+  // position:absolute, el navegador lo contaría como contenido del modal
+  // y generaría un scroll interno feo apenas la lista de sugerencias
+  // creciera. Con position:fixed + coordenadas calculadas en JS (mismo
+  // patrón que home.component.ts y que app-calendario), el dropdown flota
+  // fuera de ese contenedor con scroll, sin afectar su altura medida.
+  dropPosO   = signal({ top: 0, left: 0, width: 0 });
+  dropPosD   = signal({ top: 0, left: 0, width: 0 });
+  dropListoO = signal(false);
+  dropListoD = signal(false);
+
+  private calcularPosicionDrop(input: HTMLInputElement): { top: number; left: number; width: number } {
+    const r = input.getBoundingClientRect();
+    return { top: r.bottom + 6, left: r.left, width: Math.max(r.width, 280) };
+  }
+
+  // .modal-top puede tener su propio scroll interno en pantallas chicas
+  // (max-height:100vh + overflow-y:auto) — si el usuario hace scroll ahí
+  // o redimensiona la ventana con el dropdown abierto, hay que recalcular.
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  reposicionarDrops(): void {
+    if (this.showDropO()) this.dropPosO.set(this.calcularPosicionDrop(this.inpO.nativeElement));
+    if (this.showDropD()) this.dropPosD.set(this.calcularPosicionDrop(this.inpD.nativeElement));
+  }
 
   form = this.fb.group({
     origen:      ['', Validators.required],
@@ -189,12 +216,24 @@ export class ResultadosComponent implements OnInit {
     this.form.patchValue({ origen: '' });
     this.inpO.nativeElement.select();
     this.showDropD.set(false);
+    this.dropListoD.set(false);
     this.showCal.set(false);
+  }
+
+  onInputO(valor: string): void {
+    this.filtroO.set(valor);
+    const abrir = valor.length > 0;
+    this.showDropO.set(abrir);
+    if (abrir) {
+      this.dropPosO.set(this.calcularPosicionDrop(this.inpO.nativeElement));
+      this.dropListoO.set(true);
+    }
   }
 
   blurO(): void {
     setTimeout(() => {
       this.showDropO.set(false);
+      this.dropListoO.set(false);
       this.filtroO.set('');
       if (!this.form.value.origen && this.prevOrigenCode) {
         this.form.patchValue({ origen: this.prevOrigenCode });
@@ -210,12 +249,24 @@ export class ResultadosComponent implements OnInit {
     this.form.patchValue({ destino: '' });
     this.inpD.nativeElement.select();
     this.showDropO.set(false);
+    this.dropListoO.set(false);
     this.showCal.set(false);
+  }
+
+  onInputD(valor: string): void {
+    this.filtroD.set(valor);
+    const abrir = valor.length > 0;
+    this.showDropD.set(abrir);
+    if (abrir) {
+      this.dropPosD.set(this.calcularPosicionDrop(this.inpD.nativeElement));
+      this.dropListoD.set(true);
+    }
   }
 
   blurD(): void {
     setTimeout(() => {
       this.showDropD.set(false);
+      this.dropListoD.set(false);
       this.filtroD.set('');
       if (!this.form.value.destino && this.prevDestinoCode) {
         this.form.patchValue({ destino: this.prevDestinoCode });
@@ -231,6 +282,7 @@ export class ResultadosComponent implements OnInit {
     this.inpO.nativeElement.value = `${a.ciudad} (${a.code})`;
     this.filtroO.set('');
     this.showDropO.set(false);
+    this.dropListoO.set(false);
   }
 
   pickD(a: Aeropuerto): void {
@@ -238,6 +290,7 @@ export class ResultadosComponent implements OnInit {
     this.inpD.nativeElement.value = `${a.ciudad} (${a.code})`;
     this.filtroD.set('');
     this.showDropD.set(false);
+    this.dropListoD.set(false);
   }
 
   intercambiar(): void {

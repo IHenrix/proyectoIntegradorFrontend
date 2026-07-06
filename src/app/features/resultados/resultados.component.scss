@@ -476,22 +476,27 @@
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
-// Autocomplete dropdown (dentro del modal — sin overflow clipping)
+// Autocomplete dropdown
 .inp-wrap { position: relative; }
 
 .ac-drop {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  // position: fixed (no absolute) + top/left/width calculados en TS con
+  // getBoundingClientRect (dropPosO/dropPosD en resultados.component.ts).
+  // .modal-top (el contenedor de este formulario) tiene overflow-y:auto +
+  // max-height:100vh para poder scrollear en pantallas chicas — un
+  // .ac-drop absolute cuenta como contenido de ese scroll y genera una
+  // barra de scroll fea apenas la lista de sugerencias crece. Con fixed,
+  // el dropdown flota fuera de ese contenedor sin afectar su altura medida.
+  position: fixed;
   min-width: 280px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.16);
   border: 1px solid #e2e8f0;
   z-index: 400;
-  overflow: hidden;
   max-height: 260px;
   overflow-y: auto;
+  transition: opacity 0.12s;
 }
 
 .ac-opt {
