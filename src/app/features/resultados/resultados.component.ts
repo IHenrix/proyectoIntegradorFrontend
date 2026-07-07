@@ -7,7 +7,7 @@ import { AeropuertoService, Aeropuerto } from '../../core/services/aeropuerto.se
 import { AuthService } from '../../core/services/auth.service';
 import { UpgradeModalService } from '../../core/services/upgrade-modal.service';
 import { LoginModalService } from '../../core/services/login-modal.service';
-import { BusquedaParams } from '../../core/models/vuelo.model';
+import { BusquedaParams, PrecioPunto } from '../../core/models/vuelo.model';
 import { CalendarioComponent } from '../../shared/components/calendario/calendario.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 
@@ -79,6 +79,16 @@ export class ResultadosComponent implements OnInit {
 
   showModal   = signal(false);
   cardAbierto = signal<number | null>(null);
+  semaforoPreview = signal<number | null>(null);
+  // El popover usa position:fixed + coordenadas calculadas (mismo patrón que
+  // los dropdowns de origen/destino) porque .card tiene overflow:hidden y
+  // recortaría un popover position:absolute anclado dentro de ella.
+  semaforoPreviewPos = signal({ top: 0, left: 0 });
+  // Cache simple por tarifaId: evita repetir la llamada si el usuario cierra
+  // y vuelve a abrir el popover de la misma card.
+  private sparklineCache = new Map<number, PrecioPunto[]>();
+  semaforoSparkline = signal<PrecioPunto[] | null>(null);
+  semaforoSparklineCargando = signal(false);
   tripType    = signal<'ida' | 'idavuelta'>('idavuelta');
   showCal     = signal(false);
   filtroO     = signal('');
@@ -111,6 +121,7 @@ export class ResultadosComponent implements OnInit {
   reposicionarDrops(): void {
     if (this.showDropO()) this.dropPosO.set(this.calcularPosicionDrop(this.inpO.nativeElement));
     if (this.showDropD()) this.dropPosD.set(this.calcularPosicionDrop(this.inpD.nativeElement));
+    if (this.semaforoPreview() !== null) this.semaforoPreview.set(null);
   }
 
   form = this.fb.group({
@@ -368,6 +379,79 @@ export class ResultadosComponent implements OnInit {
   verDetalle(id: number, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/detalle', id]);
+  }
+
+  toggleSemaforoPreview(id: number, event: Event): void {
+    event.stopPropagation();
+    if (this.semaforoPreview() === id) {
+      this.semaforoPreview.set(null);
+      return;
+    }
+    const strip = (event.currentTarget as HTMLElement);
+    const r = strip.getBoundingClientRect();
+    this.semaforoPreviewPos.set({ top: r.bottom + 6, left: r.left });
+    this.semaforoPreview.set(id);
+
+    const cacheado = this.sparklineCache.get(id);
+    if (cacheado) {
+      this.semaforoSparkline.set(cacheado);
+      return;
+    }
+    this.semaforoSparkline.set(null);
+    this.semaforoSparklineCargando.set(true);
+    this.vueloService.detalle(id).subscribe({
+      next: detalle => {
+        const puntos = detalle.historico.slice(-10);
+        this.sparklineCache.set(id, puntos);
+        if (this.semaforoPreview() === id) {
+          this.semaforoSparkline.set(puntos);
+          this.semaforoSparklineCargando.set(false);
+        }
+      },
+      error: () => {
+        if (this.semaforoPreview() === id) this.semaforoSparklineCargando.set(false);
+      }
+    });
+  }
+
+  @HostListener('document:click', ['$event'])
+  cerrarSemaforoPreview(event: MouseEvent): void {
+    if (this.semaforoPreview() === null) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('.sema-strip-wrap')) return;
+    this.semaforoPreview.set(null);
+  }
+
+  /** Puntos "x,y" para el <polyline> del sparkline (viewBox 220x60). */
+  sparklinePoints(): string {
+    const datos = this.semaforoSparkline();
+    if (!datos || datos.length < 2) return '';
+    const precios = datos.map(p => p.precio);
+    const min = Math.min(...precios);
+    const max = Math.max(...precios);
+    const rango = (max - min) || 1;
+    const w = 220, h = 60, pad = 6;
+    return datos.map((p, i) => {
+      const x = (i / (datos.length - 1)) * w;
+      const y = (h - pad) - ((p.precio - min) / rango) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+  }
+
+  sparklineTendencia(): 'sube' | 'baja' | 'estable' {
+    const datos = this.semaforoSparkline();
+    if (!datos || datos.length < 2) return 'estable';
+    const primero = datos[0].precio;
+    const ultimo = datos[datos.length - 1].precio;
+    const cambio = (ultimo - primero) / primero;
+    if (cambio > 0.03) return 'sube';
+    if (cambio < -0.03) return 'baja';
+    return 'estable';
+  }
+
+  verPlanesPro(): void {
+    this.semaforoPreview.set(null);
+    this.upgrade.abrir('semaforo');
   }
 
   airlineCls(nombre: string): string {

@@ -1075,6 +1075,123 @@
   letter-spacing: .03em;
 }
 
+// Popover chico con preview del semáforo — position:fixed + coordenadas JS
+// (ver comentario en el .ts) en vez del modal grande de upgrade, porque
+// abrir un modal a pantalla completa por una franja de una línea es
+// desproporcionado.
+.sema-strip-wrap { display: contents; }
+
+.sema-popover {
+  position: fixed;
+  z-index: 500;
+  width: 260px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.16);
+  padding: 0.9rem 1rem;
+  animation: sema-popover-in 0.12s ease-out;
+}
+
+@keyframes sema-popover-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sema-popover-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.6rem;
+}
+
+.sema-popover-loading {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  padding: 0.8rem 0;
+  text-align: center;
+}
+
+.sema-sparkline {
+  width: 100%;
+  height: 60px;
+  display: block;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.sema-sparkline-line {
+  &.tendencia-baja    { stroke: #16a34a; }
+  &.tendencia-sube    { stroke: #dc2626; }
+  &.tendencia-estable { stroke: #ca8a04; }
+}
+
+.sema-popover-tendencia {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+  margin: 0.55rem 0 0;
+}
+
+// El dato real (curva + tendencia) se muestra desenfocado: comunica que existe
+// información concreta detrás sin regalarla gratis a un usuario FREE.
+.sema-popover-blur {
+  position: relative;
+
+  .sema-sparkline, .sema-popover-tendencia {
+    filter: blur(4px);
+    user-select: none;
+    pointer-events: none;
+  }
+}
+
+.sema-popover-candado {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  background: rgba(255,255,255,0.55);
+  border-radius: 10px;
+
+  i {
+    font-size: 1rem;
+    color: #d97706;
+  }
+
+  span {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #92400e;
+    line-height: 1.25;
+    padding: 0 0.5rem;
+  }
+}
+
+.sema-popover-cta {
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.55rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.9; }
+}
+
 // ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 800px) {
   .modal-form { flex-wrap: wrap; }

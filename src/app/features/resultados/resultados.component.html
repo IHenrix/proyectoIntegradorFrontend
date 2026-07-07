@@ -302,12 +302,54 @@
                     <span class="sema-pct"><i class="fa-solid fa-tag"></i> {{ p.ida.tipoTarifa | titlecase }}</span>
                   </div>
                 } @else if (auth.estaAutenticado()) {
-                  <div class="sema-strip sema-locked" (click)="upgrade.abrir('semaforo'); $event.stopPropagation()">
-                    <i class="fa-solid fa-lock sema-ico"></i>
-                    <span class="sema-label">Semáforo de precios</span>
-                    <span class="sema-desc">— disponible en PRO</span>
-                    <span class="sema-strip-spacer"></span>
-                    <span class="sema-pro-tag">★ PRO</span>
+                  <div class="sema-strip-wrap">
+                    <div class="sema-strip sema-locked" (click)="toggleSemaforoPreview(p.ida.id, $event)">
+                      <i class="fa-solid fa-lock sema-ico"></i>
+                      <span class="sema-label">Semáforo de precios</span>
+                      <span class="sema-desc">— disponible en PRO</span>
+                      <span class="sema-strip-spacer"></span>
+                      <span class="sema-pro-tag">★ PRO</span>
+                    </div>
+                    @if (semaforoPreview() === p.ida.id) {
+                      <div class="sema-popover"
+                           [style.top.px]="semaforoPreviewPos().top"
+                           [style.left.px]="semaforoPreviewPos().left"
+                           (click)="$event.stopPropagation()">
+                        <p class="sema-popover-title">Tendencia de precio (PRO)</p>
+                        @if (semaforoSparklineCargando()) {
+                          <div class="sema-popover-loading">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Cargando histórico…
+                          </div>
+                        } @else if (semaforoSparkline() && semaforoSparkline()!.length >= 2) {
+                          <div class="sema-popover-blur">
+                            <svg class="sema-sparkline" viewBox="0 0 220 60" preserveAspectRatio="none">
+                              <polyline [attr.points]="sparklinePoints()"
+                                        fill="none"
+                                        [class]="'sema-sparkline-line tendencia-' + sparklineTendencia()"
+                                        stroke-width="2.5" />
+                            </svg>
+                            <p class="sema-popover-tendencia">
+                              @if (sparklineTendencia() === 'baja') {
+                                <i class="fa-solid fa-arrow-trend-down"></i> Bajando en los últimos días
+                              } @else if (sparklineTendencia() === 'sube') {
+                                <i class="fa-solid fa-arrow-trend-up"></i> Subiendo en los últimos días
+                              } @else {
+                                <i class="fa-solid fa-arrows-left-right"></i> Estable en los últimos días
+                              }
+                            </p>
+                            <div class="sema-popover-candado">
+                              <i class="fa-solid fa-lock"></i>
+                              <span>Desbloquea la tendencia real con PRO</span>
+                            </div>
+                          </div>
+                        } @else {
+                          <p class="sema-popover-loading">Aún no hay suficiente historial para esta ruta.</p>
+                        }
+                        <button type="button" class="sema-popover-cta" (click)="verPlanesPro()">
+                          Ver planes PRO
+                        </button>
+                      </div>
+                    }
                   </div>
                 }
 
@@ -544,12 +586,54 @@
                   <span class="sema-pct"><i class="fa-solid fa-tag"></i> {{ v.tipoTarifa | titlecase }}</span>
                 </div>
               } @else if (auth.estaAutenticado()) {
-                <div class="sema-strip sema-locked" (click)="upgrade.abrir('semaforo'); $event.stopPropagation()">
-                  <i class="fa-solid fa-lock sema-ico"></i>
-                  <span class="sema-label">Semáforo de precios</span>
-                  <span class="sema-desc">— disponible en PRO</span>
-                  <span class="sema-strip-spacer"></span>
-                  <span class="sema-pro-tag">★ PRO</span>
+                <div class="sema-strip-wrap">
+                  <div class="sema-strip sema-locked" (click)="toggleSemaforoPreview(v.id, $event)">
+                    <i class="fa-solid fa-lock sema-ico"></i>
+                    <span class="sema-label">Semáforo de precios</span>
+                    <span class="sema-desc">— disponible en PRO</span>
+                    <span class="sema-strip-spacer"></span>
+                    <span class="sema-pro-tag">★ PRO</span>
+                  </div>
+                  @if (semaforoPreview() === v.id) {
+                    <div class="sema-popover"
+                         [style.top.px]="semaforoPreviewPos().top"
+                         [style.left.px]="semaforoPreviewPos().left"
+                         (click)="$event.stopPropagation()">
+                      <p class="sema-popover-title">Tendencia de precio (PRO)</p>
+                      @if (semaforoSparklineCargando()) {
+                        <div class="sema-popover-loading">
+                          <i class="fa-solid fa-spinner fa-spin"></i> Cargando histórico…
+                        </div>
+                      } @else if (semaforoSparkline() && semaforoSparkline()!.length >= 2) {
+                        <div class="sema-popover-blur">
+                          <svg class="sema-sparkline" viewBox="0 0 220 60" preserveAspectRatio="none">
+                            <polyline [attr.points]="sparklinePoints()"
+                                      fill="none"
+                                      [class]="'sema-sparkline-line tendencia-' + sparklineTendencia()"
+                                      stroke-width="2.5" />
+                          </svg>
+                          <p class="sema-popover-tendencia">
+                            @if (sparklineTendencia() === 'baja') {
+                              <i class="fa-solid fa-arrow-trend-down"></i> Bajando en los últimos días
+                            } @else if (sparklineTendencia() === 'sube') {
+                              <i class="fa-solid fa-arrow-trend-up"></i> Subiendo en los últimos días
+                            } @else {
+                              <i class="fa-solid fa-arrows-left-right"></i> Estable en los últimos días
+                            }
+                          </p>
+                          <div class="sema-popover-candado">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>Desbloquea la tendencia real con PRO</span>
+                          </div>
+                        </div>
+                      } @else {
+                        <p class="sema-popover-loading">Aún no hay suficiente historial para esta ruta.</p>
+                      }
+                      <button type="button" class="sema-popover-cta" (click)="verPlanesPro()">
+                        Ver planes PRO
+                      </button>
+                    </div>
+                  }
                 </div>
               }
 
