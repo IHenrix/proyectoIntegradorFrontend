@@ -77,6 +77,30 @@ export class AuthComponent implements OnInit, AfterViewInit, OnDestroy {
     this.filtroPaises.set('');
   }
 
+  // ── Solo para pruebas manuales: Alt+R rellena el formulario de registro
+  // con datos válidos (sin la contraseña), para agilizar las pruebas. ──
+  @HostListener('window:keydown', ['$event'])
+  rellenarDatosPrueba(event: KeyboardEvent): void {
+    if (!event.altKey || event.key.toLowerCase() !== 'r') return;
+    if (this.modo() !== 'registro') return;
+    event.preventDefault();
+
+    // El tipo de documento se setea primero: su valueChanges limpia el
+    // número, así que el nroDocumento se asigna después.
+    this.registroForm.patchValue({
+      nombre:            'ENRIQUE',
+      apellidoPaterno:   'PRADA',
+      apellidoMaterno:   'GUERRA',
+      genero:            'M', // Masculino
+      email:             'enrique.pdg@gmail.com',
+      telefono:          '912016161',
+      fechaNacimiento:   '1999-05-29',
+      tipoDocumentoId:   1, // DNI
+    });
+    // La contraseña NO se completa (a propósito).
+    this.registroForm.get('nroDocumento')!.setValue('75911772');
+  }
+
   togglePaises(): void {
     this.skipNextClose = true;
     this.mostrarPaises.update(v => !v);
